@@ -167,42 +167,58 @@ Item {
                 }
             }
             
-            
-//            ParamList {
-//                id: params
-//                anchors.fill: parent
-//            }
+            Text {
+                Layout.fillWidth: true
+                color: Utility.getAppHexColor("lightText")
+                horizontalAlignment: Text.AlignHCenter
+                font.pointSize: 20
+                text: "Data Logging"
+            }
+
+            GridLayout {
+                Layout.fillWidth: true
+                columns: 2
+                rowSpacing: -5
+                            
+                Button {
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: 500
+                    text: "Start Log"
+                    
+                    onClicked: {
+                        var cmd = "(start-log " + makeArgStr() + ")"
+                        sendCode(cmd)
+                    }
+                }
+                
+                Button {
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: 500
+                    text: "Stop Log"
+                    
+                    onClicked: {
+                        var canId = canId.value;
+                        canId = 2;
+                        sendCode("(stop-log " + canId + ")")
+                    }
+                }
+            }
+
         }
-        
-//        RowLayout {
-//            Layout.fillWidth: true
-//            
-//            Button {
-//                text: "Read"
-//                Layout.fillWidth: true
-//                
-//                onClicked: {
-//                    mCommands.customConfigGet(0, false)
-//                }
-//            }
-//            
-//            Button {
-//                text: "Read Default"
-//                Layout.fillWidth: true
-//                
-//                onClicked: {
-//                    mCommands.customConfigGet(0, true)
-//                }
-//            }
-//            
-//            Button {
-//                text: "Write"
-//                Layout.fillWidth: true
-//                
-//                onClicked: {
-//                    mCommands.customConfigSet(0, mCustomConf)
-//                }
-//            }
-//        }
+    }
+
+    function makeArgStr() {
+        // return "" +
+        //     canId.value + " " +
+        //     gnssLog.checked + " " +
+        //     localLog.checked + " " +
+        //     canLog.checked + " " +
+        //     bmsLog.checked + " " +
+        //     parseFloat(logRate.realValue).toFixed(2)
+        return ""
+    }
+    
+    function sendCode(str) {
+        mCommands.sendCustomAppData(str + "\0") // Append null to ensure that the string is null-terminated
     }
 }
