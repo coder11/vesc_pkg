@@ -343,6 +343,11 @@
 #define APPCONF_BALANCE_TURNTILT_ERPM_BOOST_END 20000
 #endif
 
+// Balancing enabled
+#ifndef APPCONF_BALANCE_ENABLED
+#define APPCONF_BALANCE_ENABLED 0
+#endif
+
 // CONF_DEFAULT_H_
 #endif
 
