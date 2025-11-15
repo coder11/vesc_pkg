@@ -1,7 +1,9 @@
-PKGS = balance_ex float refloat tnt vbms32 vbms32_micro
-PKGS += lib_files lib_interpolation lib_nau7802 lib_pn532
-PKGS += lib_ws2812 logui lib_code_server lib_midi lib_disp_ui
-PKGS += vdisp lib_tca9535 vbms_harmony32
+# PKGS = balance_ex float refloat tnt vbms32 vbms32_micro
+# PKGS += lib_files lib_interpolation lib_nau7802 lib_pn532
+# PKGS += lib_ws2812 logui lib_code_server lib_midi lib_disp_ui
+# PKGS += vdisp lib_tca9535 vbms_harmony32
+
+PKGS = balance_ex
 
 all: vesc_pkg_all.rcc
 

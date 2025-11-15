@@ -3,6 +3,11 @@
 #ifndef CONF_DEFAULT_H_
 #define CONF_DEFAULT_H_
 
+// Balancing enabled
+#ifndef APPCONF_BALANCE_ENABLED
+#define APPCONF_BALANCE_ENABLED 0
+#endif
+
 // PID Mode
 #ifndef APPCONF_BALANCE_PID_MODE
 #define APPCONF_BALANCE_PID_MODE 0
@@ -341,11 +346,6 @@
 // Speed Boost Max ERPM
 #ifndef APPCONF_BALANCE_TURNTILT_ERPM_BOOST_END
 #define APPCONF_BALANCE_TURNTILT_ERPM_BOOST_END 20000
-#endif
-
-// Balancing enabled
-#ifndef APPCONF_BALANCE_ENABLED
-#define APPCONF_BALANCE_ENABLED 0
 #endif
 
 // CONF_DEFAULT_H_

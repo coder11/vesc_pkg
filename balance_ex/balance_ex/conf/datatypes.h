@@ -30,7 +30,7 @@ typedef enum {
 
 typedef struct {
 	BALANCE_PID_MODE pid_mode;
-	bool enabled;
+	bool balance_enabled;
 	float kp;
 	float ki;
 	float kd;

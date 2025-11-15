@@ -165,24 +165,17 @@ Item {
                     Layout.preferredWidth: parent.width/3
                     text: "App not connected"
                 }
-            }
             
-            Text {
-                Layout.fillWidth: true
-                color: Utility.getAppHexColor("lightText")
-                horizontalAlignment: Text.AlignHCenter
-                font.pointSize: 20
-                text: "Data Logging"
-            }
-
-            GridLayout {
-                Layout.fillWidth: true
-                columns: 2
-                rowSpacing: -5
+                Text {
+                    Layout.fillWidth: true
+                    color: Utility.getAppHexColor("lightText")
+                    horizontalAlignment: Text.AlignHCenter
+                    font.pointSize: 20
+                    text: "Data Logging"
+                }
                             
                 Button {
                     Layout.fillWidth: true
-                    Layout.preferredWidth: 500
                     text: "Start Log"
                     
                     onClicked: {
@@ -193,7 +186,6 @@ Item {
                 
                 Button {
                     Layout.fillWidth: true
-                    Layout.preferredWidth: 500
                     text: "Stop Log"
                     
                     onClicked: {
@@ -203,7 +195,6 @@ Item {
                     }
                 }
             }
-
         }
     }
 

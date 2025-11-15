@@ -10,6 +10,7 @@ int32_t confparser_serialize_balance_config(uint8_t *buffer, const balance_confi
 
 	buffer_append_uint32(buffer, BALANCE_CONFIG_SIGNATURE, &ind);
 
+	buffer[ind++] = conf->balance_enabled;
 	buffer[ind++] = conf->pid_mode;
 	buffer_append_float32_auto(buffer, conf->kp, &ind);
 	buffer_append_float32_auto(buffer, conf->ki, &ind);
@@ -78,7 +79,6 @@ int32_t confparser_serialize_balance_config(uint8_t *buffer, const balance_confi
 	buffer_append_float32_auto(buffer, conf->turntilt_speed, &ind);
 	buffer_append_uint16(buffer, conf->turntilt_erpm_boost, &ind);
 	buffer_append_uint16(buffer, conf->turntilt_erpm_boost_end, &ind);
-	buffer[ind++] = conf->enabled;
 
 	return ind;
 }
@@ -91,6 +91,7 @@ bool confparser_deserialize_balance_config(const uint8_t *buffer, balance_config
 		return false;
 	}
 
+	conf->balance_enabled = buffer[ind++];
 	conf->pid_mode = buffer[ind++];
 	conf->kp = buffer_get_float32_auto(buffer, &ind);
 	conf->ki = buffer_get_float32_auto(buffer, &ind);
@@ -159,12 +160,12 @@ bool confparser_deserialize_balance_config(const uint8_t *buffer, balance_config
 	conf->turntilt_speed = buffer_get_float32_auto(buffer, &ind);
 	conf->turntilt_erpm_boost = buffer_get_uint16(buffer, &ind);
 	conf->turntilt_erpm_boost_end = buffer_get_uint16(buffer, &ind);
-	conf->enabled = buffer[ind++];
 
 	return true;
 }
 
 void confparser_set_defaults_balance_config(balance_config *conf) {
+	conf->balance_enabled = APPCONF_BALANCE_ENABLED;
 	conf->pid_mode = APPCONF_BALANCE_PID_MODE;
 	conf->kp = APPCONF_BALANCE_KP;
 	conf->ki = APPCONF_BALANCE_KI;
@@ -233,6 +234,5 @@ void confparser_set_defaults_balance_config(balance_config *conf) {
 	conf->turntilt_speed = APPCONF_BALANCE_TURNTILT_SPEED;
 	conf->turntilt_erpm_boost = APPCONF_BALANCE_TURNTILT_ERPM_BOOST;
 	conf->turntilt_erpm_boost_end = APPCONF_BALANCE_TURNTILT_ERPM_BOOST_END;
-	conf->enabled = APPCONF_BALANCE_ENABLED;
 }
 
