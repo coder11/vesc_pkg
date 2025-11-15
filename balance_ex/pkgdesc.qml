@@ -1,12 +1,12 @@
 import QtQuick 2.15
 
 Item {
-    property string pkgName: "Balance"
+    property string pkgName: "Balance EX"
     property string pkgDescriptionMd: "README.md"
     property string pkgLisp: "balance.lisp"
     property string pkgQml: "ui.qml"
     property bool pkgQmlIsFullscreen: false
-    property string pkgOutput: "balance.vescpkg"
+    property string pkgOutput: "balance_ex.vescpkg"
 
     // This function should return true when this package is compatible
     // with the connected vesc-based device
