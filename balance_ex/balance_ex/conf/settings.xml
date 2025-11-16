@@ -1576,8 +1576,10 @@ p, li { white-space: pre-wrap; }
             <subgroup>
                 <subgroupName>Tune</subgroupName>
                 <subgroupParams>
-                    <param>::sep::PID</param>
+                    <param>::sep::General</param>
                     <param>balance_enabled</param>
+                    <param>pitch_adjustment</param>
+                    <param>::sep::PID</param>
                     <param>pid_mode</param>
                     <param>kp</param>
                     <param>ki</param>
