@@ -31,6 +31,7 @@ typedef enum {
 typedef struct {
 	BALANCE_PID_MODE pid_mode;
 	bool balance_enabled;
+	float pitch_adjustment;
 	float kp;
 	float ki;
 	float kd;

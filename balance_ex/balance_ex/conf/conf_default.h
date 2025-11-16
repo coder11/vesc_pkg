@@ -8,6 +8,11 @@
 #define APPCONF_BALANCE_ENABLED 0
 #endif
 
+// Pitch adjustment
+#ifndef APPCONF_PITCH_ADJUSTMENT
+#define APPCONF_PITCH_ADJUSTMENT 0
+#endif
+
 // PID Mode
 #ifndef APPCONF_BALANCE_PID_MODE
 #define APPCONF_BALANCE_PID_MODE 0
