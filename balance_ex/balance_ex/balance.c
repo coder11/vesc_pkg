@@ -638,6 +638,9 @@ static void balance_thd(void *arg) {
 		}
 
 		if(d->balance_conf.balance_enabled) {
+			float pitch_angle_adjusted = d->pitch_angle + d->balance_conf.pitch_adjustment;
+			float last_pitch_angle_adjusted = d->last_pitch_angle + d->balance_conf.pitch_adjustment;
+
 			// Control Loop State Logic
 			switch(d->state) {
 			case (STARTUP):
@@ -667,14 +670,14 @@ static void balance_thd(void *arg) {
 				apply_turntilt(d);
 
 				// Do PID maths
-				d->proportional = d->setpoint - d->pitch_angle;
+				d->proportional = d->setpoint - pitch_angle_adjusted;
 
 				// Apply deadzone
 				d->proportional = apply_deadzone(d, d->proportional);
 
 				// Resume real PID maths
 				d->integral = d->integral + d->proportional;
-				d->derivative = d->last_pitch_angle - d->pitch_angle;
+				d->derivative = last_pitch_angle_adjusted - pitch_angle_adjusted;
 
 				// Apply I term Filter
 				if (d->balance_conf.ki_limit > 0 && fabsf(d->integral * d->balance_conf.ki) > d->balance_conf.ki_limit) {
@@ -760,7 +763,7 @@ static void balance_thd(void *arg) {
 			case (FAULT_SWITCH_FULL):
 			case (FAULT_STARTUP):
 				// Check for valid startup position and switch state
-				if (fabsf(d->pitch_angle) < d->balance_conf.startup_pitch_tolerance &&
+				if (fabsf(pitch_angle_adjusted) < d->balance_conf.startup_pitch_tolerance &&
 						fabsf(d->roll_angle) < d->balance_conf.startup_roll_tolerance && d->switch_state == ON) {
 					reset_vars(d);
 					break;
