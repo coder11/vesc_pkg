@@ -42,6 +42,8 @@
         ("roll"                         (ix (get-imu-rpy) 0))
         ("pitch"                        (ix (get-imu-rpy) 1))
         ("yaw"                          (ix (get-imu-rpy) 2))
+        ("roll_deg"    3                (rad2deg (ix (get-imu-rpy) 0)))
+        ("pitch_deg"   3                (rad2deg (ix (get-imu-rpy) 1)))
         ("wh" "Wh"                      (get-wh))
 ))
 
