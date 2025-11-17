@@ -40,9 +40,6 @@ Item {
     property ConfigParams mCustomConf: VescIf.customConfig(0)
     
     Component.onCompleted: {
-//        params.addEditorCustom("pid_mode", 0)
-//        params.addEditorCustom("kp", 0)
-//        params.addEditorCustom("fault_delay_pitch", 0)
     }
     
     Timer {
@@ -156,6 +153,7 @@ Item {
                     font.underline: true
                     font.weight: Font.Black
                 }
+
                 Text {
                     id: valText1
                     color: Utility.getAppHexColor("lightText")
@@ -179,7 +177,7 @@ Item {
                     text: "Start Log"
                     
                     onClicked: {
-                        var cmd = "(start-log " + makeArgStr() + ")"
+                        var cmd = "(start-log false 20)"
                         sendCode(cmd)
                     }
                 }
@@ -189,9 +187,8 @@ Item {
                     text: "Stop Log"
                     
                     onClicked: {
-                        var canId = canId.value;
-                        canId = 2;
-                        sendCode("(stop-log " + canId + ")")
+                        var cmd = "(stop-log)"
+                        sendCode(cmd)
                     }
                 }
             }
@@ -210,6 +207,6 @@ Item {
     }
     
     function sendCode(str) {
-        mCommands.sendCustomAppData(str + "\0") // Append null to ensure that the string is null-terminated
+        mCommands.lispSendReplCmd(str)
     }
 }
