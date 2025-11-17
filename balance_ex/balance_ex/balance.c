@@ -637,147 +637,149 @@ static void balance_thd(void *arg) {
 			}
 		}
 
-		// Control Loop State Logic
-		switch(d->state) {
-		case (STARTUP):
-				// Disable output
-				brake(d);
-				if (VESC_IF->imu_startup_done()) {
-					reset_vars(d);
-					d->state = FAULT_STARTUP; // Trigger a fault so we need to meet start conditions to start
-				}
-				break;
+		if(d->balance_conf.balance_enabled) {
+			// Control Loop State Logic
+			switch(d->state) {
+			case (STARTUP):
+					// Disable output
+					brake(d);
+					if (VESC_IF->imu_startup_done()) {
+						reset_vars(d);
+						d->state = FAULT_STARTUP; // Trigger a fault so we need to meet start conditions to start
+					}
+					break;
 
-		case (RUNNING):
-		case (RUNNING_TILTBACK_DUTY):
-		case (RUNNING_TILTBACK_HIGH_VOLTAGE):
-		case (RUNNING_TILTBACK_LOW_VOLTAGE):
-			// Check for faults
-			if (check_faults(d, false)) {
-				break;
-			}
-
-			// Calculate setpoint and interpolation
-			calculate_setpoint_target(d);
-			calculate_setpoint_interpolated(d);
-			d->setpoint = d->setpoint_target_interpolated;
-			apply_noseangling(d);
-			apply_torquetilt(d);
-			apply_turntilt(d);
-
-			// Do PID maths
-			d->proportional = d->setpoint - d->pitch_angle;
-
-			// Apply deadzone
-			d->proportional = apply_deadzone(d, d->proportional);
-
-			// Resume real PID maths
-			d->integral = d->integral + d->proportional;
-			d->derivative = d->last_pitch_angle - d->pitch_angle;
-
-			// Apply I term Filter
-			if (d->balance_conf.ki_limit > 0 && fabsf(d->integral * d->balance_conf.ki) > d->balance_conf.ki_limit) {
-				d->integral = d->balance_conf.ki_limit / d->balance_conf.ki * SIGN(d->integral);
-			}
-
-			// Apply D term filters
-			if (d->balance_conf.kd_pt1_lowpass_frequency > 0) {
-				d->d_pt1_lowpass_state = d->d_pt1_lowpass_state + d->d_pt1_lowpass_k * (d->derivative - d->d_pt1_lowpass_state);
-				d->derivative = d->d_pt1_lowpass_state;
-			}
-
-			if (d->balance_conf.kd_pt1_highpass_frequency > 0){
-				d->d_pt1_highpass_state = d->d_pt1_highpass_state + d->d_pt1_highpass_k * (d->derivative - d->d_pt1_highpass_state);
-				d->derivative = d->derivative - d->d_pt1_highpass_state;
-			}
-
-			d->pid_value = (d->balance_conf.kp * d->proportional) + (d->balance_conf.ki * d->integral) + (d->balance_conf.kd * d->derivative);
-
-			if (d->balance_conf.pid_mode == BALANCE_PID_MODE_ANGLE_RATE_CASCADE) {
-				d->proportional2 = d->pid_value - d->gyro[1];
-				d->integral2 = d->integral2 + d->proportional2;
-				d->derivative2 = d->last_gyro_y - d->gyro[1];
-
-				// Apply I term Filter
-				if (d->balance_conf.ki_limit > 0 && fabsf(d->integral2 * d->balance_conf.ki2) > d->balance_conf.ki_limit) {
-					d->integral2 = d->balance_conf.ki_limit / d->balance_conf.ki2 * SIGN(d->integral2);
+			case (RUNNING):
+			case (RUNNING_TILTBACK_DUTY):
+			case (RUNNING_TILTBACK_HIGH_VOLTAGE):
+			case (RUNNING_TILTBACK_LOW_VOLTAGE):
+				// Check for faults
+				if (check_faults(d, false)) {
+					break;
 				}
 
-				d->pid_value = (d->balance_conf.kp2 * d->proportional2) +
-						(d->balance_conf.ki2 * d->integral2) + (d->balance_conf.kd2 * d->derivative2);
-			}
-
-			d->last_proportional = d->proportional;
-
-			// Apply Booster
-			d->abs_proportional = fabsf(d->proportional);
-			if (d->abs_proportional > d->balance_conf.booster_angle) {
-				if (d->abs_proportional - d->balance_conf.booster_angle < d->balance_conf.booster_ramp) {
-					d->pid_value += (d->balance_conf.booster_current * SIGN(d->proportional)) *
-							((d->abs_proportional - d->balance_conf.booster_angle) / d->balance_conf.booster_ramp);
-				} else {
-					d->pid_value += d->balance_conf.booster_current * SIGN(d->proportional);
-				}
-			}
-
-			if (d->balance_conf.multi_esc) {
-				// Calculate setpoint
-				if (d->abs_duty_cycle < .02) {
-					d->yaw_setpoint = 0;
-				} else if (d->avg_erpm < 0) {
-					d->yaw_setpoint = (-d->balance_conf.roll_steer_kp * d->roll_angle) +
-							(d->balance_conf.roll_steer_erpm_kp * d->roll_angle * d->avg_erpm);
-				} else {
-					d->yaw_setpoint = (d->balance_conf.roll_steer_kp * d->roll_angle) +
-							(d->balance_conf.roll_steer_erpm_kp * d->roll_angle * d->avg_erpm);
-				}
+				// Calculate setpoint and interpolation
+				calculate_setpoint_target(d);
+				calculate_setpoint_interpolated(d);
+				d->setpoint = d->setpoint_target_interpolated;
+				apply_noseangling(d);
+				apply_torquetilt(d);
+				apply_turntilt(d);
 
 				// Do PID maths
-				d->yaw_proportional = d->yaw_setpoint - d->gyro[2];
-				d->yaw_integral = d->yaw_integral + d->yaw_proportional;
-				d->yaw_derivative = d->yaw_proportional - d->yaw_last_proportional;
+				d->proportional = d->setpoint - d->pitch_angle;
 
-				d->yaw_pid_value = (d->balance_conf.yaw_kp * d->yaw_proportional) +
-						(d->balance_conf.yaw_ki * d->yaw_integral) + (d->balance_conf.yaw_kd * d->yaw_derivative);
+				// Apply deadzone
+				d->proportional = apply_deadzone(d, d->proportional);
 
-				if (d->yaw_pid_value > d->balance_conf.yaw_current_clamp) {
-					d->yaw_pid_value = d->balance_conf.yaw_current_clamp;
-				} else if (d->yaw_pid_value < -d->balance_conf.yaw_current_clamp) {
-					d->yaw_pid_value = -d->balance_conf.yaw_current_clamp;
+				// Resume real PID maths
+				d->integral = d->integral + d->proportional;
+				d->derivative = d->last_pitch_angle - d->pitch_angle;
+
+				// Apply I term Filter
+				if (d->balance_conf.ki_limit > 0 && fabsf(d->integral * d->balance_conf.ki) > d->balance_conf.ki_limit) {
+					d->integral = d->balance_conf.ki_limit / d->balance_conf.ki * SIGN(d->integral);
 				}
 
-				d->yaw_last_proportional = d->yaw_proportional;
-			}
+				// Apply D term filters
+				if (d->balance_conf.kd_pt1_lowpass_frequency > 0) {
+					d->d_pt1_lowpass_state = d->d_pt1_lowpass_state + d->d_pt1_lowpass_k * (d->derivative - d->d_pt1_lowpass_state);
+					d->derivative = d->d_pt1_lowpass_state;
+				}
 
-			// Output to motor
-			set_current(d, d->pid_value, d->yaw_pid_value);
-			break;
+				if (d->balance_conf.kd_pt1_highpass_frequency > 0){
+					d->d_pt1_highpass_state = d->d_pt1_highpass_state + d->d_pt1_highpass_k * (d->derivative - d->d_pt1_highpass_state);
+					d->derivative = d->derivative - d->d_pt1_highpass_state;
+				}
 
-		case (FAULT_ANGLE_PITCH):
-		case (FAULT_ANGLE_ROLL):
-		case (FAULT_SWITCH_HALF):
-		case (FAULT_SWITCH_FULL):
-		case (FAULT_STARTUP):
-			// Check for valid startup position and switch state
-			if (fabsf(d->pitch_angle) < d->balance_conf.startup_pitch_tolerance &&
-					fabsf(d->roll_angle) < d->balance_conf.startup_roll_tolerance && d->switch_state == ON) {
-				reset_vars(d);
+				d->pid_value = (d->balance_conf.kp * d->proportional) + (d->balance_conf.ki * d->integral) + (d->balance_conf.kd * d->derivative);
+
+				if (d->balance_conf.pid_mode == BALANCE_PID_MODE_ANGLE_RATE_CASCADE) {
+					d->proportional2 = d->pid_value - d->gyro[1];
+					d->integral2 = d->integral2 + d->proportional2;
+					d->derivative2 = d->last_gyro_y - d->gyro[1];
+
+					// Apply I term Filter
+					if (d->balance_conf.ki_limit > 0 && fabsf(d->integral2 * d->balance_conf.ki2) > d->balance_conf.ki_limit) {
+						d->integral2 = d->balance_conf.ki_limit / d->balance_conf.ki2 * SIGN(d->integral2);
+					}
+
+					d->pid_value = (d->balance_conf.kp2 * d->proportional2) +
+							(d->balance_conf.ki2 * d->integral2) + (d->balance_conf.kd2 * d->derivative2);
+				}
+
+				d->last_proportional = d->proportional;
+
+				// Apply Booster
+				d->abs_proportional = fabsf(d->proportional);
+				if (d->abs_proportional > d->balance_conf.booster_angle) {
+					if (d->abs_proportional - d->balance_conf.booster_angle < d->balance_conf.booster_ramp) {
+						d->pid_value += (d->balance_conf.booster_current * SIGN(d->proportional)) *
+								((d->abs_proportional - d->balance_conf.booster_angle) / d->balance_conf.booster_ramp);
+					} else {
+						d->pid_value += d->balance_conf.booster_current * SIGN(d->proportional);
+					}
+				}
+
+				if (d->balance_conf.multi_esc) {
+					// Calculate setpoint
+					if (d->abs_duty_cycle < .02) {
+						d->yaw_setpoint = 0;
+					} else if (d->avg_erpm < 0) {
+						d->yaw_setpoint = (-d->balance_conf.roll_steer_kp * d->roll_angle) +
+								(d->balance_conf.roll_steer_erpm_kp * d->roll_angle * d->avg_erpm);
+					} else {
+						d->yaw_setpoint = (d->balance_conf.roll_steer_kp * d->roll_angle) +
+								(d->balance_conf.roll_steer_erpm_kp * d->roll_angle * d->avg_erpm);
+					}
+
+					// Do PID maths
+					d->yaw_proportional = d->yaw_setpoint - d->gyro[2];
+					d->yaw_integral = d->yaw_integral + d->yaw_proportional;
+					d->yaw_derivative = d->yaw_proportional - d->yaw_last_proportional;
+
+					d->yaw_pid_value = (d->balance_conf.yaw_kp * d->yaw_proportional) +
+							(d->balance_conf.yaw_ki * d->yaw_integral) + (d->balance_conf.yaw_kd * d->yaw_derivative);
+
+					if (d->yaw_pid_value > d->balance_conf.yaw_current_clamp) {
+						d->yaw_pid_value = d->balance_conf.yaw_current_clamp;
+					} else if (d->yaw_pid_value < -d->balance_conf.yaw_current_clamp) {
+						d->yaw_pid_value = -d->balance_conf.yaw_current_clamp;
+					}
+
+					d->yaw_last_proportional = d->yaw_proportional;
+				}
+
+				// Output to motor
+				set_current(d, d->pid_value, d->yaw_pid_value);
+				break;
+
+			case (FAULT_ANGLE_PITCH):
+			case (FAULT_ANGLE_ROLL):
+			case (FAULT_SWITCH_HALF):
+			case (FAULT_SWITCH_FULL):
+			case (FAULT_STARTUP):
+				// Check for valid startup position and switch state
+				if (fabsf(d->pitch_angle) < d->balance_conf.startup_pitch_tolerance &&
+						fabsf(d->roll_angle) < d->balance_conf.startup_roll_tolerance && d->switch_state == ON) {
+					reset_vars(d);
+					break;
+				}
+
+				// Disable output
+				brake(d);
+				break;
+
+			case (FAULT_DUTY):
+				// We need another fault to clear duty fault.
+				// Otherwise duty fault will clear itself as soon as motor pauses, then motor will spool up again.
+				// Rendering this fault useless.
+				check_faults(d, true);
+
+				// Disable output
+				brake(d);
 				break;
 			}
-
-			// Disable output
-			brake(d);
-			break;
-
-		case (FAULT_DUTY):
-			// We need another fault to clear duty fault.
-			// Otherwise duty fault will clear itself as soon as motor pauses, then motor will spool up again.
-			// Rendering this fault useless.
-			check_faults(d, true);
-
-			// Disable output
-			brake(d);
-			break;
 		}
 
 		// Debug outputs
