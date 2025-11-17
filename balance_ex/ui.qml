@@ -171,13 +171,37 @@ Item {
                     font.pointSize: 20
                     text: "Data Logging"
                 }
+                
+                CheckBox {
+                    id: appendGnss
+                    Layout.fillWidth: true
+                    text: "Append GNSS"
+                    checked: false
+                }
+                
+                RowLayout {
+                    Layout.fillWidth: true
+                    
+                    Text {
+                        color: Utility.getAppHexColor("lightText")
+                        text: "Log Rate:"
+                        Layout.preferredWidth: 100
+                    }
+                    
+                    ComboBox {
+                        id: logRate
+                        Layout.fillWidth: true
+                        model: [20, 50, 100, 200, 500, 1000]
+                        currentIndex: 5 // Default to 1000
+                    }
+                }
                             
                 Button {
                     Layout.fillWidth: true
                     text: "Start Log"
                     
                     onClicked: {
-                        var cmd = "(start-log false 20)"
+                        var cmd = "(start-log " + appendGnss.checked + " " + logRate.model[logRate.currentIndex] + ")"
                         sendCode(cmd)
                     }
                 }
@@ -195,17 +219,6 @@ Item {
         }
     }
 
-    function makeArgStr() {
-        // return "" +
-        //     canId.value + " " +
-        //     gnssLog.checked + " " +
-        //     localLog.checked + " " +
-        //     canLog.checked + " " +
-        //     bmsLog.checked + " " +
-        //     parseFloat(logRate.realValue).toFixed(2)
-        return ""
-    }
-    
     function sendCode(str) {
         mCommands.lispSendReplCmd(str)
     }
