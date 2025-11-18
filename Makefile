@@ -3,7 +3,7 @@
 # PKGS += lib_ws2812 logui lib_code_server lib_midi lib_disp_ui
 # PKGS += vdisp lib_tca9535 vbms_harmony32
 
-PKGS = balance_ex
+PKGS = balance_ex loggrabber
 
 all: vesc_pkg_all.rcc
 
