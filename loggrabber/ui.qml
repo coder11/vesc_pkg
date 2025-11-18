@@ -17,27 +17,40 @@ Item {
     ColumnLayout {
         anchors.fill: parent
         
-        Text {
+        RowLayout {
             Layout.fillWidth: true
-            color: Utility.getAppHexColor("lightText")
-            horizontalAlignment: Text.AlignHCenter
-            font.pointSize: 20
-            text: "LogGrabber"
+            
+            Text {
+                Layout.fillWidth: true
+                color: Utility.getAppHexColor("lightText")
+                horizontalAlignment: Text.AlignHCenter
+                font.pointSize: 20
+                text: "LogGrabber"
+            }
+            
+            Button {
+                text: "Rescan"
+                onClicked: {
+                    fileModel.clear()
+                    scanDirectoryRecursive("/")
+                }
+            }
         }
         
-        // File tree view
+        // Flat file list
         ScrollView {
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
             
             ListView {
-                id: fileTreeView
+                id: fileListView
                 model: fileModel
                 
                 delegate: Item {
-                    width: fileTreeView.width
-                    height: fileItem.height
+                    width: fileListView.width
+                    height: model.isDir ? 0 : fileItem.height
+                    visible: !model.isDir
                     
                     Rectangle {
                         id: fileItem
@@ -49,31 +62,19 @@ Item {
                         
                         Row {
                             anchors.left: parent.left
-                            anchors.leftMargin: (model.level || 0) * 20
+                            anchors.leftMargin: 10
                             anchors.verticalCenter: parent.verticalCenter
-                            spacing: 5
+                            spacing: 10
                             
                             Text {
-                                text: model.isDir ? (model.expanded ? "▼" : "▶") : "  "
-                                color: Utility.getAppHexColor("lightText")
-                                width: 15
-                                visible: model.isDir
-                            }
-                            
-                            Text {
-                                text: model.isDir ? "[D]" : "[F]"
+                                text: model.fullPath
                                 color: Utility.getAppHexColor("lightText")
                                 anchors.verticalCenter: parent.verticalCenter
+                                elide: Text.ElideLeft
                             }
                             
                             Text {
-                                text: model.name
-                                color: Utility.getAppHexColor("lightText")
-                                anchors.verticalCenter: parent.verticalCenter
-                            }
-                            
-                            Text {
-                                text: model.isDir ? "" : "(" + formatSize(model.size) + ")"
+                                text: "(" + formatSize(model.size) + ")"
                                 color: Utility.getAppHexColor("lightText")
                                 anchors.verticalCenter: parent.verticalCenter
                                 opacity: 0.7
@@ -85,19 +86,8 @@ Item {
                             anchors.fill: parent
                             hoverEnabled: true
                             onClicked: {
-                                if (model.isDir) {
-                                    var newPath = model.fullPath
-                                    if (model.expanded) {
-                                        // Collapse - remove children
-                                        collapseDirectory(model.index)
-                                    } else {
-                                        // Expand - load children
-                                        expandDirectory(model.index, newPath)
-                                    }
-                                } else {
-                                    // File selected
-                                    console.log("File selected: " + model.fullPath)
-                                }
+                                // File selected
+                                console.log("File selected: " + model.fullPath)
                             }
                         }
                     }
@@ -106,77 +96,35 @@ Item {
         }
     }
     
-    function loadDirectory(path) {
-        fileModel.clear()
+    function scanDirectoryRecursive(path) {
         var items = mCommands.fileBlockList(path)
+        var hasFiles = false
         
         if (items && items.length > 0) {
             for (var i = 0; i < items.length; i++) {
                 var item = items[i]
                 var fullPath = path === "/" ? "/" + item.name : path + "/" + item.name
-                fileModel.append({
-                    name: item.name,
-                    isDir: item.isDir || false,
-                    fullPath: fullPath,
-                    level: 0,
-                    expanded: false,
-                    parentIndex: -1,
-                    size: item.size || 0
-                })
-            }
-        }
-    }
-    
-    function expandDirectory(index, path) {
-        // Mark as expanded
-        fileModel.setProperty(index, "expanded", true)
-        
-        // Load children
-        var items = mCommands.fileBlockList(path)
-        
-        if (items && items.length > 0) {
-            var parentLevel = fileModel.get(index).level
-            var insertIndex = index + 1
-            
-            for (var i = 0; i < items.length; i++) {
-                var item = items[i]
-                var fullPath = path === "/" ? "/" + item.name : path + "/" + item.name
-                fileModel.insert(insertIndex + i, {
-                    name: item.name,
-                    isDir: item.isDir || false,
-                    fullPath: fullPath,
-                    level: parentLevel + 1,
-                    expanded: false,
-                    parentIndex: index,
-                    size: item.size || 0
-                })
-            }
-        }
-    }
-    
-    function collapseDirectory(index) {
-        // Mark as collapsed
-        fileModel.setProperty(index, "expanded", false)
-        
-        // Collect all indices to remove (all descendants)
-        var level = fileModel.get(index).level
-        var indicesToRemove = []
-        
-        for (var i = index + 1; i < fileModel.count; i++) {
-            var item = fileModel.get(i)
-            if (item.level > level) {
-                // This is a descendant (child or deeper)
-                indicesToRemove.push(i)
-            } else {
-                // We've reached a sibling or parent (same or lower level), stop
-                break
+                
+                if (item.isDir) {
+                    // Recursively scan directory first to check if it contains files
+                    var dirHasFiles = scanDirectoryRecursive(fullPath)
+                    if (dirHasFiles) {
+                        // Don't add directories to the list, just track that they have files
+                        hasFiles = true
+                    }
+                } else {
+                    // Always add files
+                    fileModel.append({
+                        isDir: false,
+                        fullPath: fullPath,
+                        size: item.size || 0
+                    })
+                    hasFiles = true
+                }
             }
         }
         
-        // Remove in reverse order to avoid index shifting issues
-        for (var j = indicesToRemove.length - 1; j >= 0; j--) {
-            fileModel.remove(indicesToRemove[j])
-        }
+        return hasFiles
     }
     
     function formatSize(bytes) {
@@ -188,6 +136,7 @@ Item {
     }
     
     Component.onCompleted: {
-        loadDirectory("/")
+        fileModel.clear()
+        scanDirectoryRecursive("/")
     }
 }
