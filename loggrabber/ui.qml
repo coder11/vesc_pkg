@@ -1,6 +1,7 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.3
+import Qt.labs.platform 1.1 as Platform
 
 import Vedder.vesc.commands 1.0
 import Vedder.vesc.configparams 1.0
@@ -63,6 +64,8 @@ Item {
                         Row {
                             anchors.left: parent.left
                             anchors.leftMargin: 10
+                            anchors.right: parent.right
+                            anchors.rightMargin: 10
                             anchors.verticalCenter: parent.verticalCenter
                             spacing: 10
                             
@@ -85,9 +88,29 @@ Item {
                             id: mouseArea
                             anchors.fill: parent
                             hoverEnabled: true
+                            acceptedButtons: Qt.LeftButton | Qt.RightButton
                             onClicked: {
-                                // File selected
-                                console.log("File selected: " + model.fullPath)
+                                if (mouse.button === Qt.RightButton || mouse.button === Qt.LeftButton) {
+                                    contextMenu.popup(mouseArea, mouse.x, mouse.y)
+                                }
+                            }
+                        }
+                        
+                        Menu {
+                            id: contextMenu
+                            
+                            MenuItem {
+                                text: "Download"
+                                onTriggered: {
+                                    downloadFile(model.fullPath)
+                                }
+                            }
+                            
+                            MenuItem {
+                                text: "Delete"
+                                onTriggered: {
+                                    deleteFile(model.fullPath)
+                                }
                             }
                         }
                     }
@@ -133,6 +156,114 @@ Item {
         if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB"
         if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + " MB"
         return (bytes / (1024 * 1024 * 1024)).toFixed(1) + " GB"
+    }
+    
+    Platform.FileDialog {
+        id: saveFileDialog
+        title: "Save File"
+        fileMode: Platform.FileDialog.SaveFile
+        
+        property string filePath: ""
+        
+        onAccepted: {
+            if (!Utility.requestFilePermission()) {
+                VescIf.emitMessageDialog(
+                    "File Permissions",
+                    "Unable to request file system permission.",
+                    false, false);
+                return;
+            }
+            
+            var fUrl = file.toString();
+
+            // Debug popup to display filepath
+            VescIf.emitMessageDialog(
+                "Debug: File Path",
+                "File path: " + fUrl + "\nSource path: " + filePath,
+                false, false);
+            
+            var data = mCommands.fileBlockRead(filePath);
+
+            
+            if (data && data.length > 0) {
+                var request = new XMLHttpRequest();
+                request.open("PUT", fUrl, false);
+                request.send(data);
+                
+                if (request.status === 0) {
+                    VescIf.emitStatusMessage("File downloaded successfully", true);
+                } else {
+                    VescIf.emitStatusMessage("Download failed: %1".arg(request.status), false);
+                }
+            } else {
+                VescIf.emitStatusMessage("Failed to read file from device", false);
+            }
+        }
+    }
+    
+    Dialog {
+        id: deleteConfirmDialog
+        title: "Delete File"
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        modal: true
+        focus: true
+        width: parent.width - 20
+        closePolicy: Popup.CloseOnEscape
+        x: 10
+        y: 10 + parent.height / 2 - height / 2
+        parent: container
+        
+        property string filePath: ""
+        
+        Component.onCompleted: {
+            standardButton(Dialog.Ok).text = "Delete"
+        }
+        
+        onAccepted: {
+            var ok = mCommands.fileBlockRemove(filePath);
+            if (ok) {
+                VescIf.emitStatusMessage("File deleted", true);
+                // Rescan to update the list
+                fileModel.clear()
+                scanDirectoryRecursive("/")
+            } else {
+                VescIf.emitStatusMessage("Failed to delete file", false);
+            }
+        }
+        
+        Overlay.modal: Rectangle {
+            color: "#AA000000"
+        }
+        
+        ColumnLayout {
+            anchors.fill: parent
+            Text {
+                color: Utility.getAppHexColor("lightText")
+                verticalAlignment: Text.AlignVCenter
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                text: "This will delete the file permanently. Are you sure?"
+            }
+        }
+    }
+    
+    function downloadFile(path) {
+        if (!Utility.requestFilePermission()) {
+            VescIf.emitMessageDialog(
+                "File Permissions",
+                "Unable to request file system permission.",
+                false, false);
+            return;
+        }
+        
+        saveFileDialog.filePath = path;
+        saveFileDialog.nameFilters = ["CSV files (*.csv)", "All files (*)"];
+        saveFileDialog.open();
+    }
+    
+    function deleteFile(path) {
+        deleteConfirmDialog.filePath = path;
+        deleteConfirmDialog.open();
     }
     
     Component.onCompleted: {
