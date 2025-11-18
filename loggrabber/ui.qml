@@ -175,29 +175,213 @@ Item {
             }
             
             var fUrl = file.toString();
-
-            // Debug popup to display filepath
-            VescIf.emitMessageDialog(
-                "Debug: File Path",
-                "File path: " + fUrl + "\nSource path: " + filePath,
-                false, false);
+            downloadProgressDialog.filePath = filePath;
+            downloadProgressDialog.saveUrl = fUrl;
+            downloadProgressDialog.fileData = null;
+            downloadProgressDialog.downloadComplete = false;
+            downloadProgressDialog.cancelled = false;
+            downloadProgressDialog.progressText = "Preparing download...";
+            downloadProgressDialog.open();
             
-            var data = mCommands.fileBlockRead(filePath);
-
+            // Start the download in a Timer to allow the dialog to render and progress signals to be processed
+            downloadStartTimer.filePath = filePath;
+            downloadStartTimer.start();
+        }
+    }
+    
+    Timer {
+        id: downloadStartTimer
+        interval: 100
+        repeat: false
+        property string filePath: ""
+        
+        onTriggered: {
+            // Reset cancellation flag
+            downloadProgressDialog.cancelled = false;
+            downloadProgressDialog.progressText = "Grabbing bytes...";
             
-            if (data && data.length > 0) {
-                var request = new XMLHttpRequest();
-                request.open("PUT", fUrl, false);
-                request.send(data);
+            // Start the download
+            try {
+                // Check if cancelled before starting
+                if (downloadProgressDialog.cancelled) {
+                    return;
+                }
                 
-                if (request.status === 0) {
+                console.log("Attempting to read file:", filePath);
+                var data = mCommands.fileBlockRead(filePath);
+                
+                // Check if cancelled after read
+                if (downloadProgressDialog.cancelled) {
+                    return;
+                }
+                
+                console.log("File read result - data type:", typeof data, "is ArrayBuffer:", data instanceof ArrayBuffer);
+                
+                // Handle different data types
+                var dataLength = 0;
+                if (data instanceof ArrayBuffer) {
+                    dataLength = data.byteLength;
+                    console.log("ArrayBuffer length:", dataLength);
+                } else if (data && typeof data.length !== 'undefined') {
+                    dataLength = data.length;
+                    console.log("Data length:", dataLength);
+                } else if (data) {
+                    // Try to get byteLength if it's a QByteArray-like object
+                    try {
+                        dataLength = data.byteLength || 0;
+                        console.log("ByteLength:", dataLength);
+                    } catch (e) {
+                        console.log("Could not determine data length");
+                    }
+                }
+                
+                if (downloadProgressDialog.cancelled) {
+                    return;
+                }
+                
+                if (data && dataLength > 0) {
+                    downloadProgressDialog.fileData = data;
+                    downloadProgressDialog.downloadComplete = true;
+                    downloadProgressDialog.progressText = "Download complete, saving...";
+                    // Use a small delay before saving to ensure progress is shown
+                    Qt.callLater(function() {
+                        if (!downloadProgressDialog.cancelled) {
+                            downloadProgressDialog.saveFile();
+                        }
+                    });
+                } else {
+                    if (!downloadProgressDialog.cancelled) {
+                        downloadProgressDialog.close();
+                        var errorMsg = "Failed to read file from device";
+                        if (!data) {
+                            errorMsg += " (null data)";
+                        } else if (dataLength === 0) {
+                            errorMsg += " (empty data, length: 0)";
+                        } else {
+                            errorMsg += " (unknown data format)";
+                        }
+                        VescIf.emitStatusMessage(errorMsg, false);
+                    }
+                }
+            } catch (e) {
+                if (!downloadProgressDialog.cancelled) {
+                    console.log("File read exception:", e.toString());
+                    downloadProgressDialog.close();
+                    VescIf.emitStatusMessage("Download error: %1".arg(e.toString()), false);
+                }
+            }
+        }
+    }
+    
+    Dialog {
+        id: downloadProgressDialog
+        title: "Downloading File..."
+        closePolicy: Popup.NoAutoClose
+        modal: true
+        focus: true
+        width: parent.width - 20
+        x: 10
+        y: parent.height / 2 - height / 2
+        parent: container
+        standardButtons: Dialog.Cancel
+        
+        property string filePath: ""
+        property string saveUrl: ""
+        property var fileData: null
+        property bool downloadComplete: false
+        property bool cancelled: false
+        property string progressText: "Downloading..."
+        
+        onRejected: {
+            // User clicked Cancel
+            cancelled = true;
+            close();
+            VescIf.emitStatusMessage("Download cancelled", false);
+        }
+        
+        function saveFile() {
+            if (cancelled) {
+                return;
+            }
+            
+            if (!fileData || fileData.length === 0) {
+                close();
+                VescIf.emitStatusMessage("No data to save", false);
+                return;
+            }
+            
+            try {
+                // Convert ArrayBuffer to string if needed, or use as-is
+                var dataToSend = fileData;
+                if (fileData instanceof ArrayBuffer) {
+                    // Convert ArrayBuffer to binary string for XMLHttpRequest
+                    var uint8Array = new Uint8Array(fileData);
+                    var binaryString = "";
+                    var chunkSize = 8192; // Process in chunks to avoid blocking
+                    for (var i = 0; i < uint8Array.length; i += chunkSize) {
+                        var chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
+                        for (var j = 0; j < chunk.length; j++) {
+                            binaryString += String.fromCharCode(chunk[j]);
+                        }
+                    }
+                    dataToSend = binaryString;
+                } else if (fileData && typeof fileData.byteLength !== 'undefined') {
+                    // Handle QByteArray-like objects
+                    try {
+                        var uint8Array = new Uint8Array(fileData.byteLength);
+                        for (var i = 0; i < fileData.byteLength; i++) {
+                            uint8Array[i] = fileData[i] || 0;
+                        }
+                        var binaryString = "";
+                        for (var i = 0; i < uint8Array.length; i++) {
+                            binaryString += String.fromCharCode(uint8Array[i]);
+                        }
+                        dataToSend = binaryString;
+                    } catch (e) {
+                        console.log("Error converting data:", e.toString());
+                        // Try sending as-is
+                    }
+                }
+                
+                var request = new XMLHttpRequest();
+                request.open("PUT", saveUrl, false);
+                request.send(dataToSend);
+                
+                close();
+                
+                if (request.status === 0 || request.status === 200) {
                     VescIf.emitStatusMessage("File downloaded successfully", true);
                 } else {
-                    VescIf.emitStatusMessage("Download failed: %1".arg(request.status), false);
+                    VescIf.emitStatusMessage("Download failed: Status %1".arg(request.status), false);
                 }
-            } else {
-                VescIf.emitStatusMessage("Failed to read file from device", false);
+            } catch (e) {
+                close();
+                VescIf.emitStatusMessage("Download failed: %1".arg(e.toString()), false);
             }
+        }
+        
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 10
+            spacing: 15
+            
+            Text {
+                id: progressTextDisplay
+                Layout.fillWidth: true
+                color: Utility.getAppHexColor("lightText")
+                horizontalAlignment: Text.AlignHCenter
+                text: downloadProgressDialog.progressText
+            }
+            
+            ProgressBar {
+                id: progressBar
+                Layout.fillWidth: true
+                indeterminate: true
+            }
+        }
+        
+        Component.onCompleted: {
+            standardButton(Dialog.Cancel).text = "Cancel"
         }
     }
     
@@ -257,6 +441,12 @@ Item {
         }
         
         saveFileDialog.filePath = path;
+        
+        // Extract filename from path and set it as default
+        var pathParts = path.split("/");
+        var fileName = pathParts[pathParts.length - 1];
+        saveFileDialog.file = "file:///" + fileName;
+        
         saveFileDialog.nameFilters = ["CSV files (*.csv)", "All files (*)"];
         saveFileDialog.open();
     }
