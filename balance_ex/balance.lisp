@@ -49,10 +49,10 @@
         ("wh" "Wh"                      (get-wh))
         ;; pid stuff
         ("pid_p"                        (ext-balance-get-p))
-        ("pid_ratep"                    (ext-balance-get-ratep))
         ("pid_i"                        (ext-balance-get-i))
-        ("pid_ratei"                    (ext-balance-get-ratei))
         ("pid_d"                        (ext-balance-get-d))
+        ("pid_ratep"                    (ext-balance-get-ratep))
+        ("pid_ratei"                    (ext-balance-get-ratei))
         ("pid_rated"                    (ext-balance-get-rated))
         ("pid_value"                    (ext-balance-get-pid))
         ("pid_rate_value"               (ext-balance-get-pid_rate))
