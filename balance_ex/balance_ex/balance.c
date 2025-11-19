@@ -110,7 +110,7 @@ typedef struct {
 	BalanceState state;
 	float proportional, integral, derivative, proportional2, integral2, derivative2;
 	float last_proportional, abs_proportional;
-	float pid_value;
+	float pid_value, pid_value2;
 	float setpoint, setpoint_target, setpoint_target_interpolated;
 	float noseangling_interpolated;
 	float torquetilt_filtered_current, torquetilt_target, torquetilt_interpolated;
@@ -695,7 +695,9 @@ static void balance_thd(void *arg) {
 					d->derivative = d->derivative - d->d_pt1_highpass_state;
 				}
 
+				float resulting_pid_value;
 				d->pid_value = (d->balance_conf.kp * d->proportional) + (d->balance_conf.ki * d->integral) + (d->balance_conf.kd * d->derivative);
+				resulting_pid_value = d->pid_value;
 
 				if (d->balance_conf.pid_mode == BALANCE_PID_MODE_ANGLE_RATE_CASCADE) {
 					d->proportional2 = d->pid_value - d->gyro[1];
@@ -707,13 +709,16 @@ static void balance_thd(void *arg) {
 						d->integral2 = d->balance_conf.ki_limit / d->balance_conf.ki2 * SIGN(d->integral2);
 					}
 
-					d->pid_value = (d->balance_conf.kp2 * d->proportional2) +
+					d->pid_value2 = (d->balance_conf.kp2 * d->proportional2) +
 							(d->balance_conf.ki2 * d->integral2) + (d->balance_conf.kd2 * d->derivative2);
+					resulting_pid_value = d->pid_value2;
 				}
 
 				d->last_proportional = d->proportional;
 
 				// Apply Booster
+				// I don't need it
+				/*
 				d->abs_proportional = fabsf(d->proportional);
 				if (d->abs_proportional > d->balance_conf.booster_angle) {
 					if (d->abs_proportional - d->balance_conf.booster_angle < d->balance_conf.booster_ramp) {
@@ -723,7 +728,10 @@ static void balance_thd(void *arg) {
 						d->pid_value += d->balance_conf.booster_current * SIGN(d->proportional);
 					}
 				}
+				*/
 
+				// Don't use multi ESC for EUC :)
+				/*
 				if (d->balance_conf.multi_esc) {
 					// Calculate setpoint
 					if (d->abs_duty_cycle < .02) {
@@ -752,9 +760,10 @@ static void balance_thd(void *arg) {
 
 					d->yaw_last_proportional = d->yaw_proportional;
 				}
+				*/
 
 				// Output to motor
-				set_current(d, d->pid_value, d->yaw_pid_value);
+				set_current(d, resulting_pid_value, d->yaw_pid_value);
 				break;
 
 			case (FAULT_ANGLE_PITCH):
@@ -878,6 +887,46 @@ static lbm_value ext_bal_dbg(lbm_value *args, lbm_uint argn) {
 	return VESC_IF->lbm_enc_float(app_balance_get_debug(VESC_IF->lbm_dec_as_i32(args[0])));
 }
 
+static lbm_value ext_get_proportional(lbm_value *_args, lbm_uint _argn) {
+	data *d = (data*)ARG;
+	return VESC_IF->lbm_enc_float(d->proportional * d->balance_conf.kp);
+}
+
+static lbm_value ext_get_proportional2(lbm_value *args, lbm_uint argn) {
+	data *d = (data*)ARG;
+	return VESC_IF->lbm_enc_float(d->proportional2 * d->balance_conf.kp2);
+}
+
+static lbm_value ext_get_integral(lbm_value *_args, lbm_uint _argn) {
+	data *d = (data*)ARG;
+	return VESC_IF->lbm_enc_float(d->integral * d->balance_conf.ki);
+}
+
+static lbm_value ext_get_integral2(lbm_value *_args, lbm_uint _argn) {
+	data *d = (data*)ARG;
+	return VESC_IF->lbm_enc_float(d->integral2 * d->balance_conf.ki2);
+}
+
+static lbm_value ext_get_derivative(lbm_value *_args, lbm_uint _argn) {
+	data *d = (data*)ARG;
+	return VESC_IF->lbm_enc_float(d->derivative * d->balance_conf.kd);
+}
+
+static lbm_value ext_get_derivative2(lbm_value *_args, lbm_uint _argn) {
+	data *d = (data*)ARG;
+	return VESC_IF->lbm_enc_float(d->derivative2 * d->balance_conf.kd2);
+}
+
+static lbm_value ext_get_pid_value(lbm_value *_args, lbm_uint _argn) {
+	data *d = (data*)ARG;
+	return VESC_IF->lbm_enc_float(d->pid_value);
+}
+
+static lbm_value ext_get_pid_rate_value(lbm_value *_args, lbm_uint _argn) {
+	data *d = (data*)ARG;
+	return VESC_IF->lbm_enc_float(d->pid_value2);
+}
+
 // These functions are used to send the config page to VESC Tool
 // and to make persistent read and write work
 static int get_cfg(uint8_t *buffer, bool is_default) {
@@ -995,6 +1044,15 @@ INIT_FUN(lib_info *info) {
 
 	VESC_IF->set_app_data_handler(on_command_recieved);
 	VESC_IF->lbm_add_extension("ext-balance-dbg", ext_bal_dbg);
+
+	VESC_IF->lbm_add_extension("exb-get-p", ext_get_proportional);
+	VESC_IF->lbm_add_extension("exb-get-ratep", ext_get_proportional2);
+	VESC_IF->lbm_add_extension("exb-get-i", ext_get_integral);
+	VESC_IF->lbm_add_extension("exb-get-ratei", ext_get_integral2);
+	VESC_IF->lbm_add_extension("exb-get-d", ext_get_derivative);
+	VESC_IF->lbm_add_extension("exb-get-rated", ext_get_derivative2);
+	VESC_IF->lbm_add_extension("exb-get-pid", ext_get_pid_value);
+	VESC_IF->lbm_add_extension("exb-get-pid_rate", ext_get_pid_rate_value);
 
 	return true;
 }
