@@ -1045,14 +1045,14 @@ INIT_FUN(lib_info *info) {
 	VESC_IF->set_app_data_handler(on_command_recieved);
 	VESC_IF->lbm_add_extension("ext-balance-dbg", ext_bal_dbg);
 
-	VESC_IF->lbm_add_extension("exb-get-p", ext_get_proportional);
-	VESC_IF->lbm_add_extension("exb-get-ratep", ext_get_proportional2);
-	VESC_IF->lbm_add_extension("exb-get-i", ext_get_integral);
-	VESC_IF->lbm_add_extension("exb-get-ratei", ext_get_integral2);
-	VESC_IF->lbm_add_extension("exb-get-d", ext_get_derivative);
-	VESC_IF->lbm_add_extension("exb-get-rated", ext_get_derivative2);
-	VESC_IF->lbm_add_extension("exb-get-pid", ext_get_pid_value);
-	VESC_IF->lbm_add_extension("exb-get-pid_rate", ext_get_pid_rate_value);
+	VESC_IF->lbm_add_extension("ext-balance-get-p", ext_get_proportional);
+	VESC_IF->lbm_add_extension("ext-balance-get-ratep", ext_get_proportional2);
+	VESC_IF->lbm_add_extension("ext-balance-get-i", ext_get_integral);
+	VESC_IF->lbm_add_extension("ext-balance-get-ratei", ext_get_integral2);
+	VESC_IF->lbm_add_extension("ext-balance-get-d", ext_get_derivative);
+	VESC_IF->lbm_add_extension("ext-balance-get-rated", ext_get_derivative2);
+	VESC_IF->lbm_add_extension("ext-balance-get-pid", ext_get_pid_value);
+	VESC_IF->lbm_add_extension("ext-balance-get-pid_rate", ext_get_pid_rate_value);
 
 	return true;
 }

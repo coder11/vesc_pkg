@@ -35,6 +35,8 @@
         ("kmh_vesc" "km/h" "Speed VESC" (* (get-speed) 3.6))
         ("Input Voltage" "V"            (get-vin))
         ("Current" "A"                  (get-current))
+        ("Current filtered" "A"         (get-current 1))
+        ("Current dir" "A"              (get-current-dir))
         ("Current In" "A"               (get-current-in))
         ("Duty"                         (get-duty))
         ("RPM"                          (get-rpm))
@@ -45,6 +47,15 @@
         ("roll_deg"    3                (rad2deg (ix (get-imu-rpy) 0)))
         ("pitch_deg"   3                (rad2deg (ix (get-imu-rpy) 1)))
         ("wh" "Wh"                      (get-wh))
+        ;; pid stuff
+        ("pid_p"                        (ext-balance-get-p))
+        ("pid_ratep"                    (ext-balance-get-ratep))
+        ("pid_i"                        (ext-balance-get-i))
+        ("pid_ratei"                    (ext-balance-get-ratei))
+        ("pid_d"                        (ext-balance-get-d))
+        ("pid_rated"                    (ext-balance-get-rated))
+        ("pid_value"                    (ext-balance-get-pid))
+        ("pid_rate_value"               (ext-balance-get-pid_rate))
 ))
 
 
