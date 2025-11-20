@@ -1,4 +1,4 @@
-# BALANCE EX v0.1.2
+# BALANCE EX v0.1.3
 
 This one can be used for some basics tests already. Logging works, balance disabling works.
 

@@ -176,7 +176,7 @@ Item {
                     id: appendGnss
                     Layout.fillWidth: true
                     text: "Append GNSS"
-                    checked: false
+                    checked: true
                 }
                 
                 RowLayout {
