@@ -887,42 +887,58 @@ static lbm_value ext_bal_dbg(lbm_value *args, lbm_uint argn) {
 	return VESC_IF->lbm_enc_float(app_balance_get_debug(VESC_IF->lbm_dec_as_i32(args[0])));
 }
 
-static lbm_value ext_get_proportional(lbm_value *_args, lbm_uint _argn) {
+static lbm_value ext_get_proportional(lbm_value *args, lbm_uint argn) {
+	(void)args;
+	(void)argn;
 	data *d = (data*)ARG;
 	return VESC_IF->lbm_enc_float(d->proportional * d->balance_conf.kp);
 }
 
 static lbm_value ext_get_proportional2(lbm_value *args, lbm_uint argn) {
+	(void)args;
+	(void)argn;
 	data *d = (data*)ARG;
 	return VESC_IF->lbm_enc_float(d->proportional2 * d->balance_conf.kp2);
 }
 
-static lbm_value ext_get_integral(lbm_value *_args, lbm_uint _argn) {
+static lbm_value ext_get_integral(lbm_value *args, lbm_uint argn) {
+	(void)args;
+	(void)argn;
 	data *d = (data*)ARG;
 	return VESC_IF->lbm_enc_float(d->integral * d->balance_conf.ki);
 }
 
-static lbm_value ext_get_integral2(lbm_value *_args, lbm_uint _argn) {
+static lbm_value ext_get_integral2(lbm_value *args, lbm_uint argn) {
+	(void)args;
+	(void)argn;
 	data *d = (data*)ARG;
 	return VESC_IF->lbm_enc_float(d->integral2 * d->balance_conf.ki2);
 }
 
-static lbm_value ext_get_derivative(lbm_value *_args, lbm_uint _argn) {
+static lbm_value ext_get_derivative(lbm_value *args, lbm_uint argn) {
+	(void)args;
+	(void)argn;
 	data *d = (data*)ARG;
 	return VESC_IF->lbm_enc_float(d->derivative * d->balance_conf.kd);
 }
 
-static lbm_value ext_get_derivative2(lbm_value *_args, lbm_uint _argn) {
+static lbm_value ext_get_derivative2(lbm_value *args, lbm_uint argn) {
+	(void)args;
+	(void)argn;
 	data *d = (data*)ARG;
 	return VESC_IF->lbm_enc_float(d->derivative2 * d->balance_conf.kd2);
 }
 
-static lbm_value ext_get_pid_value(lbm_value *_args, lbm_uint _argn) {
+static lbm_value ext_get_pid_value(lbm_value *args, lbm_uint argn) {
+	(void)args;
+	(void)argn;
 	data *d = (data*)ARG;
 	return VESC_IF->lbm_enc_float(d->pid_value);
 }
 
-static lbm_value ext_get_pid_rate_value(lbm_value *_args, lbm_uint _argn) {
+static lbm_value ext_get_pid_rate_value(lbm_value *args, lbm_uint argn) {
+	(void)args;
+	(void)argn;
 	data *d = (data*)ARG;
 	return VESC_IF->lbm_enc_float(d->pid_value2);
 }
