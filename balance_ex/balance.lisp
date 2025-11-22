@@ -51,6 +51,7 @@
         ("erpm_accel / current"         (ext-balance-get-erpm-accel-div-current))
         ;; pid stuff
         ("pid_p"                        (ext-balance-get-p))
+        ("pid_exp"                      (ext-balance-get-exp))
         ("pid_i"                        (ext-balance-get-i))
         ("pid_d"                        (ext-balance-get-d))
         ("pid_ratep"                    (ext-balance-get-ratep))

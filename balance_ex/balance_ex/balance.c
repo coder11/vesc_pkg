@@ -723,6 +723,9 @@ static void balance_thd(void *arg) {
 				// Do PID maths
 				d->proportional = d->setpoint - pitch_angle_adjusted;
 
+				// Calculate exponential term: e^(kexp * proportional) - 1
+				d->exponential = expf(d->balance_conf.kexp * d->proportional) - 1.0f;
+
 				// Apply deadzone
 				// I don't use deadzone
 				// d->proportional = apply_deadzone(d, d->proportional);
@@ -755,7 +758,7 @@ static void balance_thd(void *arg) {
 				}
 
 				float resulting_pid_value;
-				d->pid_value = (d->balance_conf.kp * d->proportional) + (d->balance_conf.ki * d->integral) + (d->balance_conf.kd * d->derivative);
+				d->pid_value = (d->balance_conf.kp * d->proportional) + (d->balance_conf.ki * d->integral) + (d->balance_conf.kd * d->derivative) + d->exponential;
 				resulting_pid_value = d->pid_value;
 
 				if (d->balance_conf.pid_mode == BALANCE_PID_MODE_ANGLE_RATE_CASCADE) {
@@ -991,6 +994,13 @@ static lbm_value ext_get_derivative2(lbm_value *args, lbm_uint argn) {
 	return VESC_IF->lbm_enc_float(d->derivative2 * d->balance_conf.kd2);
 }
 
+static lbm_value ext_get_exponential(lbm_value *args, lbm_uint argn) {
+	(void)args;
+	(void)argn;
+	data *d = (data*)ARG;
+	return VESC_IF->lbm_enc_float(d->exponential);
+}
+
 static lbm_value ext_get_pid_value(lbm_value *args, lbm_uint argn) {
 	(void)args;
 	(void)argn;
@@ -1143,6 +1153,7 @@ INIT_FUN(lib_info *info) {
 	VESC_IF->lbm_add_extension("ext-balance-get-ratei", ext_get_integral2);
 	VESC_IF->lbm_add_extension("ext-balance-get-d", ext_get_derivative);
 	VESC_IF->lbm_add_extension("ext-balance-get-rated", ext_get_derivative2);
+	VESC_IF->lbm_add_extension("ext-balance-get-exp", ext_get_exponential);
 	VESC_IF->lbm_add_extension("ext-balance-get-pid", ext_get_pid_value);
 	VESC_IF->lbm_add_extension("ext-balance-get-pid_rate", ext_get_pid_rate_value);
 	VESC_IF->lbm_add_extension("ext-balance-get-erpm-accel", ext_get_erpm_accel);
