@@ -40,6 +40,10 @@ HEADER
 #define DEG2RAD_f(deg)		((deg) * (float)(M_PI / 180.0))
 #define RAD2DEG_f(rad) 		((rad) * (float)(180.0 / M_PI))
 
+// Balance commands
+#define BALANCE_COMMAND_GET_REALTIME_DATA		0x01
+#define BALANCE_COMMAND_KILL_SWITCH_TRIGGER		0x02
+
 // Data type (Value 5 was removed, and can be reused at a later date, but i wanted to preserve the current value's numbers for UIs)
 typedef enum {
 	STARTUP = 0,
@@ -52,7 +56,8 @@ typedef enum {
 	FAULT_SWITCH_HALF = 8,
 	FAULT_SWITCH_FULL = 9,
 	FAULT_DUTY = 10,
-	FAULT_STARTUP = 11
+	FAULT_STARTUP = 11,
+	KILL_SWITCH_TRIGGERED = 12
 } BalanceState;
 
 typedef enum {
@@ -558,6 +563,26 @@ static void set_current(data *d, float current, float yaw_current){
 	}
 }
 
+static bool is_kill_switch_triggered(data *d) {
+	return d->state == KILL_SWITCH_TRIGGERED;
+}
+
+static void trigger_kill_switch(data *d) {
+	if(d->state == KILL_SWITCH_TRIGGERED) {
+		// Same as in startup
+		reset_vars(d);
+		d->state = FAULT_STARTUP; // Trigger a fault so we need to meet start conditions to start
+		return;
+	}
+
+	if(d->abs_erpm > 2000) {
+		// for safety, don't trigger the kill switch if the motor is running
+		return;
+	}
+
+	d->state = KILL_SWITCH_TRIGGERED;
+}
+
 static void balance_thd(void *arg) {
 	data *d = (data*)arg;
 
@@ -655,6 +680,11 @@ static void balance_thd(void *arg) {
 
 			// Control Loop State Logic
 			switch(d->state) {
+			case (KILL_SWITCH_TRIGGERED):
+				// Disable output
+				brake(d);
+				break;
+
 			case (STARTUP):
 					// Disable output
 					brake(d);
@@ -873,6 +903,7 @@ static void send_realtime_data(data *d){
 	buffer_append_float32_auto(send_buffer, d->adc1, &ind);
 	buffer_append_float32_auto(send_buffer, d->adc2, &ind);
 	buffer_append_float32_auto(send_buffer, app_balance_get_debug(d->debug_render_2), &ind);
+	buffer_append_uint16(send_buffer, is_kill_switch_triggered(d), &ind);
 	VESC_IF->send_app_data(send_buffer, ind);
 }
 
@@ -882,9 +913,11 @@ static void on_command_recieved(unsigned char *buffer, unsigned int len) {
 
 	if(len > 0){
 		uint8_t command = buffer[0];
-		if(command == 0x01){
+		if(command == BALANCE_COMMAND_GET_REALTIME_DATA) {
 			send_realtime_data(d);
-		}else{
+		} else if(command == BALANCE_COMMAND_KILL_SWITCH_TRIGGER) {
+			trigger_kill_switch(d);
+		} else {
 			VESC_IF->printf("Unknown command received %d", command);
 		}
 	}
