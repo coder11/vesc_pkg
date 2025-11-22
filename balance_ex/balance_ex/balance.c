@@ -724,7 +724,7 @@ static void balance_thd(void *arg) {
 				d->proportional = d->setpoint - pitch_angle_adjusted;
 
 				// Calculate exponential term: e^(kexp * proportional) - 1
-				d->exponential = SIGN(d->proportional) * (expf(d->balance_conf.kexp * d->proportional) - 1.0f);
+				d->exponential = expf(SIGN(d->proportional) * d->balance_conf.kexp * d->proportional) - 1.0f;
 
 				// Apply deadzone
 				// I don't use deadzone
