@@ -33,6 +33,7 @@ typedef struct {
 	bool balance_enabled;
 	float pitch_adjustment;
 	float kp;
+	float kexp;
 	float ki;
 	float kd;
 	float kp2;
@@ -83,6 +84,7 @@ typedef struct {
 	float ki_limit;
 	uint16_t kd_pt1_lowpass_frequency;
 	uint16_t kd_pt1_highpass_frequency;
+	uint16_t ki_pt1_lowpass_frequency;
 	float booster_angle;
 	float booster_ramp;
 	float booster_current;

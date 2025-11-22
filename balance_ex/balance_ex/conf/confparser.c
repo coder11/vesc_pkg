@@ -80,6 +80,8 @@ int32_t confparser_serialize_balance_config(uint8_t *buffer, const balance_confi
 	buffer_append_float32_auto(buffer, conf->turntilt_speed, &ind);
 	buffer_append_uint16(buffer, conf->turntilt_erpm_boost, &ind);
 	buffer_append_uint16(buffer, conf->turntilt_erpm_boost_end, &ind);
+	buffer_append_float32_auto(buffer, conf->kexp, &ind);
+	buffer_append_uint16(buffer, conf->ki_pt1_lowpass_frequency, &ind);
 
 	return ind;
 }
@@ -162,6 +164,8 @@ bool confparser_deserialize_balance_config(const uint8_t *buffer, balance_config
 	conf->turntilt_speed = buffer_get_float32_auto(buffer, &ind);
 	conf->turntilt_erpm_boost = buffer_get_uint16(buffer, &ind);
 	conf->turntilt_erpm_boost_end = buffer_get_uint16(buffer, &ind);
+	conf->kexp = buffer_get_float32_auto(buffer, &ind);
+	conf->ki_pt1_lowpass_frequency = buffer_get_uint16(buffer, &ind);
 
 	return true;
 }
@@ -237,5 +241,7 @@ void confparser_set_defaults_balance_config(balance_config *conf) {
 	conf->turntilt_speed = APPCONF_BALANCE_TURNTILT_SPEED;
 	conf->turntilt_erpm_boost = APPCONF_BALANCE_TURNTILT_ERPM_BOOST;
 	conf->turntilt_erpm_boost_end = APPCONF_BALANCE_TURNTILT_ERPM_BOOST_END;
+	conf->kexp = APPCONF_BALANCE_KEXP;
+	conf->ki_pt1_lowpass_frequency = APPCONF_BALANCE_KI_PT1_LOWPASS_FREQUENCY;
 }
 

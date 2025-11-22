@@ -353,6 +353,16 @@
 #define APPCONF_BALANCE_TURNTILT_ERPM_BOOST_END 20000
 #endif
 
+// Angle exponential
+#ifndef APPCONF_BALANCE_KEXP
+#define APPCONF_BALANCE_KEXP 0
+#endif
+
+// I term PT1 Low Pass Filter
+#ifndef APPCONF_BALANCE_KI_PT1_LOWPASS_FREQUENCY
+#define APPCONF_BALANCE_KI_PT1_LOWPASS_FREQUENCY 0
+#endif
+
 // CONF_DEFAULT_H_
 #endif
 
