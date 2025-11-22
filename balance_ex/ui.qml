@@ -39,6 +39,9 @@ Item {
     property ConfigParams mMcConf: VescIf.mcConfig()
     property ConfigParams mCustomConf: VescIf.customConfig(0)
     
+    readonly property int balanceCommandGetRealtimeData: 0x01
+    readonly property int balanceCommandKillSwitchTrigger: 0x02
+    
     Component.onCompleted: {
     }
     
@@ -50,8 +53,7 @@ Item {
         onTriggered: {
             var buffer = new ArrayBuffer(1)
             var dv = new DataView(buffer)
-            var ind = 0
-            dv.setUint8(ind, 0x01); ind += 1
+            dv.setUint8(0, balanceCommandGetRealtimeData)
             mCommands.sendCustomAppData(buffer)
         }
     }
@@ -77,7 +79,8 @@ Item {
             var adc1 = dv.getFloat32(ind); ind += 4;
             var adc2 = dv.getFloat32(ind); ind += 4;
             var debug2 = dv.getFloat32(ind); ind += 4;
-
+            var killSwitchTriggered = dv.getInt16(ind); ind += 2;
+            
             var stateString
             if(state == 0){
                 stateString = "STARTUP"
@@ -116,6 +119,13 @@ Item {
                 switchString = "On"
             }
             
+            var killSwitchTriggeredString
+            if(killSwitchTriggered == 0){
+                killSwitchTriggeredString = "No"
+            }else{
+                killSwitchTriggeredString = "Yes"
+            }
+            
             
             valText1.text =
                 "pid    : " + pid_value.toFixed(2) + "A\n" +
@@ -128,7 +138,8 @@ Item {
                 "switch : " + switchString + "\n" +
                 "adc1   : " + adc1.toFixed(2) + "V\n" +
                 "adc2   : " + adc2.toFixed(2) + "V\n" +
-                "debug2 : " + debug2.toFixed(2)
+                "debug2 : " + debug2.toFixed(2) + "\n" +
+                "kill switch triggered: " + killSwitchTriggeredString
         }
     }
 
@@ -162,6 +173,26 @@ Item {
                     Layout.leftMargin: 5
                     Layout.preferredWidth: parent.width/3
                     text: "App not connected"
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    color: Utility.getAppHexColor("lightText")
+                    horizontalAlignment: Text.AlignHCenter
+                    font.pointSize: 20
+                    text: "Controls"
+                }                
+
+                Button {
+                    Layout.fillWidth: true
+                    text: "Kill Switch"
+                    
+                    onClicked: {
+                        var buffer = new ArrayBuffer(1)
+                        var dv = new DataView(buffer)
+                        dv.setUint8(0, balanceCommandKillSwitchTrigger)
+                        mCommands.sendCustomAppData(buffer)
+                    }
                 }
             
                 Text {
