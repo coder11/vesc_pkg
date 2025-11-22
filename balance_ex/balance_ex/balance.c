@@ -102,6 +102,7 @@ typedef struct {
 	float duty_cycle, abs_duty_cycle;
 	float erpm, abs_erpm, avg_erpm, last_erpm;
 	float erpm_accel;
+	float erpm_accel_divided_by_current;
 	float motor_current;
 	float motor_position;
 	float adc1, adc2;
@@ -249,6 +250,7 @@ static void reset_vars(data *d) {
 	d->brake_timeout = 0;
 	d->last_erpm = d->erpm;
 	d->erpm_accel = 0;
+	d->erpm_accel_divided_by_current = 0;
 }
 
 static float get_setpoint_adjustment_step_size(data *d) {
@@ -594,6 +596,11 @@ static void balance_thd(void *arg) {
 		d->erpm = VESC_IF->mc_get_rpm();
 		d->abs_erpm = fabsf(d->erpm);
 		d->erpm_accel = (d->diff_time > 0) ? (d->erpm - d->last_erpm) / d->diff_time : 0.0;
+		if (fabsf(d->motor_current) > 0.01f) {
+			d->erpm_accel_divided_by_current = d->erpm_accel / d->motor_current;
+		} else {
+			d->erpm_accel_divided_by_current = 0.0f;
+		}
 		d->last_erpm = d->erpm;
 		if (d->balance_conf.multi_esc) {
 			d->avg_erpm = d->erpm;
@@ -955,6 +962,13 @@ static lbm_value ext_get_erpm_accel(lbm_value *args, lbm_uint argn) {
 	return VESC_IF->lbm_enc_float(d->erpm_accel);
 }
 
+static lbm_value ext_get_erpm_accel_divided_by_current(lbm_value *args, lbm_uint argn) {
+	(void)args;
+	(void)argn;
+	data *d = (data*)ARG;
+	return VESC_IF->lbm_enc_float(d->erpm_accel_divided_by_current);
+}
+
 // These functions are used to send the config page to VESC Tool
 // and to make persistent read and write work
 static int get_cfg(uint8_t *buffer, bool is_default) {
@@ -1082,6 +1096,7 @@ INIT_FUN(lib_info *info) {
 	VESC_IF->lbm_add_extension("ext-balance-get-pid", ext_get_pid_value);
 	VESC_IF->lbm_add_extension("ext-balance-get-pid_rate", ext_get_pid_rate_value);
 	VESC_IF->lbm_add_extension("ext-balance-get-erpm-accel", ext_get_erpm_accel);
+	VESC_IF->lbm_add_extension("ext-balance-get-erpm-accel-div-current", ext_get_erpm_accel_divided_by_current);
 
 	return true;
 }

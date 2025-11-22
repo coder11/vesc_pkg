@@ -47,6 +47,8 @@
         ("roll_deg"    3                (rad2deg (ix (get-imu-rpy) 0)))
         ("pitch_deg"   3                (rad2deg (ix (get-imu-rpy) 1)))
         ("wh" "Wh"                      (get-wh))
+        ("erpm_accel"                   (ext-balance-get-erpm-accel))
+        ("erpm_accel / current"         (ext-balance-get-erpm-accel-div-current))
         ;; pid stuff
         ("pid_p"                        (ext-balance-get-p))
         ("pid_i"                        (ext-balance-get-i))
@@ -56,6 +58,13 @@
         ("pid_rated"                    (ext-balance-get-rated))
         ("pid_value"                    (ext-balance-get-pid))
         ("pid_rate_value"               (ext-balance-get-pid_rate))
+        ; raw imu stuff
+        ("acc_x"                         (ix (get-imu-acc) 0))
+        ("acc_y"                         (ix (get-imu-acc) 1))
+        ("acc_z"                         (ix (get-imu-acc) 2))
+        ("gyro_x"                        (ix (get-imu-gyro) 0))
+        ("gyro_y"                        (ix (get-imu-gyro) 1))
+        ("gyro_z"                        (ix (get-imu-gyro) 2))
 ))
 
 
