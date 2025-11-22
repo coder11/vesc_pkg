@@ -130,6 +130,7 @@ typedef struct {
 	float fault_angle_pitch_timer, fault_angle_roll_timer, fault_switch_timer, fault_switch_half_timer, fault_duty_timer; // Seconds
 	float d_pt1_lowpass_state, d_pt1_lowpass_k, d_pt1_highpass_state, d_pt1_highpass_k;
 	float i_pt1_lowpass_state, i_pt1_lowpass_k;
+	float i2_pt1_lowpass_state, i2_pt1_lowpass_k;
 	float motor_timeout_seconds;
 	float brake_timeout; // Seconds
 
@@ -243,6 +244,7 @@ static void reset_vars(data *d) {
 	d->d_pt1_lowpass_state = 0;
 	d->d_pt1_highpass_state = 0;
 	d->i_pt1_lowpass_state = 0;
+	d->i2_pt1_lowpass_state = 0;
 	// Set values for startup
 	d->setpoint = d->pitch_angle;
 	d->setpoint_target_interpolated = d->pitch_angle;
@@ -724,7 +726,8 @@ static void balance_thd(void *arg) {
 				d->proportional = d->setpoint - pitch_angle_adjusted;
 
 				// Calculate exponential term: e^(kexp * proportional) - 1
-				d->exponential = expf(SIGN(d->proportional) * d->balance_conf.kexp * d->proportional) - 1.0f;
+				float sign = SIGN(d->proportional);
+				d->exponential = sign * (expf(sign * d->balance_conf.kexp * d->proportional) - 1.0f);
 
 				// Apply deadzone
 				// I don't use deadzone
@@ -766,9 +769,15 @@ static void balance_thd(void *arg) {
 					d->integral2 = d->integral2 + d->proportional2;
 					d->derivative2 = d->last_gyro_y - d->gyro[1];
 
-					// Apply I term Filter
+					// Apply I term clamp Filter
 					if (d->balance_conf.ki_limit > 0 && fabsf(d->integral2 * d->balance_conf.ki2) > d->balance_conf.ki_limit) {
 						d->integral2 = d->balance_conf.ki_limit / d->balance_conf.ki2 * SIGN(d->integral2);
+					}
+
+					// Apply I term pt1 lowpass filter
+					if (d->balance_conf.ki_pt1_lowpass_frequency > 0) {
+						d->i2_pt1_lowpass_state = d->i2_pt1_lowpass_state + d->i2_pt1_lowpass_k * (d->integral2 - d->i2_pt1_lowpass_state);
+						d->integral2 = d->i2_pt1_lowpass_state;
 					}
 
 					d->pid_value2 = (d->balance_conf.kp2 * d->proportional2) +
