@@ -35,6 +35,7 @@ typedef struct {
 	float error_linear_limit;
 	float error_ln_slope;
 	float kp;
+	float kexp;
 	float ki;
 	float kd;
 	float kp2;
