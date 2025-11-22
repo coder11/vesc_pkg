@@ -115,7 +115,7 @@ typedef struct {
 
 	// Rumtime state values
 	BalanceState state;
-	float proportional, integral, derivative, proportional2, integral2, derivative2;
+	float proportional, exponential, integral, derivative, proportional2, integral2, derivative2;
 	float last_proportional, abs_proportional;
 	float pid_value, pid_value2;
 	float setpoint, setpoint_target, setpoint_target_interpolated;
@@ -129,6 +129,7 @@ typedef struct {
 	float filtered_loop_overshoot, loop_overshoot_alpha, filtered_diff_time;
 	float fault_angle_pitch_timer, fault_angle_roll_timer, fault_switch_timer, fault_switch_half_timer, fault_duty_timer; // Seconds
 	float d_pt1_lowpass_state, d_pt1_lowpass_k, d_pt1_highpass_state, d_pt1_highpass_k;
+	float i_pt1_lowpass_state, i_pt1_lowpass_k;
 	float motor_timeout_seconds;
 	float brake_timeout; // Seconds
 
@@ -208,6 +209,12 @@ static void configure(data *d) {
 		d->d_pt1_highpass_k =  dT / (RC + dT);
 	}
 
+	if (d->balance_conf.ki_pt1_lowpass_frequency > 0) {
+		float dT = 1.0 / d->balance_conf.hertz;
+		float RC = 1.0 / ( 2.0 * M_PI * d->balance_conf.ki_pt1_lowpass_frequency);
+		d->i_pt1_lowpass_k =  dT / (RC + dT);
+	}
+
 	if (d->balance_conf.torquetilt_filter > 0) { // Torquetilt Current Biquad
 		float Fc = d->balance_conf.torquetilt_filter / d->balance_conf.hertz;
 		biquad_config(&d->torquetilt_current_biquad, BQ_LOWPASS, Fc);
@@ -235,6 +242,7 @@ static void reset_vars(data *d) {
 	d->yaw_last_proportional = 0;
 	d->d_pt1_lowpass_state = 0;
 	d->d_pt1_highpass_state = 0;
+	d->i_pt1_lowpass_state = 0;
 	// Set values for startup
 	d->setpoint = d->pitch_angle;
 	d->setpoint_target_interpolated = d->pitch_angle;
@@ -487,19 +495,20 @@ static void apply_turntilt(data *d) {
 	d->setpoint += d->turntilt_interpolated;
 }
 
-static float apply_deadzone(data *d, float error){
-	if (d->balance_conf.deadzone == 0) {
-		return error;
-	}
+// I don't use deadzone
+// static float apply_deadzone(data *d, float error){
+// 	if (d->balance_conf.deadzone == 0) {
+// 		return error;
+// 	}
 
-	if (error < d->balance_conf.deadzone && error > -d->balance_conf.deadzone) {
-		return 0;
-	} else if(error > d->balance_conf.deadzone) {
-		return error - d->balance_conf.deadzone;
-	} else {
-		return error + d->balance_conf.deadzone;
-	}
-}
+// 	if (error < d->balance_conf.deadzone && error > -d->balance_conf.deadzone) {
+// 		return 0;
+// 	} else if(error > d->balance_conf.deadzone) {
+// 		return error - d->balance_conf.deadzone;
+// 	} else {
+// 		return error + d->balance_conf.deadzone;
+// 	}
+// }
 
 static void brake(data *d) {
 	// Brake timeout logic
@@ -715,13 +724,21 @@ static void balance_thd(void *arg) {
 				d->proportional = d->setpoint - pitch_angle_adjusted;
 
 				// Apply deadzone
-				d->proportional = apply_deadzone(d, d->proportional);
+				// I don't use deadzone
+				// d->proportional = apply_deadzone(d, d->proportional);
 
 				// Resume real PID maths
 				d->integral = d->integral + d->proportional;
 				d->derivative = last_pitch_angle_adjusted - pitch_angle_adjusted;
 
-				// Apply I term Filter
+
+				// Apply I term pt1 lowpass filter
+				if (d->balance_conf.ki_pt1_lowpass_frequency > 0) {
+					d->i_pt1_lowpass_state = d->i_pt1_lowpass_state + d->i_pt1_lowpass_k * (d->integral - d->i_pt1_lowpass_state);
+					d->integral = d->i_pt1_lowpass_state;
+				}
+
+				// Apply I term clamp Filter
 				if (d->balance_conf.ki_limit > 0 && fabsf(d->integral * d->balance_conf.ki) > d->balance_conf.ki_limit) {
 					d->integral = d->balance_conf.ki_limit / d->balance_conf.ki * SIGN(d->integral);
 				}
