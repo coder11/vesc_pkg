@@ -13,6 +13,10 @@
 (def log-thd-id nil)
 (def last-can-id -1)
 
+(def live-logging-thd-id nil)
+(def live-logging-running false)
+(def live-logging-time 0)
+
 @const-start
 
 (defun debug-loop ()
@@ -147,6 +151,72 @@
     (wait log-thd-id)
     (log-stop can-id)
     (print "Log Stopped")
+})
+
+(defun live-logging-thd (hz display-pid2) {
+    (def delta (/ 1.0 hz))
+    (loopwhile live-logging-running {
+        ;; pitch
+        (plot-set-graph 0)
+        (plot-send-points live-logging-time (rad2deg (ix (get-imu-rpy) 1)))
+
+        ;; gyro_y
+        (plot-set-graph 1)
+        (plot-send-points live-logging-time (ix (get-imu-gyro) 1))
+
+        ;; p
+        (plot-set-graph 2)
+        (if display-pid2
+            (plot-send-points live-logging-time (ext-balance-get-ratep))
+            (plot-send-points live-logging-time (ext-balance-get-p)))
+
+        ;; i
+        (plot-set-graph 3)
+        (if display-pid2
+            (plot-send-points live-logging-time (ext-balance-get-ratei))
+            (plot-send-points live-logging-time (ext-balance-get-i)))
+
+        ;; d
+        (plot-set-graph 4)
+        (if display-pid2
+            (plot-send-points live-logging-time (ext-balance-get-rated))
+            (plot-send-points live-logging-time (ext-balance-get-d)))
+
+        ;; pid_value
+        (plot-set-graph 5)
+        (if display-pid2
+            (plot-send-points live-logging-time (ext-balance-get-pid_rate))
+            (plot-send-points live-logging-time (ext-balance-get-pid)))
+
+        (setq live-logging-time (+ live-logging-time delta))
+        (sleep delta)
+    })
+})
+        
+
+(defun start-live-logging (hertz display-pid2) {
+    ; Initialize plotting
+    (plot-init "time" "value")
+    (plot-add-graph "pitch")
+    (plot-add-graph "gyro_y")
+    (plot-add-graph "p")
+    (plot-add-graph "i")
+    (plot-add-graph "d")
+    (plot-add-graph "pid_value")
+
+    (def live-logging-time 0)
+    (def live-logging-thd-id
+        (spawn live-logging-thd hertz display-pid2))
+    (def live-logging-running true)
+    (print "Live Logging Started")
+})
+
+(defun stop-live-logging () {
+    (def live-logging-running false)
+    (if live-logging-thd-id
+        (wait live-logging-thd-id)
+    )
+    (print "Live Logging Stopped")
 })
 
 
