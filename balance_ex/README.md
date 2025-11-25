@@ -1,8 +1,10 @@
-# BALANCE EX v0.1.4
+# BALANCE EX v0.1.5
 
 This one can be used for some basics tests already. Logging works, balance disabling works.
 
 Also logging angular acceleration and raw IMU stuff
+
+Some additional config parameters like error response curve and more filters
 
 Balance package. This is a first attempt based on the balance app just to get started. It compiles and loads, but is completely untested. All settings are there and there is also a QML-file that can be extended.
 
