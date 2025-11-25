@@ -84,6 +84,7 @@ typedef struct {
 	float yaw_current_clamp;
 	float ki_limit;
 	uint16_t kd_pt1_lowpass_frequency;
+	uint16_t kd2_pt1_lowpass_frequency;
 	uint16_t kd_pt1_highpass_frequency;
 	float booster_angle;
 	float booster_ramp;

@@ -65,6 +65,7 @@ int32_t confparser_serialize_balance_config(uint8_t *buffer, const balance_confi
 	buffer_append_float32_auto(buffer, conf->yaw_current_clamp, &ind);
 	buffer_append_float32_auto(buffer, conf->ki_limit, &ind);
 	buffer_append_uint16(buffer, conf->kd_pt1_lowpass_frequency, &ind);
+	buffer_append_uint16(buffer, conf->kd2_pt1_lowpass_frequency, &ind);
 	buffer_append_uint16(buffer, conf->kd_pt1_highpass_frequency, &ind);
 	buffer_append_float32_auto(buffer, conf->booster_angle, &ind);
 	buffer_append_float32_auto(buffer, conf->booster_ramp, &ind);
@@ -149,6 +150,7 @@ bool confparser_deserialize_balance_config(const uint8_t *buffer, balance_config
 	conf->yaw_current_clamp = buffer_get_float32_auto(buffer, &ind);
 	conf->ki_limit = buffer_get_float32_auto(buffer, &ind);
 	conf->kd_pt1_lowpass_frequency = buffer_get_uint16(buffer, &ind);
+	conf->kd2_pt1_lowpass_frequency = buffer_get_uint16(buffer, &ind);
 	conf->kd_pt1_highpass_frequency = buffer_get_uint16(buffer, &ind);
 	conf->booster_angle = buffer_get_float32_auto(buffer, &ind);
 	conf->booster_ramp = buffer_get_float32_auto(buffer, &ind);
@@ -226,6 +228,7 @@ void confparser_set_defaults_balance_config(balance_config *conf) {
 	conf->yaw_current_clamp = APPCONF_BALANCE_YAW_CURRENT_CLAMP;
 	conf->ki_limit = APPCONF_BALANCE_KI_LIMIT;
 	conf->kd_pt1_lowpass_frequency = APPCONF_BALANCE_KD_PT1_LOWPASS_FREQUENCY;
+	conf->kd2_pt1_lowpass_frequency = APPCONF_BALANCE_KD2_PT1_LOWPASS_FREQUENCY;
 	conf->kd_pt1_highpass_frequency = APPCONF_BALANCE_KD_PT1_HIGHPASS_FREQUENCY;
 	conf->booster_angle = APPCONF_BALANCE_BOOSTER_ANGLE;
 	conf->booster_ramp = APPCONF_BALANCE_BOOSTER_RAMP;

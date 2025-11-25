@@ -129,6 +129,7 @@ typedef struct {
 	float filtered_loop_overshoot, loop_overshoot_alpha, filtered_diff_time;
 	float fault_angle_pitch_timer, fault_angle_roll_timer, fault_switch_timer, fault_switch_half_timer, fault_duty_timer; // Seconds
 	float d_pt1_lowpass_state, d_pt1_lowpass_k, d_pt1_highpass_state, d_pt1_highpass_k;
+	float d2_pt1_lowpass_state, d2_pt1_lowpass_k;
 	float motor_timeout_seconds;
 	float brake_timeout; // Seconds
 
@@ -202,6 +203,12 @@ static void configure(data *d) {
 		d->d_pt1_lowpass_k =  dT / (RC + dT);
 	}
 
+	if (d->balance_conf.kd2_pt1_lowpass_frequency > 0) {
+		float dT = 1.0 / d->balance_conf.hertz;
+		float RC = 1.0 / ( 2.0 * M_PI * d->balance_conf.kd2_pt1_lowpass_frequency);
+		d->d2_pt1_lowpass_k =  dT / (RC + dT);
+	}
+
 	if (d->balance_conf.kd_pt1_highpass_frequency > 0) {
 		float dT = 1.0 / d->balance_conf.hertz;
 		float RC = 1.0 / ( 2.0 * M_PI * d->balance_conf.kd_pt1_highpass_frequency);
@@ -235,6 +242,7 @@ static void reset_vars(data *d) {
 	d->yaw_last_proportional = 0;
 	d->d_pt1_lowpass_state = 0;
 	d->d_pt1_highpass_state = 0;
+	d->d2_pt1_lowpass_state = 0;
 	// Set values for startup
 	d->setpoint = d->pitch_angle;
 	d->setpoint_target_interpolated = d->pitch_angle;
@@ -751,6 +759,12 @@ static void balance_thd(void *arg) {
 					d->proportional2 = d->pid_value - d->gyro[1];
 					d->integral2 = d->integral2 + d->proportional2;
 					d->derivative2 = d->last_gyro_y - d->gyro[1];
+
+					// Apply D term filter
+					if (d->balance_conf.kd2_pt1_lowpass_frequency > 0) {
+						d->d2_pt1_lowpass_state = d->d2_pt1_lowpass_state + d->d2_pt1_lowpass_k * (d->derivative2 - d->d2_pt1_lowpass_state);
+						d->derivative2 = d->d2_pt1_lowpass_state;
+					}
 
 					// Apply I term Filter
 					if (d->balance_conf.ki_limit > 0 && fabsf(d->integral2 * d->balance_conf.ki2) > d->balance_conf.ki_limit) {
