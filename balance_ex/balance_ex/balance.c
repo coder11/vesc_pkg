@@ -116,7 +116,7 @@ typedef struct {
 	// Rumtime state values
 	BalanceState state;
 	float proportional, integral, derivative, proportional2, integral2, derivative2;
-	float last_proportional, abs_proportional;
+	float error, last_error;
 	float pid_value, pid_value2;
 	float setpoint, setpoint_target, setpoint_target_interpolated;
 	float noseangling_interpolated;
@@ -229,7 +229,7 @@ static void configure(data *d) {
 static void reset_vars(data *d) {
 	// Clear accumulated values.
 	d->integral = 0;
-	d->last_proportional = 0;
+	d->last_error = 0;
 	d->integral2 = 0;
 	d->yaw_integral = 0;
 	d->yaw_last_proportional = 0;
@@ -487,19 +487,19 @@ static void apply_turntilt(data *d) {
 	d->setpoint += d->turntilt_interpolated;
 }
 
-static float apply_deadzone(data *d, float error){
-	if (d->balance_conf.deadzone == 0) {
-		return error;
-	}
+// static float apply_deadzone(data *d, float error){
+// 	if (d->balance_conf.deadzone == 0) {
+// 		return error;
+// 	}
 
-	if (error < d->balance_conf.deadzone && error > -d->balance_conf.deadzone) {
-		return 0;
-	} else if(error > d->balance_conf.deadzone) {
-		return error - d->balance_conf.deadzone;
-	} else {
-		return error + d->balance_conf.deadzone;
-	}
-}
+// 	if (error < d->balance_conf.deadzone && error > -d->balance_conf.deadzone) {
+// 		return 0;
+// 	} else if(error > d->balance_conf.deadzone) {
+// 		return error - d->balance_conf.deadzone;
+// 	} else {
+// 		return error + d->balance_conf.deadzone;
+// 	}
+// }
 
 static void brake(data *d) {
 	// Brake timeout logic
@@ -676,7 +676,6 @@ static void balance_thd(void *arg) {
 
 		if(d->balance_conf.balance_enabled) {
 			float pitch_angle_adjusted = d->pitch_angle + d->balance_conf.pitch_adjustment;
-			float last_pitch_angle_adjusted = d->last_pitch_angle + d->balance_conf.pitch_adjustment;
 
 			// Control Loop State Logic
 			switch(d->state) {
@@ -711,15 +710,22 @@ static void balance_thd(void *arg) {
 				apply_torquetilt(d);
 				apply_turntilt(d);
 
+				// Calcualte error
+				d->error = d->setpoint - pitch_angle_adjusted;
+				
+				float e = fabsf(d->error);
+				float sign = SIGN(d->error);
+				float k = d->balance_conf.error_ln_slope;
+				float dd = d->balance_conf.error_linear_limit;
+				// Are we in ln already?
+				if(e > dd) {
+					d->error = sign * (k * logf( (e - dd) / k + 1 ) + dd);
+				}
+
 				// Do PID maths
-				d->proportional = d->setpoint - pitch_angle_adjusted;
-
-				// Apply deadzone
-				d->proportional = apply_deadzone(d, d->proportional);
-
-				// Resume real PID maths
-				d->integral = d->integral + d->proportional;
-				d->derivative = last_pitch_angle_adjusted - pitch_angle_adjusted;
+				d->proportional = d->error;
+				d->integral = d->integral + d->error;
+				d->derivative = d->error - d->last_error;
 
 				// Apply I term Filter
 				if (d->balance_conf.ki_limit > 0 && fabsf(d->integral * d->balance_conf.ki) > d->balance_conf.ki_limit) {
@@ -756,7 +762,7 @@ static void balance_thd(void *arg) {
 					resulting_pid_value = d->pid_value2;
 				}
 
-				d->last_proportional = d->proportional;
+				d->last_error = d->error;
 
 				// Apply Booster
 				// I don't need it
