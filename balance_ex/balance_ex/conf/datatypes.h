@@ -32,6 +32,8 @@ typedef struct {
 	BALANCE_PID_MODE pid_mode;
 	bool balance_enabled;
 	float pitch_adjustment;
+	float error_linear_limit;
+	float error_ln_slope;
 	float kp;
 	float ki;
 	float kd;

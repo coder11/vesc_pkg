@@ -13,6 +13,16 @@
 #define APPCONF_PITCH_ADJUSTMENT 0
 #endif
 
+// Error response linear limit
+#ifndef APPCONF_ERROR_LINEAR_LIMIT
+#define APPCONF_ERROR_LINEAR_LIMIT 90
+#endif
+
+// Error logarithm slope
+#ifndef APPCONF_ERROR_LN_SLOPE
+#define APPCONF_ERROR_LN_SLOPE 0.1
+#endif
+
 // PID Mode
 #ifndef APPCONF_BALANCE_PID_MODE
 #define APPCONF_BALANCE_PID_MODE 0

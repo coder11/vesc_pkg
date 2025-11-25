@@ -12,6 +12,8 @@ int32_t confparser_serialize_balance_config(uint8_t *buffer, const balance_confi
 
 	buffer[ind++] = conf->balance_enabled;
 	buffer_append_float16(buffer, conf->pitch_adjustment, 1, &ind);
+	buffer_append_float32_auto(buffer, conf->error_linear_limit, &ind);
+	buffer_append_float32_auto(buffer, conf->error_ln_slope, &ind);
 	buffer[ind++] = conf->pid_mode;
 	buffer_append_float32_auto(buffer, conf->kp, &ind);
 	buffer_append_float32_auto(buffer, conf->ki, &ind);
@@ -94,6 +96,8 @@ bool confparser_deserialize_balance_config(const uint8_t *buffer, balance_config
 
 	conf->balance_enabled = buffer[ind++];
 	conf->pitch_adjustment = buffer_get_float16(buffer, 1, &ind);
+	conf->error_linear_limit = buffer_get_float32_auto(buffer, &ind);
+	conf->error_ln_slope = buffer_get_float32_auto(buffer, &ind);
 	conf->pid_mode = buffer[ind++];
 	conf->kp = buffer_get_float32_auto(buffer, &ind);
 	conf->ki = buffer_get_float32_auto(buffer, &ind);
@@ -169,6 +173,8 @@ bool confparser_deserialize_balance_config(const uint8_t *buffer, balance_config
 void confparser_set_defaults_balance_config(balance_config *conf) {
 	conf->balance_enabled = APPCONF_BALANCE_ENABLED;
 	conf->pitch_adjustment = APPCONF_PITCH_ADJUSTMENT;
+	conf->error_linear_limit = APPCONF_ERROR_LINEAR_LIMIT;
+	conf->error_ln_slope = APPCONF_ERROR_LN_SLOPE;
 	conf->pid_mode = APPCONF_BALANCE_PID_MODE;
 	conf->kp = APPCONF_BALANCE_KP;
 	conf->ki = APPCONF_BALANCE_KI;
