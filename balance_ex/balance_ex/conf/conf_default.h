@@ -70,7 +70,7 @@
 
 // Pitch Axis Fault Cutoff
 #ifndef APPCONF_BALANCE_FAULT_PITCH
-#define APPCONF_BALANCE_FAULT_PITCH 20
+#define APPCONF_BALANCE_FAULT_PITCH 30
 #endif
 
 // Roll Axis Fault Cutoff
@@ -80,7 +80,7 @@
 
 // Duty Cycle Fault Cutoff
 #ifndef APPCONF_BALANCE_FAULT_DUTY
-#define APPCONF_BALANCE_FAULT_DUTY 0.9
+#define APPCONF_BALANCE_FAULT_DUTY 0.95
 #endif
 
 // ADC1 Switch Voltage
@@ -95,7 +95,7 @@
 
 // Pitch Fault Delay
 #ifndef APPCONF_BALANCE_FAULT_DELAY_PITCH
-#define APPCONF_BALANCE_FAULT_DELAY_PITCH 0
+#define APPCONF_BALANCE_FAULT_DELAY_PITCH 500
 #endif
 
 // Roll Fault Delay
@@ -105,7 +105,7 @@
 
 // Duty Fault Delay
 #ifndef APPCONF_BALANCE_FAULT_DELAY_DUTY
-#define APPCONF_BALANCE_FAULT_DELAY_DUTY 0
+#define APPCONF_BALANCE_FAULT_DELAY_DUTY 1000
 #endif
 
 // Half Switch Fault Delay
