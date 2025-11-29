@@ -25,6 +25,9 @@
 #include "conf/confxml.h"
 #include "conf/buffer.h"
 
+#include "biquad.h"
+#include "pt1.h"
+
 #include <math.h>
 #include <string.h>
 
@@ -74,15 +77,6 @@ typedef enum {
 	ON
 } SwitchState;
 
-typedef struct{
-	float a0, a1, a2, b1, b2;
-	float z1, z2;
-} Biquad;
-
-typedef enum {
-	BQ_LOWPASS,
-	BQ_HIGHPASS
-} BiquadType;
 
 // This is all persistent state of the application, which will be allocated in init. It
 // is put here because variables can only be read-only when this program is loaded
@@ -143,37 +137,6 @@ typedef struct {
 static void set_current(data *d, float current, float yaw_current);
 static void configure(data *d);
 
-// Utility Functions
-static float biquad_process(Biquad *biquad, float in) {
-    float out = in * biquad->a0 + biquad->z1;
-    biquad->z1 = in * biquad->a1 + biquad->z2 - biquad->b1 * out;
-    biquad->z2 = in * biquad->a2 - biquad->b2 * out;
-    return out;
-}
-
-static void biquad_config(Biquad *biquad, BiquadType type, float Fc) {
-	float K = tanf(M_PI * Fc);	// -0.0159;
-	float Q = 0.707; // maximum sharpness (0.5 = maximum smoothness)
-	float norm = 1 / (1 + K / Q + K * K);
-	if (type == BQ_LOWPASS) {
-		biquad->a0 = K * K * norm;
-		biquad->a1 = 2 * biquad->a0;
-		biquad->a2 = biquad->a0;
-	}
-	else if (type == BQ_HIGHPASS) {
-		biquad->a0 = 1 * norm;
-		biquad->a1 = -2 * biquad->a0;
-		biquad->a2 = biquad->a0;
-	}
-	biquad->b1 = 2 * (K * K - 1) * norm;
-	biquad->b2 = (1 - K / Q + K * K) * norm;
-}
-
-static void biquad_reset(Biquad *biquad) {
-	biquad->z1 = 0;
-	biquad->z2 = 0;
-}
-
 static void configure(data *d) {
 	// Set calculated values from config
 	d->loop_time_seconds = 1.0 / d->balance_conf.hertz;
@@ -198,26 +161,20 @@ static void configure(data *d) {
 	}
 
 	if (d->balance_conf.kd_pt1_lowpass_frequency > 0) {
-		float dT = 1.0 / d->balance_conf.hertz;
-		float RC = 1.0 / ( 2.0 * M_PI * d->balance_conf.kd_pt1_lowpass_frequency);
-		d->d_pt1_lowpass_k =  dT / (RC + dT);
+		d->d_pt1_lowpass_k = pt1_calculate_k(d->balance_conf.kd_pt1_lowpass_frequency, d->balance_conf.hertz);
 	}
 
 	if (d->balance_conf.kd2_pt1_lowpass_frequency > 0) {
-		float dT = 1.0 / d->balance_conf.hertz;
-		float RC = 1.0 / ( 2.0 * M_PI * d->balance_conf.kd2_pt1_lowpass_frequency);
-		d->d2_pt1_lowpass_k =  dT / (RC + dT);
+		d->d2_pt1_lowpass_k = pt1_calculate_k(d->balance_conf.kd2_pt1_lowpass_frequency, d->balance_conf.hertz);
 	}
 
 	if (d->balance_conf.kd_pt1_highpass_frequency > 0) {
-		float dT = 1.0 / d->balance_conf.hertz;
-		float RC = 1.0 / ( 2.0 * M_PI * d->balance_conf.kd_pt1_highpass_frequency);
-		d->d_pt1_highpass_k =  dT / (RC + dT);
+		d->d_pt1_highpass_k = pt1_calculate_k(d->balance_conf.kd_pt1_highpass_frequency, d->balance_conf.hertz);
 	}
 
 	if (d->balance_conf.torquetilt_filter > 0) { // Torquetilt Current Biquad
-		float Fc = d->balance_conf.torquetilt_filter / d->balance_conf.hertz;
-		biquad_config(&d->torquetilt_current_biquad, BQ_LOWPASS, Fc);
+		float fc = d->balance_conf.torquetilt_filter / d->balance_conf.hertz;
+		biquad_config(&d->torquetilt_current_biquad, BQ_LOWPASS, fc);
 	}
 
 	// Variable nose angle adjustment / tiltback (setting is per 1000erpm, convert to per erpm)
@@ -742,13 +699,11 @@ static void balance_thd(void *arg) {
 
 				// Apply D term filters
 				if (d->balance_conf.kd_pt1_lowpass_frequency > 0) {
-					d->d_pt1_lowpass_state = d->d_pt1_lowpass_state + d->d_pt1_lowpass_k * (d->derivative - d->d_pt1_lowpass_state);
-					d->derivative = d->d_pt1_lowpass_state;
+					d->derivative = pt1_process_lowpass(&d->d_pt1_lowpass_state, d->d_pt1_lowpass_k, d->derivative);
 				}
 
 				if (d->balance_conf.kd_pt1_highpass_frequency > 0){
-					d->d_pt1_highpass_state = d->d_pt1_highpass_state + d->d_pt1_highpass_k * (d->derivative - d->d_pt1_highpass_state);
-					d->derivative = d->derivative - d->d_pt1_highpass_state;
+					d->derivative = pt1_process_highpass(&d->d_pt1_highpass_state, d->d_pt1_highpass_k, d->derivative);
 				}
 
 				float resulting_pid_value;
@@ -762,8 +717,7 @@ static void balance_thd(void *arg) {
 
 					// Apply D term filter
 					if (d->balance_conf.kd2_pt1_lowpass_frequency > 0) {
-						d->d2_pt1_lowpass_state = d->d2_pt1_lowpass_state + d->d2_pt1_lowpass_k * (d->derivative2 - d->d2_pt1_lowpass_state);
-						d->derivative2 = d->d2_pt1_lowpass_state;
+						d->derivative2 = pt1_process_lowpass(&d->d2_pt1_lowpass_state, d->d2_pt1_lowpass_k, d->derivative2);
 					}
 
 					// Apply I term Filter

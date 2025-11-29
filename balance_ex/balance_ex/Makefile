@@ -5,7 +5,8 @@ TARGET = balance
 CONF_GEN_HEADERS = conf/confparser.h conf/confxml.h
 CONF_GEN_SOURCES = conf/confparser.c conf/confxml.c
 CONF_GEN_FILES = $(CONF_GEN_HEADERS) $(CONF_GEN_SOURCES)
-SOURCES = main.c conf/buffer.c $(CONF_GEN_SOURCES)
+LOCAL_SOURCES = $(wildcard *.c)
+SOURCES = $(LOCAL_SOURCES) conf/buffer.c $(CONF_GEN_SOURCES)
 
 VESC_C_LIB_PATH=../../c_libs/
 include $(VESC_C_LIB_PATH)rules.mk
