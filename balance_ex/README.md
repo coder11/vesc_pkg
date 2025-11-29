@@ -1,4 +1,4 @@
-# BALANCE EX v0.1.5
+# BALANCE EX v{{VERSION}}-{{GIT_HASH}}
 
 This one can be used for some basics tests already. Logging works, balance disabling works.
 
