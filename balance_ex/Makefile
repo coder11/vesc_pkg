@@ -18,6 +18,10 @@ ui.gen.qml: ui.qml version
 
 balance_ex.vescpkg: balance_ex README.gen.md ui.gen.qml
 	$(VESC_TOOL) --buildPkgFromDesc pkgdesc.qml --testPkgDesc 'custom:test' --testPkgDesc 'vesc:test'
+	@mkdir -p build
+	@VERSION=$$(cat version | tr -d '\n'); \
+	GIT_HASH=$$(git rev-parse --short HEAD); \
+	cp $@ build/balance_ex.v$$VERSION-$$GIT_HASH.vescpkg
 
 balance_ex:
 	$(MAKE) -C $@
