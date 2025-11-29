@@ -1,4 +1,6 @@
 balance.bin
 balance.lisp
 
+*.d
+
 conf/confparser.h
