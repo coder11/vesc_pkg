@@ -99,7 +99,7 @@ typedef struct {
 	float pitch_angle, last_pitch_angle, roll_angle, abs_roll_angle, abs_roll_angle_sin, last_gyro_y;
 	float gyro[3];
 	float duty_cycle, abs_duty_cycle;
-	float erpm, abs_erpm, avg_erpm, last_erpm;
+	float erpm, abs_erpm, last_erpm;
 	float erpm_accel;
 	float erpm_accel_divided_by_current;
 	float motor_current;
@@ -118,7 +118,6 @@ typedef struct {
 	Biquad torquetilt_current_biquad;
 	float turntilt_target, turntilt_interpolated;
 	SetpointAdjustmentType setpointAdjustmentType;
-	float yaw_proportional, yaw_integral, yaw_derivative, yaw_last_proportional, yaw_pid_value, yaw_setpoint;
 	float current_time, last_time, diff_time, loop_overshoot; // Seconds
 	float filtered_loop_overshoot, loop_overshoot_alpha, filtered_diff_time;
 	float fault_angle_pitch_timer, fault_angle_roll_timer, fault_switch_timer, fault_switch_half_timer, fault_duty_timer; // Seconds
@@ -134,7 +133,7 @@ typedef struct {
 } data;
 
 // Function Prototypes
-static void set_current(data *d, float current, float yaw_current);
+static void set_current(data *d, float current);
 static void configure(data *d);
 
 static void configure(data *d) {
@@ -195,8 +194,6 @@ static void reset_vars(data *d) {
 	d->integral = 0;
 	d->last_error = 0;
 	d->integral2 = 0;
-	d->yaw_integral = 0;
-	d->yaw_last_proportional = 0;
 	d->d_pt1_lowpass_state = 0;
 	d->d_pt1_highpass_state = 0;
 	d->d2_pt1_lowpass_state = 0;
@@ -212,7 +209,6 @@ static void reset_vars(data *d) {
 	d->turntilt_target = 0;
 	d->turntilt_interpolated = 0;
 	d->setpointAdjustmentType = CENTERING;
-	d->yaw_setpoint = 0;
 	d->state = RUNNING;
 	d->current_time = 0;
 	d->last_time = 0;
@@ -481,19 +477,10 @@ static void brake(data *d) {
 
 	// Set current
 	VESC_IF->mc_set_brake_current(d->balance_conf.brake_current);
-
-	if (d->balance_conf.multi_esc) {
-		for (int i = 0;i < MAX_CAN_DEVS;i++) {
-			can_status_msg *msg = VESC_IF->can_get_status_msg_index(i);
-			if (msg->id >= 0 && VESC_IF->ts_to_age_s(msg->rx_time) < MAX_CAN_AGE) {
-				VESC_IF->can_set_current_brake(msg->id, d->balance_conf.brake_current);
-			}
-		}
-	}
 }
 
-static void set_current(data *d, float current, float yaw_current){
-	// Limit current output to configured max output (does not account for yaw_current)
+static void set_current(data *d, float current){
+	// Limit current output to configured max output
 	if (current > 0 && current > VESC_IF->get_cfg_float(CFG_PARAM_l_current_max)) {
 		current = VESC_IF->get_cfg_float(CFG_PARAM_l_current_max);
 	} else if(current < 0 && current < VESC_IF->get_cfg_float(CFG_PARAM_l_current_min)) {
@@ -503,29 +490,10 @@ static void set_current(data *d, float current, float yaw_current){
 	// Reset the timeout
 	VESC_IF->timeout_reset();
 
-	// Set current
-	if (d->balance_conf.multi_esc) {
-		// Set the current delay
-		VESC_IF->mc_set_current_off_delay(d->motor_timeout_seconds);
-
-		// Set Current
-		VESC_IF->mc_set_current(current + yaw_current);
-
-		// Can bus
-		for (int i = 0;i < MAX_CAN_DEVS;i++) {
-			can_status_msg *msg = VESC_IF->can_get_status_msg_index(i);
-
-			if (msg->id >= 0 && VESC_IF->ts_to_age_s(msg->rx_time) < MAX_CAN_AGE) {
-				// Assume 2 motors, i don't know how to steer 3 anyways
-				VESC_IF->can_set_current_off_delay(msg->id, current - yaw_current, d->motor_timeout_seconds);
-			}
-		}
-	} else {
-		// Set the current delay
-		VESC_IF->mc_set_current_off_delay(d->motor_timeout_seconds);
-		// Set Current
-		VESC_IF->mc_set_current(current);
-	}
+	// Set the current delay
+	VESC_IF->mc_set_current_off_delay(d->motor_timeout_seconds);
+	// Set Current
+	VESC_IF->mc_set_current(current);
 }
 
 static bool is_kill_switch_triggered(data *d) {
@@ -592,17 +560,6 @@ static void balance_thd(void *arg) {
 			d->erpm_accel_divided_by_current = 0.0f;
 		}
 		d->last_erpm = d->erpm;
-		if (d->balance_conf.multi_esc) {
-			d->avg_erpm = d->erpm;
-			for (int i = 0;i < MAX_CAN_DEVS;i++) {
-				can_status_msg *msg = VESC_IF->can_get_status_msg_index(i);
-				if (msg->id >= 0 && VESC_IF->ts_to_age_s(msg->rx_time) < MAX_CAN_AGE) {
-					d->avg_erpm += msg->rpm;
-				}
-			}
-
-			d->avg_erpm = d->avg_erpm / 2.0; // Assume 2 motors, i don't know how to steer 3 anyways
-		}
 
 		d->adc1 = VESC_IF->io_read_analog(VESC_PIN_ADC1);
 		d->adc2 = VESC_IF->io_read_analog(VESC_PIN_ADC2); // Returns -1.0 if the pin is missing on the hardware
@@ -746,40 +703,8 @@ static void balance_thd(void *arg) {
 				}
 				*/
 
-				// Don't use multi ESC for EUC :)
-				/*
-				if (d->balance_conf.multi_esc) {
-					// Calculate setpoint
-					if (d->abs_duty_cycle < .02) {
-						d->yaw_setpoint = 0;
-					} else if (d->avg_erpm < 0) {
-						d->yaw_setpoint = (-d->balance_conf.roll_steer_kp * d->roll_angle) +
-								(d->balance_conf.roll_steer_erpm_kp * d->roll_angle * d->avg_erpm);
-					} else {
-						d->yaw_setpoint = (d->balance_conf.roll_steer_kp * d->roll_angle) +
-								(d->balance_conf.roll_steer_erpm_kp * d->roll_angle * d->avg_erpm);
-					}
-
-					// Do PID maths
-					d->yaw_proportional = d->yaw_setpoint - d->gyro[2];
-					d->yaw_integral = d->yaw_integral + d->yaw_proportional;
-					d->yaw_derivative = d->yaw_proportional - d->yaw_last_proportional;
-
-					d->yaw_pid_value = (d->balance_conf.yaw_kp * d->yaw_proportional) +
-							(d->balance_conf.yaw_ki * d->yaw_integral) + (d->balance_conf.yaw_kd * d->yaw_derivative);
-
-					if (d->yaw_pid_value > d->balance_conf.yaw_current_clamp) {
-						d->yaw_pid_value = d->balance_conf.yaw_current_clamp;
-					} else if (d->yaw_pid_value < -d->balance_conf.yaw_current_clamp) {
-						d->yaw_pid_value = -d->balance_conf.yaw_current_clamp;
-					}
-
-					d->yaw_last_proportional = d->yaw_proportional;
-				}
-				*/
-
 				// Output to motor
-				set_current(d, resulting_pid_value, d->yaw_pid_value);
+				set_current(d, resulting_pid_value);
 				break;
 
 			case (FAULT_ANGLE_PITCH):

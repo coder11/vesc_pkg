@@ -4,3 +4,5 @@ balance.lisp
 *.d
 
 conf/confparser.h
+conf/confparser.c
+conf/conf_default.h
