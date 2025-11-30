@@ -64,8 +64,6 @@ typedef struct {
 	float tiltback_lv_speed;
 	float tiltback_lv;
 	float tiltback_return_speed;
-	float tiltback_constant;
-	uint16_t tiltback_constant_erpm;
 	float tiltback_variable;
 	float tiltback_variable_max;
 	float noseangling_speed;

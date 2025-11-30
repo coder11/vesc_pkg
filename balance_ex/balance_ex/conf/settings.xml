@@ -769,48 +769,6 @@ p, li { white-space: pre-wrap; }
             <suffix> °/s</suffix>
             <vTx>7</vTx>
         </tiltback_return_speed>
-        <tiltback_constant>
-            <longName>Constant Tiltback</longName>
-            <type>1</type>
-            <transmittable>1</transmittable>
-            <description>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Roboto'; ; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Tiltback that will be applied above a configurable minimum ERPM. AKA nose angle adjustment, can be downwards too.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
-            <cDefine>APPCONF_BALANCE_TILTBACK_CONSTANT</cDefine>
-            <editorDecimalsDouble>2</editorDecimalsDouble>
-            <editorScale>1</editorScale>
-            <editAsPercentage>0</editAsPercentage>
-            <maxDouble>80</maxDouble>
-            <minDouble>-80</minDouble>
-            <showDisplay>0</showDisplay>
-            <stepDouble>1</stepDouble>
-            <valDouble>0</valDouble>
-            <vTxDoubleScale>1</vTxDoubleScale>
-            <suffix> °</suffix>
-            <vTx>9</vTx>
-        </tiltback_constant>
-        <tiltback_constant_erpm>
-            <longName>Constant Tiltback ERPM</longName>
-            <type>2</type>
-            <transmittable>1</transmittable>
-            <description>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Roboto'; ; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; APPCONF_BALANCE_FAULT_ADC_HALF_ERPMmargin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;ERPM (absolute value) above which constant tiltback will be applied.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
-            <cDefine>APPCONF_BALANCE_TILTBACK_CONSTANT_ERPM</cDefine>
-            <editorScale>1</editorScale>
-            <editAsPercentage>0</editAsPercentage>
-            <maxInt>100000</maxInt>
-            <minInt>200</minInt>
-            <showDisplay>0</showDisplay>
-            <stepInt>100</stepInt>
-            <valInt>500</valInt>
-            <suffix> ERPM</suffix>
-            <vTx>3</vTx>
-        </tiltback_constant_erpm>
         <tiltback_variable>
             <longName>Variable Tiltback</longName>
             <type>1</type>
@@ -1450,8 +1408,6 @@ p, li { white-space: pre-wrap; }
         <ser>tiltback_lv_speed</ser>
         <ser>tiltback_lv</ser>
         <ser>tiltback_return_speed</ser>
-        <ser>tiltback_constant</ser>
-        <ser>tiltback_constant_erpm</ser>
         <ser>tiltback_variable</ser>
         <ser>tiltback_variable_max</ser>
         <ser>noseangling_speed</ser>
@@ -1514,8 +1470,6 @@ p, li { white-space: pre-wrap; }
                 <subgroupName>Tune Modifiers</subgroupName>
                 <subgroupParams>
                     <param>::sep::Nose Angling</param>
-                    <param>tiltback_constant</param>
-                    <param>tiltback_constant_erpm</param>
                     <param>tiltback_variable</param>
                     <param>tiltback_variable_max</param>
                     <param>noseangling_speed</param>
