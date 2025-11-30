@@ -73,12 +73,10 @@ Item {
             var roll = dv.getFloat32(ind); ind += 4;
             var time_diff = dv.getFloat32(ind); ind += 4;
             var motor_current = dv.getFloat32(ind); ind += 4;
-            var debug1 = dv.getFloat32(ind); ind += 4;
             var state = dv.getInt16(ind); ind += 2;
             var switch_state = dv.getInt16(ind); ind += 2;
             var adc1 = dv.getFloat32(ind); ind += 4;
             var adc2 = dv.getFloat32(ind); ind += 4;
-            var debug2 = dv.getFloat32(ind); ind += 4;
             var killSwitchTriggered = dv.getInt16(ind); ind += 2;
             
             var stateString
@@ -133,12 +131,10 @@ Item {
                 "roll   : " + roll.toFixed(2) + "°\n" +
                 "time   : " + (1/time_diff).toFixed(0) + "hz\n" +
                 "current: " + motor_current.toFixed(2) + "A\n" +
-                "debug1 : " + debug1.toFixed(2) + "\n" +
                 "state  : " + stateString + "\n" +
                 "switch : " + switchString + "\n" +
                 "adc1   : " + adc1.toFixed(2) + "V\n" +
                 "adc2   : " + adc2.toFixed(2) + "V\n" +
-                "debug2 : " + debug2.toFixed(2) + "\n" +
                 "kill switch triggered: " + killSwitchTriggeredString
         }
     }

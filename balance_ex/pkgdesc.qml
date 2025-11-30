@@ -3,7 +3,7 @@ import QtQuick 2.15
 Item {
     property string pkgName: "Balance EX"
     property string pkgDescriptionMd: "README.gen.md"
-    property string pkgLisp: "balance.lisp"
+    property string pkgLisp: "package.lisp"
     property string pkgQml: "ui.gen.qml"
     property bool pkgQmlIsFullscreen: false
     property string pkgOutput: "balance_ex.vescpkg"
