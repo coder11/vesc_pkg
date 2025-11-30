@@ -1,7 +1,7 @@
 
 <RCC>
    <qresource prefix="/vesc_packages">
-        <file>balance_ex/balance_ex.vescpkg</file>
+        <file>balance_ex/build/balance_ex.vescpkg</file>
         <file>loggrabber/loggrabber.vescpkg</file>
         <!-- <file>float/float.vescpkg</file> -->
         <!-- <file>refloat/refloat.vescpkg</file> -->
