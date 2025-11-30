@@ -1,8 +1,5 @@
 #include "balance.h"
 #include "conf/datatypes.h"
-#include "conf/confparser.h"
-#include "conf/confxml.h"
-#include "conf/buffer.h"
 
 #include "biquad.h"
 #include "pt1.h"
@@ -11,7 +8,6 @@
 #include <string.h>
 #include "util.h"
 #include "data.h"
-#include "communication.h"
 
 void configure(data *d) {
 	// Set calculated values from config
