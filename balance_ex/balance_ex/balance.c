@@ -491,11 +491,13 @@ void balance_loop_tick(data *d) {
             float dd = d->balance_conf.error_linear_limit;
             // Are we in ln already?
             if(abs_error > dd) {
-                d->error = sign_error * (kk * logf( (abs_error - dd) / kk + 1 ) + dd);
+				abs_error = kk * logf( (abs_error - dd) / kk + 1 ) + dd;
+                d->error = sign_error * abs_error;
             }
 
             // Do PID maths
             d->proportional = d->error;
+			d->exponential = sign_error * (expf( d->balance_conf.kexp * abs_error) - 1.0f);
             d->integral = d->integral + d->error;
             d->derivative = d->error - d->last_error;
 
@@ -514,7 +516,7 @@ void balance_loop_tick(data *d) {
             }
 
             float resulting_pid_value;
-            d->pid_value = (d->balance_conf.kp * d->proportional) + (d->balance_conf.ki * d->integral) + (d->balance_conf.kd * d->derivative);
+            d->pid_value = (d->balance_conf.kp * d->proportional) + d->exponential + (d->balance_conf.ki * d->integral) + (d->balance_conf.kd * d->derivative);
             resulting_pid_value = d->pid_value;
 
             if (d->balance_conf.pid_mode == BALANCE_PID_MODE_ANGLE_RATE_CASCADE) {
@@ -538,13 +540,12 @@ void balance_loop_tick(data *d) {
             }
 
             // Apply Booster
-            float abs_error_1 = fabsf(d->error);
-            if (abs_error_1 > d->balance_conf.booster_angle) {
-                if (abs_error_1 - d->balance_conf.booster_angle < d->balance_conf.booster_ramp) {
-                    resulting_pid_value += (d->balance_conf.booster_current * SIGN(d->error)) *
-                            ((abs_error_1 - d->balance_conf.booster_angle) / d->balance_conf.booster_ramp);
+            if (abs_error > d->balance_conf.booster_angle) {
+                if (abs_error - d->balance_conf.booster_angle < d->balance_conf.booster_ramp) {
+                    resulting_pid_value += (d->balance_conf.booster_current * sign_error) *
+                            ((abs_error - d->balance_conf.booster_angle) / d->balance_conf.booster_ramp);
                 } else {
-                    resulting_pid_value += d->balance_conf.booster_current * SIGN(d->error);
+                    resulting_pid_value += d->balance_conf.booster_current * sign_error;
                 }
             }
 

@@ -87,7 +87,7 @@ typedef struct {
 
 	// Rumtime state values
 	BalanceState state;
-	float proportional, integral, derivative, proportional2, integral2, derivative2;
+	float proportional, exponential, integral, derivative, proportional2, integral2, derivative2;
 	float error, last_error;
 	float pid_value, pid_value2;
 	float setpoint, setpoint_target, setpoint_target_interpolated;
