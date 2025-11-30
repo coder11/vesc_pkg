@@ -125,11 +125,6 @@ typedef struct {
 	float d2_pt1_lowpass_state, d2_pt1_lowpass_k;
 	float motor_timeout_seconds;
 	float brake_timeout; // Seconds
-
-	// Debug values
-	int debug_render_1, debug_render_2;
-	int debug_sample_field, debug_sample_count, debug_sample_index;
-	int debug_experiment_1, debug_experiment_2, debug_experiment_3, debug_experiment_4, debug_experiment_5, debug_experiment_6;
 } data;
 
 // Function Prototypes
@@ -711,73 +706,23 @@ static void balance_thd(void *arg) {
 			}
 		}
 
-		// Debug outputs
-//		app_balance_sample_debug();
-//		app_balance_experiment();
-
 		// Delay between loops
 		VESC_IF->sleep_us((uint32_t)((d->loop_time_seconds - roundf(d->filtered_loop_overshoot)) * 1000000.0));
-	}
-}
-
-static float app_balance_get_debug(int index) {
-	data *d = (data*)ARG;
-
-	switch(index){
-		case(1):
-			return d->motor_position;
-		case(2):
-			return d->setpoint;
-		case(3):
-			return d->torquetilt_filtered_current;
-		case(4):
-			return d->derivative;
-		case(5):
-			return d->last_pitch_angle - d->pitch_angle;
-		case(6):
-			return d->motor_current;
-		case(7):
-			return d->erpm;
-		case(8):
-			return d->abs_erpm;
-		case(9):
-			return d->loop_time_seconds;
-		case(10):
-			return d->diff_time;
-		case(11):
-			return d->loop_overshoot;
-		case(12):
-			return d->filtered_loop_overshoot;
-		case(13):
-			return d->filtered_diff_time;
-		case(14):
-			return d->integral;
-		case(15):
-			return d->integral * d->balance_conf.ki;
-		case(16):
-			return d->integral2;
-		case(17):
-			return d->integral2 * d->balance_conf.ki2;
-		default:
-			return 0;
 	}
 }
 
 static void send_realtime_data(data *d){
 	int32_t ind = 0;
 	uint8_t send_buffer[50];
-//	send_buffer[ind++] = COMM_GET_DECODED_BALANCE;
 	buffer_append_float32_auto(send_buffer, d->pid_value, &ind);
 	buffer_append_float32_auto(send_buffer, d->pitch_angle, &ind);
 	buffer_append_float32_auto(send_buffer, d->roll_angle, &ind);
 	buffer_append_float32_auto(send_buffer, d->diff_time, &ind);
 	buffer_append_float32_auto(send_buffer, d->motor_current, &ind);
-	buffer_append_float32_auto(send_buffer, app_balance_get_debug(d->debug_render_1), &ind);
 	buffer_append_uint16(send_buffer, d->state, &ind);
 	buffer_append_uint16(send_buffer, d->switch_state, &ind);
 	buffer_append_float32_auto(send_buffer, d->adc1, &ind);
 	buffer_append_float32_auto(send_buffer, d->adc2, &ind);
-	buffer_append_float32_auto(send_buffer, app_balance_get_debug(d->debug_render_2), &ind);
 	buffer_append_uint16(send_buffer, is_kill_switch_triggered(d), &ind);
 	VESC_IF->send_app_data(send_buffer, ind);
 }
@@ -796,15 +741,6 @@ static void on_command_recieved(unsigned char *buffer, unsigned int len) {
 			VESC_IF->printf("Unknown command received %d", command);
 		}
 	}
-}
-
-// Register get_debug as a lisp extension
-static lbm_value ext_bal_dbg(lbm_value *args, lbm_uint argn) {
-	if (argn != 1 || !VESC_IF->lbm_is_number(args[0])) {
-		return VESC_IF->lbm_enc_sym_eerror;
-	}
-
-	return VESC_IF->lbm_enc_float(app_balance_get_debug(VESC_IF->lbm_dec_as_i32(args[0])));
 }
 
 static lbm_value ext_get_proportional(lbm_value *args, lbm_uint argn) {
@@ -993,7 +929,6 @@ INIT_FUN(lib_info *info) {
 	d->thread = VESC_IF->spawn(balance_thd, 2048, "Balance Main", d);
 
 	VESC_IF->set_app_data_handler(on_command_recieved);
-	VESC_IF->lbm_add_extension("ext-balance-dbg", ext_bal_dbg);
 
 	VESC_IF->lbm_add_extension("ext-balance-get-p", ext_get_proportional);
 	VESC_IF->lbm_add_extension("ext-balance-get-ratep", ext_get_proportional2);
