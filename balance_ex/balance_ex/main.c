@@ -615,13 +615,13 @@ static void balance_thd(void *arg) {
 				// Calcualte error
 				d->error = d->setpoint - pitch_angle_adjusted;
 				
-				float e = fabsf(d->error);
-				float sign = SIGN(d->error);
-				float k = d->balance_conf.error_ln_slope;
+				float abs_error = fabsf(d->error);
+				float sign_error = SIGN(d->error);
+				float kk = d->balance_conf.error_ln_slope;
 				float dd = d->balance_conf.error_linear_limit;
 				// Are we in ln already?
-				if(e > dd) {
-					d->error = sign * (k * logf( (e - dd) / k + 1 ) + dd);
+				if(abs_error > dd) {
+					d->error = sign_error * (kk * logf( (abs_error - dd) / kk + 1 ) + dd);
 				}
 
 				// Do PID maths
@@ -667,23 +667,19 @@ static void balance_thd(void *arg) {
 					resulting_pid_value = d->pid_value2;
 				}
 
-				d->last_error = d->error;
-
 				// Apply Booster
-				// I don't need it
-				/*
-				d->abs_proportional = fabsf(d->proportional);
-				if (d->abs_proportional > d->balance_conf.booster_angle) {
-					if (d->abs_proportional - d->balance_conf.booster_angle < d->balance_conf.booster_ramp) {
-						d->pid_value += (d->balance_conf.booster_current * SIGN(d->proportional)) *
-								((d->abs_proportional - d->balance_conf.booster_angle) / d->balance_conf.booster_ramp);
+				float abs_error_1 = fabsf(d->error);
+				if (abs_error_1 > d->balance_conf.booster_angle) {
+					if (abs_error_1 - d->balance_conf.booster_angle < d->balance_conf.booster_ramp) {
+						resulting_pid_value += (d->balance_conf.booster_current * SIGN(d->error)) *
+								((abs_error_1 - d->balance_conf.booster_angle) / d->balance_conf.booster_ramp);
 					} else {
-						d->pid_value += d->balance_conf.booster_current * SIGN(d->proportional);
+						resulting_pid_value += d->balance_conf.booster_current * SIGN(d->error);
 					}
 				}
-				*/
 
 				// Output to motor
+				d->last_error = d->error;
 				set_current(d, resulting_pid_value);
 				break;
 
