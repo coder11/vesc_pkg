@@ -448,20 +448,6 @@ static void apply_turntilt(data *d) {
 	d->setpoint += d->turntilt_interpolated;
 }
 
-// static float apply_deadzone(data *d, float error){
-// 	if (d->balance_conf.deadzone == 0) {
-// 		return error;
-// 	}
-
-// 	if (error < d->balance_conf.deadzone && error > -d->balance_conf.deadzone) {
-// 		return 0;
-// 	} else if(error > d->balance_conf.deadzone) {
-// 		return error - d->balance_conf.deadzone;
-// 	} else {
-// 		return error + d->balance_conf.deadzone;
-// 	}
-// }
-
 static void brake(data *d) {
 	// Brake timeout logic
 	if (d->balance_conf.brake_timeout > 0 && (d->abs_erpm > 1 || d->brake_timeout == 0)) {
