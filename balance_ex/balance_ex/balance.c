@@ -52,7 +52,7 @@ void configure(data *d) {
 	// Variable nose angle adjustment / tiltback (setting is per 1000erpm, convert to per erpm)
 	d->tiltback_variable = d->balance_conf.tiltback_variable / 1000;
 	if (d->tiltback_variable > 0) {
-		d->tiltback_variable_max_erpm = fabsf(d->balance_conf.tiltback_variable_max / d->tiltback_variable);
+		d->tiltback_variable_max_erpm = fabsf(d->balance_conf.setpoint_max / d->tiltback_variable);
 	} else {
 		d->tiltback_variable_max_erpm = 100000;
 	}
@@ -222,7 +222,7 @@ void apply_noseangling(data *d){
 	// Nose angle adjustment, add variable tiltback
 	float noseangling_target = 0;
 	if (fabsf(d->erpm) > d->tiltback_variable_max_erpm) {
-		noseangling_target = fabsf(d->balance_conf.tiltback_variable_max) * SIGN(d->erpm);
+		noseangling_target = fabsf(d->balance_conf.setpoint_max) * SIGN(d->erpm);
 	} else {
 		noseangling_target = d->tiltback_variable * d->erpm;
 	}

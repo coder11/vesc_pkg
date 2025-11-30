@@ -31,7 +31,6 @@ typedef enum {
 typedef struct {
 	BALANCE_PID_MODE pid_mode;
 	bool balance_enabled;
-	float pitch_adjustment;
 	float error_linear_limit;
 	float error_ln_slope;
 	float kp;
@@ -64,9 +63,6 @@ typedef struct {
 	float tiltback_lv_angle;
 	float tiltback_lv_speed;
 	float tiltback_lv;
-	float tiltback_return_speed;
-	float tiltback_variable;
-	float tiltback_variable_max;
 	float noseangling_speed;
 	float startup_pitch_tolerance;
 	float startup_roll_tolerance;
@@ -93,6 +89,12 @@ typedef struct {
 	float turntilt_speed;
 	uint16_t turntilt_erpm_boost;
 	uint16_t turntilt_erpm_boost_end;
+
+	float pitch_adjustment;
+	float tiltback_return_speed;
+	float tiltback_variable;
+	float setpoint_max;
+	float setpoint_min;
 } balance_config;
 
 // DATATYPES_H_

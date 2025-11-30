@@ -37,28 +37,6 @@ p, li { white-space: pre-wrap; }
             <cDefine>APPCONF_BALANCE_ENABLED</cDefine>
             <valInt>0</valInt>
         </balance_enabled>
-        <pitch_adjustment>
-            <longName>Pitch adjustment</longName>
-            <type>1</type>
-            <transmittable>1</transmittable>
-            <description>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Roboto'; ; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Pitch angle adjustment by a constant value in degrees. Positive value increases the pitch angle tilting the PEV down. Negative value decreases the pitch angle tilting the PEV up.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
-            <cDefine>APPCONF_PITCH_ADJUSTMENT</cDefine>
-            <editorDecimalsDouble>1</editorDecimalsDouble>
-            <editorScale>1</editorScale>
-            <editAsPercentage>0</editAsPercentage>
-            <maxDouble>10</maxDouble>
-            <minDouble>-10</minDouble>
-            <showDisplay>0</showDisplay>
-            <stepDouble>1</stepDouble>
-            <valDouble>0</valDouble>
-            <vTxDoubleScale>1</vTxDoubleScale>
-            <suffix></suffix>
-            <vTx>7</vTx>
-        </pitch_adjustment>
         <error_linear_limit>
             <longName>Error response linear limit</longName>
             <type>1</type>
@@ -771,72 +749,6 @@ p, li { white-space: pre-wrap; }
             <suffix> V</suffix>
             <vTx>9</vTx>
         </tiltback_lv>
-        <tiltback_return_speed>
-            <longName>Return To Level Speed</longName>
-            <type>1</type>
-            <transmittable>1</transmittable>
-            <description>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Roboto'; ; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Speed at which vehicle is being returned back to normal after a tiltback condition has been cleared (should be equal to or slower than slowest tiltback speed).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
-            <cDefine>APPCONF_BALANCE_TILTBACK_RETURN_SPEED</cDefine>
-            <editorDecimalsDouble>1</editorDecimalsDouble>
-            <editorScale>1</editorScale>
-            <editAsPercentage>0</editAsPercentage>
-            <maxDouble>100</maxDouble>
-            <minDouble>0</minDouble>
-            <showDisplay>0</showDisplay>
-            <stepDouble>0.5</stepDouble>
-            <valDouble>1</valDouble>
-            <vTxDoubleScale>100</vTxDoubleScale>
-            <suffix> °/s</suffix>
-            <vTx>7</vTx>
-        </tiltback_return_speed>
-        <tiltback_variable>
-            <longName>Variable Tiltback</longName>
-            <type>1</type>
-            <transmittable>1</transmittable>
-            <description>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Roboto'; ; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Nose angle adjustment that will be applied depending on speed, specified in degrees per 1000 erpm, applied linearly up to a maximum set in Variable Tiltback Maximum. Can be downwards (negative) too. Applies in addition to constant tiltback.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
-            <cDefine>APPCONF_BALANCE_TILTBACK_VARIABLE</cDefine>
-            <editorDecimalsDouble>2</editorDecimalsDouble>
-            <editorScale>1</editorScale>
-            <editAsPercentage>0</editAsPercentage>
-            <maxDouble>1</maxDouble>
-            <minDouble>-1</minDouble>
-            <showDisplay>0</showDisplay>
-            <stepDouble>0.01</stepDouble>
-            <valDouble>0</valDouble>
-            <vTxDoubleScale>1</vTxDoubleScale>
-            <suffix> °/1000 ERPM</suffix>
-            <vTx>9</vTx>
-        </tiltback_variable>
-        <tiltback_variable_max>
-            <longName>Variable Tiltback Maximum</longName>
-            <type>1</type>
-            <transmittable>1</transmittable>
-            <description>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Roboto'; ; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Maximum angle which variable tiltback is permitted to add (in addition to constant tiltback). Does not affect or prevent alert tiltbacks.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
-            <cDefine>APPCONF_BALANCE_TILTBACK_VARIABLE_MAX</cDefine>
-            <editorDecimalsDouble>2</editorDecimalsDouble>
-            <editorScale>1</editorScale>
-            <editAsPercentage>0</editAsPercentage>
-            <maxDouble>80</maxDouble>
-            <minDouble>-80</minDouble>
-            <showDisplay>0</showDisplay>
-            <stepDouble>0.5</stepDouble>
-            <valDouble>0</valDouble>
-            <vTxDoubleScale>1</vTxDoubleScale>
-            <suffix> °</suffix>
-            <vTx>9</vTx>
-        </tiltback_variable_max>
         <noseangling_speed>
             <longName>Nose Angling Speed</longName>
             <type>1</type>
@@ -1395,10 +1307,119 @@ p, li { white-space: pre-wrap; }
             <suffix> ERPM</suffix>
             <vTx>3</vTx>
         </turntilt_erpm_boost_end>
+        <pitch_adjustment>
+            <longName>Pitch adjustment</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Roboto'; ; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Pitch angle adjustment by a constant value in degrees. Positive value increases the pitch angle tilting the PEV down. Negative value decreases the pitch angle tilting the PEV up.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
+            <cDefine>APPCONF_PITCH_ADJUSTMENT</cDefine>
+            <editorDecimalsDouble>1</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <maxDouble>10</maxDouble>
+            <minDouble>-10</minDouble>
+            <showDisplay>0</showDisplay>
+            <stepDouble>1</stepDouble>
+            <valDouble>0</valDouble>
+            <vTxDoubleScale>1</vTxDoubleScale>
+            <suffix></suffix>
+            <vTx>7</vTx>
+        </pitch_adjustment>
+        <tiltback_variable>
+            <longName>Variable Tiltback</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Roboto'; ; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Nose angle adjustment that will be applied depending on speed, specified in degrees per 1000 erpm, applied linearly up to a maximum set in Variable Tiltback Maximum. Can be downwards (negative) too. Applies in addition to constant tiltback.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
+            <cDefine>APPCONF_BALANCE_TILTBACK_VARIABLE</cDefine>
+            <editorDecimalsDouble>2</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <maxDouble>1</maxDouble>
+            <minDouble>-1</minDouble>
+            <showDisplay>0</showDisplay>
+            <stepDouble>0.01</stepDouble>
+            <valDouble>0</valDouble>
+            <vTxDoubleScale>1</vTxDoubleScale>
+            <suffix> °/1000 ERPM</suffix>
+            <vTx>9</vTx>
+        </tiltback_variable>
+        <tiltback_return_speed>
+            <longName>Return To Level Speed</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Roboto'; ; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Speed at which vehicle is being returned back to normal after a tiltback condition has been cleared (should be equal to or slower than slowest tiltback speed).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
+            <cDefine>APPCONF_BALANCE_TILTBACK_RETURN_SPEED</cDefine>
+            <editorDecimalsDouble>1</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <maxDouble>100</maxDouble>
+            <minDouble>0</minDouble>
+            <showDisplay>0</showDisplay>
+            <stepDouble>0.5</stepDouble>
+            <valDouble>1</valDouble>
+            <vTxDoubleScale>100</vTxDoubleScale>
+            <suffix> °/s</suffix>
+            <vTx>7</vTx>
+        </tiltback_return_speed>
+        <setpoint_max>
+            <longName>Setpoint max</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Roboto'; ; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Absolute maximum value allowed for the setpoint. Any setpoint change will stop at this point.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
+            <cDefine>APPCONF_SETPOINT_MAX</cDefine>
+            <editorDecimalsDouble>1</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <maxDouble>90</maxDouble>
+            <minDouble>0</minDouble>
+            <showDisplay>0</showDisplay>
+            <stepDouble>1</stepDouble>
+            <valDouble>0</valDouble>
+            <vTxDoubleScale>1</vTxDoubleScale>
+            <suffix></suffix>
+            <vTx>7</vTx>
+        </setpoint_max>
+        <setpoint_min>
+            <longName>Setpoint min</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Roboto'; ; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Absolute minimum value allowed for the setpoint. Any setpoint change will stop at this point.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
+            <cDefine>APPCONF_SETPOINT_MIN</cDefine>
+            <editorDecimalsDouble>1</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <maxDouble>0</maxDouble>
+            <minDouble>-90</minDouble>
+            <showDisplay>0</showDisplay>
+            <stepDouble>1</stepDouble>
+            <valDouble>0</valDouble>
+            <vTxDoubleScale>1</vTxDoubleScale>
+            <suffix></suffix>
+            <vTx>7</vTx>
+        </setpoint_min>
     </Params>
     <SerOrder>
         <ser>balance_enabled</ser>
-        <ser>pitch_adjustment</ser>
         <ser>error_linear_limit</ser>
         <ser>error_ln_slope</ser>
         <ser>pid_mode</ser>
@@ -1432,9 +1453,6 @@ p, li { white-space: pre-wrap; }
         <ser>tiltback_lv_angle</ser>
         <ser>tiltback_lv_speed</ser>
         <ser>tiltback_lv</ser>
-        <ser>tiltback_return_speed</ser>
-        <ser>tiltback_variable</ser>
-        <ser>tiltback_variable_max</ser>
         <ser>noseangling_speed</ser>
         <ser>startup_pitch_tolerance</ser>
         <ser>startup_roll_tolerance</ser>
@@ -1461,6 +1479,11 @@ p, li { white-space: pre-wrap; }
         <ser>turntilt_speed</ser>
         <ser>turntilt_erpm_boost</ser>
         <ser>turntilt_erpm_boost_end</ser>
+        <ser>pitch_adjustment</ser>
+        <ser>tiltback_variable</ser>
+        <ser>tiltback_return_speed</ser>
+        <ser>setpoint_max</ser>
+        <ser>setpoint_min</ser>
     </SerOrder>
     <Grouping>
         <group>
@@ -1493,12 +1516,19 @@ p, li { white-space: pre-wrap; }
                 </subgroupParams>
             </subgroup>
             <subgroup>
+                <subgroupName>Setpoint</subgroupName>
+                <subgroupParams>
+                    <param>::sep::Setpoint</param>
+                    <param>pitch_adjustment</param>
+                    <param>tiltback_variable</param>
+                    <param>tiltback_return_speed</param>
+                    <param>setpoint_max</param>
+                    <param>setpoint_min</param>
+                </subgroupParams>
+            </subgroup>
+            <subgroup>
                 <subgroupName>Tune Modifiers</subgroupName>
                 <subgroupParams>
-                    <param>::sep::Nose Angling</param>
-                    <param>tiltback_variable</param>
-                    <param>tiltback_variable_max</param>
-                    <param>noseangling_speed</param>
                     <param>::sep::Booster</param>
                     <param>booster_angle</param>
                     <param>booster_ramp</param>
