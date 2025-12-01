@@ -263,10 +263,12 @@ Item {
                     id: speedText
                     Layout.fillWidth: true
                     Layout.preferredHeight: 30
+                    Layout.topMargin: 20
+                    Layout.bottomMargin: 20
                     horizontalAlignment: Text.AlignHCenter
                     color: Utility.getAppHexColor("lightText")
-                    font.pixelSize: 30
-                    font.bold: true
+                    font.pixelSize: 32
+                    font.weight: Font.Black
                     text: speedKmh.toFixed(1) + " kmh"
                 }
                 
@@ -324,7 +326,6 @@ Item {
                             anchors.topMargin: 20
                             color: Utility.getAppHexColor("lightText")
                             text: dutyGauge.value.toFixed(1)
-                            // Match speed text size
                             font.pixelSize: 30
                             font.weight: Font.Black
                         }
@@ -391,7 +392,6 @@ Item {
                             anchors.topMargin: 20
                             color: Utility.getAppHexColor("lightText")
                             text: currentGauge.value.toFixed(1) + "A"
-                            // Match speed text size
                             font.pixelSize: 30
                             font.weight: Font.Black
                         }
@@ -462,7 +462,6 @@ Item {
                             anchors.topMargin: 20
                             color: Utility.getAppHexColor("lightText")
                             text: voltageGauge.value.toFixed(1) + "V"
-                            // Match speed text size
                             font.pixelSize: 30
                             font.weight: Font.Black
                         }
