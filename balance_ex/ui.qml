@@ -48,6 +48,8 @@ Item {
     property real batteryVoltage: 84.0
     property real speedKmh: 0.0
     property real maxMotorCurrent: mMcConf ? mMcConf.getParamDouble("l_current_max") : 100.0
+    property real tempFet: 0.0
+    property real tempMotor: 0.0
 
     // Gauge color utility: below safety margin = green,
     // above margin transitions green -> yellow -> red linearly
@@ -120,6 +122,12 @@ Item {
             if (values) {
                 dutyCycle = Math.abs(values.duty_cycle_now) * 100.0
                 batteryVoltage = values.v_in
+                if (typeof values.temp_mos !== "undefined") {
+                    tempFet = values.temp_mos
+                }
+                if (typeof values.temp_motor !== "undefined") {
+                    tempMotor = values.temp_motor
+                }
 
                 // Calculate speed in km/h from RPM and wheel diameter if available
                 if (typeof values.rpm !== "undefined" && mMcConf) {
@@ -228,18 +236,86 @@ Item {
                 anchors.fill: parent
                 spacing: 10
                 
-                // Speed text above gauges
-                Text {
-                    id: speedText
+                // Speed and temperature header above gauges
+                RowLayout {
+                    id: headerRow
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 30
+                    Layout.preferredHeight: 60
                     Layout.topMargin: 20
-                    Layout.bottomMargin: 20
-                    horizontalAlignment: Text.AlignHCenter
-                    color: Utility.getAppHexColor("lightText")
-                    font.pixelSize: 32
-                    font.weight: Font.Black
-                    text: speedKmh.toFixed(1) + " kmh"
+                    Layout.bottomMargin: 10
+                    spacing: 40
+
+                    // FET temperature
+                    ColumnLayout {
+                        Layout.fillWidth: true
+
+                        Text {
+                            id: fetValueText
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
+                            color: Utility.getAppHexColor("lightText")
+                            font.pixelSize: 28
+                            font.weight: Font.Black
+                            text: tempFet.toFixed(1)
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
+                            color: Utility.getAppHexColor("lightText")
+                            font.pixelSize: 16
+                            font.weight: Font.Black
+                            text: "fet °C"
+                        }
+                    }
+
+                    // Speed
+                    ColumnLayout {
+                        Layout.fillWidth: true
+
+                        Text {
+                            id: speedValueText
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
+                            color: Utility.getAppHexColor("lightText")
+                            font.pixelSize: 35
+                            font.weight: Font.Black
+                            text: speedKmh.toFixed(1)
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
+                            color: Utility.getAppHexColor("lightText")
+                            font.pixelSize: 16
+                            font.weight: Font.Black
+                            text: "kmh"
+                        }
+                    }
+
+                    // Motor temperature
+                    ColumnLayout {
+                        Layout.fillWidth: true
+
+                        Text {
+                            id: motValueText
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
+                            color: Utility.getAppHexColor("lightText")
+                            font.pixelSize: 28
+                            font.weight: Font.Black
+                            text: tempMotor.toFixed(1)
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
+                            color: Utility.getAppHexColor("lightText")
+                            font.pixelSize: 16
+                            font.weight: Font.Black
+                            text: "mot °C"
+                        }
+                    }
                 }
                 
                 // Gauges row
