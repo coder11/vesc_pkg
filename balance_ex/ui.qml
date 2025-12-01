@@ -120,7 +120,7 @@ Item {
         // Get VESC realtime values (duty cycle, voltage)
         onValuesReceived: {
             if (values) {
-                dutyCycle = Math.abs(values.duty_cycle_now) * 100.0
+                dutyCycle = Math.abs(values.duty_now) * 100.0
                 batteryVoltage = values.v_in
                 if (typeof values.temp_mos !== "undefined") {
                     tempFet = values.temp_mos
@@ -243,7 +243,7 @@ Item {
                     Layout.preferredHeight: 60
                     Layout.topMargin: 20
                     Layout.bottomMargin: 10
-                    spacing: 40
+                    spacing: 10
 
                     // FET temperature
                     ColumnLayout {
