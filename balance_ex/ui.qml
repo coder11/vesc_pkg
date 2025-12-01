@@ -55,9 +55,10 @@ Item {
 
     // Gauge color utility: below safety margin = green,
     // above margin transitions green -> yellow -> red linearly
+    // Uses darker tones to ensure white text remains readable
     function gaugeColor(percentage, safetyMargin) {
         if (percentage <= safetyMargin) {
-            return "green"
+            return Qt.rgba(0.0, 0.45, 0.0, 1.0) // Dark green
         }
 
         var t = (percentage - safetyMargin) / (100.0 - safetyMargin)
@@ -68,13 +69,15 @@ Item {
         }
 
         if (t <= 0.5) {
-            // Green -> Yellow
+            // Green -> Yellow (darker tones)
             var k1 = t / 0.5
-            return Qt.rgba(k1, 1.0, 0.0, 1.0) // (0,1,0) -> (1,1,0)
+            // Transition from dark green (0, 0.45, 0) to dark yellow (0.5, 0.45, 0)
+            return Qt.rgba(k1 * 0.5, 0.45, 0.0, 1.0)
         } else {
-            // Yellow -> Red
+            // Yellow -> Red (darker tones)
             var k2 = (t - 0.5) / 0.5
-            return Qt.rgba(1.0, 1.0 - k2, 0.0, 1.0) // (1,1,0) -> (1,0,0)
+            // Transition from dark yellow (0.5, 0.45, 0) to dark red (0.5, 0, 0)
+            return Qt.rgba(0.5, 0.45 * (1.0 - k2), 0.0, 1.0)
         }
     }
 
@@ -317,12 +320,13 @@ Item {
                         Text {
                             id: dutyValueText
                             anchors.horizontalCenter: parent.horizontalCenter
-                            anchors.bottom: parent.bottom
-                            anchors.bottomMargin: parent.height * 0.2
+                            anchors.top: parent.top
+                            anchors.topMargin: 20
                             color: Utility.getAppHexColor("lightText")
                             text: dutyGauge.value.toFixed(1)
-                            font.pixelSize: 16
-                            font.bold: true
+                            // Match speed text size
+                            font.pixelSize: 30
+                            font.weight: Font.Black
                         }
 
                         // Label just below the value, inside the gauge
@@ -334,6 +338,7 @@ Item {
                             color: Utility.getAppHexColor("lightText")
                             text: "Duty%"
                             font.pixelSize: 14
+                            font.weight: Font.Black
                         }
                     }
                     
@@ -382,12 +387,13 @@ Item {
                         Text {
                             id: currentValueText
                             anchors.horizontalCenter: parent.horizontalCenter
-                            anchors.bottom: parent.bottom
-                            anchors.bottomMargin: parent.height * 0.2
+                            anchors.top: parent.top
+                            anchors.topMargin: 20
                             color: Utility.getAppHexColor("lightText")
                             text: currentGauge.value.toFixed(1) + "A"
-                            font.pixelSize: 16
-                            font.bold: true
+                            // Match speed text size
+                            font.pixelSize: 30
+                            font.weight: Font.Black
                         }
 
                         // Label just below the value, inside the gauge
@@ -400,6 +406,7 @@ Item {
                             text: "Phase\nCurrent"
                             font.pixelSize: 14
                             horizontalAlignment: Text.AlignHCenter
+                            font.weight: Font.Black
                         }
                     }
                     
@@ -451,12 +458,13 @@ Item {
                         Text {
                             id: voltageValueText
                             anchors.horizontalCenter: parent.horizontalCenter
-                            anchors.bottom: parent.bottom
-                            anchors.bottomMargin: parent.height * 0.2
+                            anchors.top: parent.top
+                            anchors.topMargin: 20
                             color: Utility.getAppHexColor("lightText")
                             text: voltageGauge.value.toFixed(1) + "V"
-                            font.pixelSize: 16
-                            font.bold: true
+                            // Match speed text size
+                            font.pixelSize: 30
+                            font.weight: Font.Black
                         }
 
                         // Label just below the value, inside the gauge
@@ -469,6 +477,7 @@ Item {
                             text: "Battery\nVoltage"
                             font.pixelSize: 14
                             horizontalAlignment: Text.AlignHCenter
+                            font.weight: Font.Black
                         }
                     }
                 }
