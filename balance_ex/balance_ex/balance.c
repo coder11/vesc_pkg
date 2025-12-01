@@ -447,8 +447,6 @@ void balance_loop_tick(data *d) {
     }
 
     if(d->balance_conf.balance_enabled) {
-        float pitch_angle_adjusted = d->pitch_angle + d->balance_conf.pitch_adjustment;
-
         // Control Loop State Logic
         switch(d->state) {
         case (KILL_SWITCH_TRIGGERED):
@@ -475,15 +473,16 @@ void balance_loop_tick(data *d) {
             }
 
             // Calculate setpoint and interpolation
-            calculate_setpoint_target(d);
+			d->setpoint = d->balance_conf.pitch_adjustment;
+			calculate_setpoint_target(d);
             calculate_setpoint_interpolated(d);
-            d->setpoint = d->setpoint_target_interpolated;
-            apply_noseangling(d);
+            d->setpoint += d->setpoint_target_interpolated;
+			apply_noseangling(d);
             apply_torquetilt(d);
             apply_turntilt(d);
 
             // Calcualte error
-            d->error = d->setpoint - pitch_angle_adjusted;
+            d->error = d->setpoint - d->pitch_angle;
             
             float abs_error = fabsf(d->error);
             float sign_error = SIGN(d->error);
@@ -560,7 +559,7 @@ void balance_loop_tick(data *d) {
         case (FAULT_SWITCH_FULL):
         case (FAULT_STARTUP):
             // Check for valid startup position and switch state
-            if (fabsf(pitch_angle_adjusted) < d->balance_conf.startup_pitch_tolerance &&
+            if (fabsf(d->pitch_angle) < d->balance_conf.startup_pitch_tolerance &&
                     fabsf(d->roll_angle) < d->balance_conf.startup_roll_tolerance && d->switch_state == ON) {
                 reset_vars(d);
                 break;
