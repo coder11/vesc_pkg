@@ -48,7 +48,32 @@ Item {
     property real batteryVoltage: 84.0
     property real speedKmh: 0.0
     property real maxMotorCurrent: mMcConf ? mMcConf.getParamDouble("l_current_max") : 100.0
-    
+
+    // Gauge color utility: below safety margin = green,
+    // above margin transitions green -> yellow -> red linearly
+    function gaugeColor(percentage, safetyMargin) {
+        if (percentage <= safetyMargin) {
+            return "green"
+        }
+
+        var t = (percentage - safetyMargin) / (100.0 - safetyMargin)
+        if (t < 0) {
+            t = 0
+        } else if (t > 1) {
+            t = 1
+        }
+
+        if (t <= 0.5) {
+            // Green -> Yellow
+            var k1 = t / 0.5
+            return Qt.rgba(k1, 1.0, 0.0, 1.0) // (0,1,0) -> (1,1,0)
+        } else {
+            // Yellow -> Red
+            var k2 = (t - 0.5) / 0.5
+            return Qt.rgba(1.0, 1.0 - k2, 0.0, 1.0) // (1,1,0) -> (1,0,0)
+        }
+    }
+
     Component.onCompleted: {
         // Request VESC values periodically
         requestVescValues()
@@ -226,7 +251,9 @@ Item {
                         color: Utility.getAppHexColor("darkBackground")
                         border.color: Utility.getAppHexColor("lightText")
                         border.width: 2
-                        
+
+                        // Safety margin in percent (0-100)
+                        property real safetyMargin: 50.0
                         property real value: Math.max(0, Math.min(100, dutyCycle))
                         
                         // Fill rectangle
@@ -235,7 +262,7 @@ Item {
                             anchors.left: parent.left
                             anchors.right: parent.right
                             height: parent.height * (dutyGauge.value / 100.0)
-                            color: "green"
+                            color: gaugeColor(dutyGauge.value, dutyGauge.safetyMargin)
                             
                             Behavior on height {
                                 NumberAnimation {
@@ -244,24 +271,39 @@ Item {
                                 }
                             }
                         }
-                        
-                        // Label
-                        Text {
-                            anchors.top: parent.bottom
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            anchors.topMargin: 5
+
+                        // Safety margin line (horizontal)
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            anchors.bottom: parent.bottom
+                            anchors.bottomMargin: parent.height * (dutyGauge.safetyMargin / 100.0)
+                            height: 2
                             color: Utility.getAppHexColor("lightText")
-                            text: "Duty%"
-                            font.pixelSize: 14
+                            opacity: 0.7
                         }
                         
                         // Value text
                         Text {
-                            anchors.centerIn: parent
+                            id: dutyValueText
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.bottom: parent.bottom
+                            anchors.bottomMargin: parent.height * 0.2
                             color: Utility.getAppHexColor("lightText")
-                            text: dutyGauge.value.toFixed(1) + "%"
+                            text: dutyGauge.value.toFixed(1)
                             font.pixelSize: 16
                             font.bold: true
+                        }
+
+                        // Label just below the value, inside the gauge
+                        Text {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.top: dutyValueText.bottom
+                            anchors.topMargin: 2
+                            verticalAlignment: Text.AlignTop
+                            color: Utility.getAppHexColor("lightText")
+                            text: "Duty%"
+                            font.pixelSize: 14
                         }
                     }
                     
@@ -276,6 +318,8 @@ Item {
                         
                         property real value: Math.max(0, Math.min(maxMotorCurrent, motorCurrent))
                         property real percentage: maxMotorCurrent > 0 ? (value / maxMotorCurrent) * 100.0 : 0
+                        // Safety margin in percent (0-100)
+                        property real safetyMargin: 50.0
                         
                         // Fill rectangle
                         Rectangle {
@@ -283,7 +327,7 @@ Item {
                             anchors.left: parent.left
                             anchors.right: parent.right
                             height: parent.height * (currentGauge.percentage / 100.0)
-                            color: "green"
+                            color: gaugeColor(currentGauge.percentage, currentGauge.safetyMargin)
                             
                             Behavior on height {
                                 NumberAnimation {
@@ -292,25 +336,40 @@ Item {
                                 }
                             }
                         }
-                        
-                        // Label
-                        Text {
-                            anchors.top: parent.bottom
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            anchors.topMargin: 5
+
+                        // Safety margin line (horizontal)
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            anchors.bottom: parent.bottom
+                            anchors.bottomMargin: parent.height * (currentGauge.safetyMargin / 100.0)
+                            height: 2
                             color: Utility.getAppHexColor("lightText")
-                            text: "Phase\nCurrent"
-                            font.pixelSize: 14
-                            horizontalAlignment: Text.AlignHCenter
+                            opacity: 0.7
                         }
                         
                         // Value text
                         Text {
-                            anchors.centerIn: parent
+                            id: currentValueText
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.bottom: parent.bottom
+                            anchors.bottomMargin: parent.height * 0.2
                             color: Utility.getAppHexColor("lightText")
                             text: currentGauge.value.toFixed(1) + "A"
                             font.pixelSize: 16
                             font.bold: true
+                        }
+
+                        // Label just below the value, inside the gauge
+                        Text {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.top: currentValueText.bottom
+                            anchors.topMargin: 2
+                            verticalAlignment: Text.AlignTop
+                            color: Utility.getAppHexColor("lightText")
+                            text: "Phase\nCurrent"
+                            font.pixelSize: 14
+                            horizontalAlignment: Text.AlignHCenter
                         }
                     }
                     
@@ -328,6 +387,8 @@ Item {
                         property real value: Math.max(minVoltage, Math.min(maxVoltage, batteryVoltage))
                         // Inverted: lower voltage = higher percentage (more headroom used)
                         property real percentage: ((maxVoltage - value) / (maxVoltage - minVoltage)) * 100.0
+                        // Safety margin in percent (0-100)
+                        property real safetyMargin: 50.0
                         
                         // Fill rectangle
                         Rectangle {
@@ -335,7 +396,7 @@ Item {
                             anchors.left: parent.left
                             anchors.right: parent.right
                             height: parent.height * (voltageGauge.percentage / 100.0)
-                            color: "green"
+                            color: gaugeColor(voltageGauge.percentage, voltageGauge.safetyMargin)
                             
                             Behavior on height {
                                 NumberAnimation {
@@ -344,25 +405,40 @@ Item {
                                 }
                             }
                         }
-                        
-                        // Label
-                        Text {
-                            anchors.top: parent.bottom
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            anchors.topMargin: 5
+
+                        // Safety margin line (horizontal)
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            anchors.bottom: parent.bottom
+                            anchors.bottomMargin: parent.height * (voltageGauge.safetyMargin / 100.0)
+                            height: 2
                             color: Utility.getAppHexColor("lightText")
-                            text: "Battery\nVoltage"
-                            font.pixelSize: 14
-                            horizontalAlignment: Text.AlignHCenter
+                            opacity: 0.7
                         }
                         
                         // Value text
                         Text {
-                            anchors.centerIn: parent
+                            id: voltageValueText
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.bottom: parent.bottom
+                            anchors.bottomMargin: parent.height * 0.2
                             color: Utility.getAppHexColor("lightText")
                             text: voltageGauge.value.toFixed(1) + "V"
                             font.pixelSize: 16
                             font.bold: true
+                        }
+
+                        // Label just below the value, inside the gauge
+                        Text {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.top: voltageValueText.bottom
+                            anchors.topMargin: 2
+                            verticalAlignment: Text.AlignTop
+                            color: Utility.getAppHexColor("lightText")
+                            text: "Battery\nVoltage"
+                            font.pixelSize: 14
+                            horizontalAlignment: Text.AlignHCenter
                         }
                     }
                 }
