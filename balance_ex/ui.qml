@@ -46,6 +46,7 @@ Item {
     property real dutyCycle: 0.0
     property real motorCurrent: 0.0
     property real batteryVoltage: 84.0
+    property real speedKmh: 0.0
     property real maxMotorCurrent: mMcConf ? mMcConf.getParamDouble("l_current_max") : 100.0
     
     Component.onCompleted: {
@@ -91,6 +92,14 @@ Item {
             if (values) {
                 dutyCycle = Math.abs(values.duty_cycle_now) * 100.0
                 batteryVoltage = values.v_in
+
+                // Calculate speed in km/h from RPM and wheel diameter if available
+                if (typeof values.rpm !== "undefined" && mMcConf) {
+                    var wheelDiameter = mMcConf.getParamDouble("si_wheel_diameter")
+                    var circumference = Math.PI * wheelDiameter // meters
+                    var speedMs = Math.abs(values.rpm) * circumference / 60.0
+                    speedKmh = speedMs * 3.6
+                }
             }
         }
         
@@ -191,10 +200,16 @@ Item {
                 anchors.fill: parent
                 spacing: 10
                 
-                // Spacer for future features
-                Item {
+                // Speed text above gauges
+                Text {
+                    id: speedText
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 20
+                    Layout.preferredHeight: 30
+                    horizontalAlignment: Text.AlignHCenter
+                    color: Utility.getAppHexColor("lightText")
+                    font.pixelSize: 30
+                    font.bold: true
+                    text: speedKmh.toFixed(1) + " kmh"
                 }
                 
                 // Gauges row
