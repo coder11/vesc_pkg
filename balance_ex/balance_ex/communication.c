@@ -16,8 +16,8 @@ void send_realtime_data(data *d) {
 	buffer_append_float32_auto(send_buffer, d->adc1, &ind);
 	buffer_append_float32_auto(send_buffer, d->adc2, &ind);
 	buffer_append_float32_auto(send_buffer, d->setpoint, &ind);
-	buffer_append_float32_auto(send_buffer, d->erpm_divided_by_current, &ind);
-	buffer_append_float32_auto(send_buffer, d->erpm_accel_divided_by_current, &ind);
+	buffer_append_float32_auto(send_buffer, d->current_divided_by_erpm, &ind);
+	buffer_append_float32_auto(send_buffer, d->current_divided_by_erpm_accel, &ind);
 	buffer_append_uint16(send_buffer, is_kill_switch_triggered(d), &ind);
 	
 	VESC_IF->send_app_data(send_buffer, ind);

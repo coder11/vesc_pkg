@@ -52,7 +52,8 @@
         ("pitch_deg"   3                (rad2deg (ix (get-imu-rpy) 1)))
         ("wh" "Wh"                      (get-wh))
         ("erpm_accel"                   (ext-balance-get-erpm-accel))
-        ("erpm_accel / current"         (ext-balance-get-erpm-accel-div-current))
+        ("current / erpm"               (ext-balance-get-current-div-erpm))
+        ("current / erpm_accel"         (ext-balance-get-current-div-erpm-accel))
         ;; pid stuff
         ("pid_p"                        (ext-balance-get-p))
         ("pid_i"                        (ext-balance-get-i))

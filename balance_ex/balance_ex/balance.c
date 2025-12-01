@@ -89,8 +89,8 @@ void reset_vars(data *d) {
 	d->brake_timeout = 0;
 	d->last_erpm = d->erpm;
 	d->erpm_accel = 0;
-	d->erpm_divided_by_current = 0;
-	d->erpm_accel_divided_by_current = 0;
+	d->current_divided_by_erpm = 0;
+	d->current_divided_by_erpm_accel = 0;
 }
 
 float get_setpoint_adjustment_step_size(data *d) {
@@ -405,12 +405,18 @@ void balance_loop_tick(data *d) {
     d->erpm = VESC_IF->mc_get_rpm();
     d->abs_erpm = fabsf(d->erpm);
     d->erpm_accel = (d->diff_time > 0) ? (d->erpm - d->last_erpm) / d->diff_time : 0.0;
-    if (fabsf(d->motor_current) > 0.01f) {
-        d->erpm_divided_by_current = d->erpm / d->motor_current;
-        d->erpm_accel_divided_by_current = d->erpm_accel / d->motor_current;
+
+    // Current per ERPM and per ERPM acceleration (avoid division by zero / tiny values)
+    if (fabsf(d->erpm) > 0.01f) {
+        d->current_divided_by_erpm = fabsf(d->motor_current / d->erpm);
     } else {
-        d->erpm_divided_by_current = 0.0f;
-        d->erpm_accel_divided_by_current = 0.0f;
+        d->current_divided_by_erpm = 0.0f;
+    }
+
+    if (fabsf(d->erpm_accel) > 0.01f) {
+        d->current_divided_by_erpm_accel = fabsf(d->motor_current / d->erpm_accel);
+    } else {
+        d->current_divided_by_erpm_accel = 0.0f;
     }
     d->last_erpm = d->erpm;
 

@@ -79,7 +79,7 @@ typedef struct {
 	float duty_cycle, abs_duty_cycle;
 	float erpm, abs_erpm, last_erpm;
 	float erpm_accel;
-	float erpm_divided_by_current, erpm_accel_divided_by_current;
+	float current_divided_by_erpm, current_divided_by_erpm_accel;
 	float motor_current;
 	float motor_position;
 	float adc1, adc2;

@@ -220,8 +220,8 @@ Item {
                 "roll   : " + roll.toFixed(2) + "°\n" +
                 //"time   : " + (1/time_diff).toFixed(0) + "hz\n" +
                 //"current: " + motor_current.toFixed(2) + "A\n" +
-                "erpm/I : " + erpm_div_i.toFixed(2) + "\n" +
-                "acc/I  : " + erpm_accel_div_i.toFixed(2) + "\n" +
+                "I/erpm : " + erpm_div_i.toFixed(2) + "\n" +
+                "I/acc  : " + erpm_accel_div_i.toFixed(2) + "\n" +
                 "state  : " + stateString + "\n" +
                 //"switch : " + switchString + "\n" +
                 //"adc1   : " + adc1.toFixed(2) + "V\n" +
