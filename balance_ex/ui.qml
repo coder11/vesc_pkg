@@ -48,10 +48,6 @@ Item {
     property real batteryVoltage: 84.0
     property real speedKmh: 0.0
     property real maxMotorCurrent: mMcConf ? mMcConf.getParamDouble("l_current_max") : 100.0
-    
-    // Debug: sinusoidal values
-    property real debugTime: 0.0
-    property bool useDebugValues: true // Set to false to use real values
 
     // Gauge color utility: below safety margin = green,
     // above margin transitions green -> yellow -> red linearly
@@ -116,36 +112,12 @@ Item {
         }
     }
     
-    // Debug timer for sinusoidal values
-    Timer {
-        running: useDebugValues
-        repeat: true
-        interval: 50 // Update every 50ms for smooth animation
-        
-        onTriggered: {
-            debugTime += 0.05 // Increment time (adjust for desired speed)
-            
-            // Update gauge values with sinusoidal functions
-            // Duty cycle: 0-100%, frequency ~0.5 Hz
-            dutyCycle = 50.0 + 45.0 * Math.sin(debugTime * Math.PI)
-            
-            // Motor current: 0 to maxMotorCurrent, frequency ~0.3 Hz, phase shifted
-            motorCurrent = (maxMotorCurrent / 2.0) + (maxMotorCurrent / 2.0) * Math.sin(debugTime * Math.PI * 0.6 + Math.PI / 3)
-            
-            // Battery voltage: 60-84V, frequency ~0.4 Hz, phase shifted differently
-            batteryVoltage = 72.0 + 12.0 * Math.sin(debugTime * Math.PI * 0.8 + Math.PI / 6)
-            
-            // Speed: 0-50 km/h, frequency ~0.25 Hz
-            speedKmh = 25.0 + 25.0 * Math.sin(debugTime * Math.PI * 0.5)
-        }
-    }
-    
     Connections {
         target: mCommands
         
         // Get VESC realtime values (duty cycle, voltage)
         onValuesReceived: {
-            if (values && !useDebugValues) {
+            if (values) {
                 dutyCycle = Math.abs(values.duty_cycle_now) * 100.0
                 batteryVoltage = values.v_in
 
@@ -177,10 +149,8 @@ Item {
             var adc2 = dv.getFloat32(ind); ind += 4;
             var killSwitchTriggered = dv.getInt16(ind); ind += 2;
             
-            // Update motor current for gauge (only if not in debug mode)
-            if (!useDebugValues) {
-                motorCurrent = Math.abs(motor_current)
-            }
+            // Update motor current for gauge
+            motorCurrent = Math.abs(motor_current)
             
             var stateString
             if(state == 0){
