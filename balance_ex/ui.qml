@@ -132,8 +132,11 @@ Item {
                 // Calculate speed in km/h from RPM and wheel diameter if available
                 if (typeof values.rpm !== "undefined" && mMcConf) {
                     var wheelDiameter = mMcConf.getParamDouble("si_wheel_diameter")
+                    var motor_poles = mMcConf.getParamDouble("si_motor_poles")
+                    var erpm = Math.abs(values.rpm)
+                    var rpm = erpm * 2 / motor_poles 
                     var circumference = Math.PI * wheelDiameter // meters
-                    var speedMs = Math.abs(values.rpm) * circumference / 60.0
+                    var speedMs = rpm * circumference / 60.0
                     speedKmh = speedMs * 3.6
                 }
             }
