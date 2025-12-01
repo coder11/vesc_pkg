@@ -52,7 +52,8 @@ void configure(data *d) {
 	// Variable nose angle adjustment / tiltback (setting is per 1000erpm, convert to per erpm)
 	d->tiltback_variable = d->balance_conf.tiltback_variable / 1000;
 	if (d->tiltback_variable > 0) {
-		d->tiltback_variable_max_erpm = fabsf(d->balance_conf.setpoint_max / d->tiltback_variable);
+		// just keep max/min setpoint clamp for now
+		// d->tiltback_variable_max_erpm = fabsf(d->balance_conf.setpoint_max / d->tiltback_variable);
 	} else {
 		d->tiltback_variable_max_erpm = 100000;
 	}
@@ -222,11 +223,12 @@ void calculate_setpoint_interpolated(data *d) {
 void apply_noseangling(data *d){
 	// Nose angle adjustment, add variable tiltback
 	float noseangling_target = 0;
-	if (fabsf(d->erpm) > d->tiltback_variable_max_erpm) {
-		noseangling_target = fabsf(d->balance_conf.setpoint_max) * SIGN(d->erpm);
-	} else {
+	// if (fabsf(d->erpm) > d->tiltback_variable_max_erpm) {
+	// 	noseangling_target = fabsf(d->balance_conf.setpoint_max) * SIGN(d->erpm);
+	// } else {
+	    // just keep setpoint max/min clamp for now
 		noseangling_target = d->tiltback_variable * d->erpm;
-	}
+	//}
 
 	if (fabsf(noseangling_target - d->noseangling_interpolated) < d->noseangling_step_size) {
 		d->noseangling_interpolated = noseangling_target;
@@ -489,6 +491,14 @@ void balance_loop_tick(data *d) {
 			apply_noseangling(d);
             apply_torquetilt(d);
             apply_turntilt(d);
+
+			if(d->setpoint > d->balance_conf.setpoint_max) {
+				d->setpoint = d->balance_conf.setpoint_max;
+			}
+
+			if(d->setpoint < d->balance_conf.setpoint_min) {
+				d->setpoint = d->balance_conf.setpoint_min;
+			}
 
             // Calcualte error
             d->error = d->setpoint - d->pitch_angle;
