@@ -42,7 +42,21 @@ Item {
     readonly property int balanceCommandGetRealtimeData: 0x01
     readonly property int balanceCommandKillSwitchTrigger: 0x02
     
+    // Gauge values
+    property real dutyCycle: 0.0
+    property real motorCurrent: 0.0
+    property real batteryVoltage: 84.0
+    property real maxMotorCurrent: mMcConf ? mMcConf.getParamDouble("l_current_max") : 100.0
+    
     Component.onCompleted: {
+        // Request VESC values periodically
+        requestVescValues()
+    }
+    
+    function requestVescValues() {
+        if (mCommands) {
+            mCommands.getValues()
+        }
     }
     
     Timer {
@@ -58,8 +72,27 @@ Item {
         }
     }
     
+    // Request VESC values periodically for gauges
+    Timer {
+        running: true
+        repeat: true
+        interval: 200
+        
+        onTriggered: {
+            requestVescValues()
+        }
+    }
+    
     Connections {
         target: mCommands
+        
+        // Get VESC realtime values (duty cycle, voltage)
+        onValuesReceived: {
+            if (values) {
+                dutyCycle = Math.abs(values.duty_cycle_now) * 100.0
+                batteryVoltage = values.v_in
+            }
+        }
         
         // This function will be called when VESC_IF->send_app_data is used. To
         // send data back mCommands.sendCustomAppData can be used. That data
@@ -78,6 +111,9 @@ Item {
             var adc1 = dv.getFloat32(ind); ind += 4;
             var adc2 = dv.getFloat32(ind); ind += 4;
             var killSwitchTriggered = dv.getInt16(ind); ind += 2;
+            
+            // Update motor current for gauge
+            motorCurrent = Math.abs(motor_current)
             
             var stateString
             if(state == 0){
@@ -149,8 +185,178 @@ Item {
             Layout.fillHeight: true
             currentIndex: tabBar.currentIndex
             
-            // Tab 1 - Empty
-            Item {
+            // Tab 1 - EUC RT data with gauges
+            ColumnLayout {
+                id: rtDataColumn
+                anchors.fill: parent
+                spacing: 10
+                
+                // Spacer for future features
+                Item {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 20
+                }
+                
+                // Gauges row
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 200
+                    spacing: 20
+                    
+                    // Duty Cycle Gauge
+                    Rectangle {
+                        id: dutyGauge
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        color: Utility.getAppHexColor("darkBackground")
+                        border.color: Utility.getAppHexColor("lightText")
+                        border.width: 2
+                        
+                        property real value: Math.max(0, Math.min(100, dutyCycle))
+                        
+                        // Fill rectangle
+                        Rectangle {
+                            anchors.bottom: parent.bottom
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            height: parent.height * (dutyGauge.value / 100.0)
+                            color: "green"
+                            
+                            Behavior on height {
+                                NumberAnimation {
+                                    duration: 100
+                                    easing.type: Easing.OutQuad
+                                }
+                            }
+                        }
+                        
+                        // Label
+                        Text {
+                            anchors.top: parent.bottom
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.topMargin: 5
+                            color: Utility.getAppHexColor("lightText")
+                            text: "Duty%"
+                            font.pixelSize: 14
+                        }
+                        
+                        // Value text
+                        Text {
+                            anchors.centerIn: parent
+                            color: Utility.getAppHexColor("lightText")
+                            text: dutyGauge.value.toFixed(1) + "%"
+                            font.pixelSize: 16
+                            font.bold: true
+                        }
+                    }
+                    
+                    // Current Gauge
+                    Rectangle {
+                        id: currentGauge
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        color: Utility.getAppHexColor("darkBackground")
+                        border.color: Utility.getAppHexColor("lightText")
+                        border.width: 2
+                        
+                        property real value: Math.max(0, Math.min(maxMotorCurrent, motorCurrent))
+                        property real percentage: maxMotorCurrent > 0 ? (value / maxMotorCurrent) * 100.0 : 0
+                        
+                        // Fill rectangle
+                        Rectangle {
+                            anchors.bottom: parent.bottom
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            height: parent.height * (currentGauge.percentage / 100.0)
+                            color: "green"
+                            
+                            Behavior on height {
+                                NumberAnimation {
+                                    duration: 100
+                                    easing.type: Easing.OutQuad
+                                }
+                            }
+                        }
+                        
+                        // Label
+                        Text {
+                            anchors.top: parent.bottom
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.topMargin: 5
+                            color: Utility.getAppHexColor("lightText")
+                            text: "Phase\nCurrent"
+                            font.pixelSize: 14
+                            horizontalAlignment: Text.AlignHCenter
+                        }
+                        
+                        // Value text
+                        Text {
+                            anchors.centerIn: parent
+                            color: Utility.getAppHexColor("lightText")
+                            text: currentGauge.value.toFixed(1) + "A"
+                            font.pixelSize: 16
+                            font.bold: true
+                        }
+                    }
+                    
+                    // Voltage Gauge
+                    Rectangle {
+                        id: voltageGauge
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        color: Utility.getAppHexColor("darkBackground")
+                        border.color: Utility.getAppHexColor("lightText")
+                        border.width: 2
+                        
+                        property real minVoltage: 60.0
+                        property real maxVoltage: 84.0
+                        property real value: Math.max(minVoltage, Math.min(maxVoltage, batteryVoltage))
+                        // Inverted: lower voltage = higher percentage (more headroom used)
+                        property real percentage: ((maxVoltage - value) / (maxVoltage - minVoltage)) * 100.0
+                        
+                        // Fill rectangle
+                        Rectangle {
+                            anchors.bottom: parent.bottom
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            height: parent.height * (voltageGauge.percentage / 100.0)
+                            color: "green"
+                            
+                            Behavior on height {
+                                NumberAnimation {
+                                    duration: 100
+                                    easing.type: Easing.OutQuad
+                                }
+                            }
+                        }
+                        
+                        // Label
+                        Text {
+                            anchors.top: parent.bottom
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.topMargin: 5
+                            color: Utility.getAppHexColor("lightText")
+                            text: "Battery\nVoltage"
+                            font.pixelSize: 14
+                            horizontalAlignment: Text.AlignHCenter
+                        }
+                        
+                        // Value text
+                        Text {
+                            anchors.centerIn: parent
+                            color: Utility.getAppHexColor("lightText")
+                            text: voltageGauge.value.toFixed(1) + "V"
+                            font.pixelSize: 16
+                            font.bold: true
+                        }
+                    }
+                }
+                
+                // Spacer for future features
+                Item {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                }
             }
             
             // Tab 2 - Original content
