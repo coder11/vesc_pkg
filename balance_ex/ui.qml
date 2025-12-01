@@ -140,108 +140,138 @@ Item {
     }
 
     ColumnLayout {
-        id: gaugeColumn
+        id: mainColumn
         anchors.fill: parent
         
-        ScrollView {
+        StackLayout {
+            id: stackLayout
             Layout.fillWidth: true
             Layout.fillHeight: true
-            clip: true
+            currentIndex: tabBar.currentIndex
             
+            // Tab 1 - Empty
+            Item {
+            }
+            
+            // Tab 2 - Original content
             ColumnLayout {
-                Text {
-                    id: header
-                    color: Utility.getAppHexColor("lightText")
-                    font.family: "DejaVu Sans Mono"
-                    Layout.margins: 0
-                    Layout.leftMargin: 0
-                    Layout.fillWidth: true
-                    text: "Balance App v{{VERSION}}-{{GIT_HASH}}\nRT Data"
-                    font.underline: true
-                    font.weight: Font.Black
-                }
-
-                Text {
-                    id: valText1
-                    color: Utility.getAppHexColor("lightText")
-                    font.family: "DejaVu Sans Mono"
-                    Layout.margins: 0
-                    Layout.leftMargin: 5
-                    Layout.preferredWidth: parent.width/3
-                    text: "App not connected"
-                }
-
-                Text {
-                    Layout.fillWidth: true
-                    color: Utility.getAppHexColor("lightText")
-                    horizontalAlignment: Text.AlignHCenter
-                    font.pointSize: 20
-                    text: "Controls"
-                }                
-
-                Button {
-                    Layout.fillWidth: true
-                    text: "Kill Switch"
-                    
-                    onClicked: {
-                        var buffer = new ArrayBuffer(1)
-                        var dv = new DataView(buffer)
-                        dv.setUint8(0, balanceCommandKillSwitchTrigger)
-                        mCommands.sendCustomAppData(buffer)
-                    }
-                }
-            
-                Text {
-                    Layout.fillWidth: true
-                    color: Utility.getAppHexColor("lightText")
-                    horizontalAlignment: Text.AlignHCenter
-                    font.pointSize: 20
-                    text: "Data Logging"
-                }
+                id: gaugeColumn
+                anchors.fill: parent
                 
-                CheckBox {
-                    id: appendGnss
+                ScrollView {
                     Layout.fillWidth: true
-                    text: "Append GNSS"
-                    checked: true
-                }
-                
-                RowLayout {
-                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    clip: true
                     
-                    Text {
-                        color: Utility.getAppHexColor("lightText")
-                        text: "Log Rate:"
-                        Layout.preferredWidth: 100
-                    }
-                    
-                    ComboBox {
-                        id: logRate
-                        Layout.fillWidth: true
-                        model: [20, 50, 100, 200, 500, 1000]
-                        currentIndex: 5 // Default to 1000
-                    }
-                }
+                    ColumnLayout {
+                        Text {
+                            id: header
+                            color: Utility.getAppHexColor("lightText")
+                            font.family: "DejaVu Sans Mono"
+                            Layout.margins: 0
+                            Layout.leftMargin: 0
+                            Layout.fillWidth: true
+                            text: "Balance App v{{VERSION}}-{{GIT_HASH}}\nRT Data"
+                            font.underline: true
+                            font.weight: Font.Black
+                        }
+
+                        Text {
+                            id: valText1
+                            color: Utility.getAppHexColor("lightText")
+                            font.family: "DejaVu Sans Mono"
+                            Layout.margins: 0
+                            Layout.leftMargin: 5
+                            Layout.preferredWidth: parent.width/3
+                            text: "App not connected"
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            color: Utility.getAppHexColor("lightText")
+                            horizontalAlignment: Text.AlignHCenter
+                            font.pointSize: 20
+                            text: "Controls"
+                        }                
+
+                        Button {
+                            Layout.fillWidth: true
+                            text: "Kill Switch"
                             
-                Button {
-                    Layout.fillWidth: true
-                    text: "Start Log"
+                            onClicked: {
+                                var buffer = new ArrayBuffer(1)
+                                var dv = new DataView(buffer)
+                                dv.setUint8(0, balanceCommandKillSwitchTrigger)
+                                mCommands.sendCustomAppData(buffer)
+                            }
+                        }
                     
-                    onClicked: {
-                        var cmd = "(start-log " + appendGnss.checked + " " + logRate.model[logRate.currentIndex] + ")"
-                        sendCode(cmd)
+                        Text {
+                            Layout.fillWidth: true
+                            color: Utility.getAppHexColor("lightText")
+                            horizontalAlignment: Text.AlignHCenter
+                            font.pointSize: 20
+                            text: "Data Logging"
+                        }
+                        
+                        CheckBox {
+                            id: appendGnss
+                            Layout.fillWidth: true
+                            text: "Append GNSS"
+                            checked: true
+                        }
+                        
+                        RowLayout {
+                            Layout.fillWidth: true
+                            
+                            Text {
+                                color: Utility.getAppHexColor("lightText")
+                                text: "Log Rate:"
+                                Layout.preferredWidth: 100
+                            }
+                            
+                            ComboBox {
+                                id: logRate
+                                Layout.fillWidth: true
+                                model: [20, 50, 100, 200, 500, 1000]
+                                currentIndex: 5 // Default to 1000
+                            }
+                        }
+                                    
+                        Button {
+                            Layout.fillWidth: true
+                            text: "Start Log"
+                            
+                            onClicked: {
+                                var cmd = "(start-log " + appendGnss.checked + " " + logRate.model[logRate.currentIndex] + ")"
+                                sendCode(cmd)
+                            }
+                        }
+                        
+                        Button {
+                            Layout.fillWidth: true
+                            text: "Stop Log"
+                            
+                            onClicked: {
+                                var cmd = "(stop-log)"
+                                sendCode(cmd)
+                            }
+                        }
                     }
                 }
-                
-                Button {
-                    Layout.fillWidth: true
-                    text: "Stop Log"
-                    
-                    onClicked: {
-                        var cmd = "(stop-log)"
-                        sendCode(cmd)
-                    }
-                }
+            }
+        }
+        
+        TabBar {
+            id: tabBar
+            Layout.fillWidth: true
+            
+            TabButton {
+                text: "EUC RT data"
+            }
+            
+            TabButton {
+                text: "Debug stuff"
             }
         }
     }
