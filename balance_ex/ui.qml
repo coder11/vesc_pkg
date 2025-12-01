@@ -158,6 +158,9 @@ Item {
             var switch_state = dv.getInt16(ind); ind += 2;
             var adc1 = dv.getFloat32(ind); ind += 4;
             var adc2 = dv.getFloat32(ind); ind += 4;
+            var setpoint = dv.getFloat32(ind); ind += 4;
+            var erpm_div_i = dv.getFloat32(ind); ind += 4;
+            var erpm_accel_div_i = dv.getFloat32(ind); ind += 4;
             var killSwitchTriggered = dv.getInt16(ind); ind += 2;
             
             // Update motor current for gauge
@@ -210,15 +213,19 @@ Item {
             
             
             valText1.text =
-                "pid    : " + pid_value.toFixed(2) + "A\n" +
+                //"pid    : " + pid_value.toFixed(2) + "A\n" +
+                "setpt: " + setpoint.toFixed(2) + "°\n" +
                 "pitch  : " + pitch.toFixed(2) + "°\n" +
+                "setp-pitch :" + (setpoint-pitch).toFixed(2) + "\n" +
                 "roll   : " + roll.toFixed(2) + "°\n" +
-                "time   : " + (1/time_diff).toFixed(0) + "hz\n" +
-                "current: " + motor_current.toFixed(2) + "A\n" +
+                //"time   : " + (1/time_diff).toFixed(0) + "hz\n" +
+                //"current: " + motor_current.toFixed(2) + "A\n" +
+                "erpm/I : " + erpm_div_i.toFixed(2) + "\n" +
+                "acc/I  : " + erpm_accel_div_i.toFixed(2) + "\n" +
                 "state  : " + stateString + "\n" +
-                "switch : " + switchString + "\n" +
-                "adc1   : " + adc1.toFixed(2) + "V\n" +
-                "adc2   : " + adc2.toFixed(2) + "V\n" +
+                //"switch : " + switchString + "\n" +
+                //"adc1   : " + adc1.toFixed(2) + "V\n" +
+                //"adc2   : " + adc2.toFixed(2) + "V\n" +
                 "kill switch triggered: " + killSwitchTriggeredString
         }
     }

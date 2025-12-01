@@ -89,6 +89,7 @@ void reset_vars(data *d) {
 	d->brake_timeout = 0;
 	d->last_erpm = d->erpm;
 	d->erpm_accel = 0;
+	d->erpm_divided_by_current = 0;
 	d->erpm_accel_divided_by_current = 0;
 }
 
@@ -405,8 +406,10 @@ void balance_loop_tick(data *d) {
     d->abs_erpm = fabsf(d->erpm);
     d->erpm_accel = (d->diff_time > 0) ? (d->erpm - d->last_erpm) / d->diff_time : 0.0;
     if (fabsf(d->motor_current) > 0.01f) {
+        d->erpm_divided_by_current = d->erpm / d->motor_current;
         d->erpm_accel_divided_by_current = d->erpm_accel / d->motor_current;
     } else {
+        d->erpm_divided_by_current = 0.0f;
         d->erpm_accel_divided_by_current = 0.0f;
     }
     d->last_erpm = d->erpm;
