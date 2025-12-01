@@ -48,12 +48,15 @@ Item {
     property real batteryVoltage: 84.0
     property real speedKmh: 0.0
     property real maxMotorCurrent: mMcConf ? mMcConf.getParamDouble("l_current_max") : 100.0
+    property real tempFet: 0.0
+    property real tempMotor: 0.0
 
     // Gauge color utility: below safety margin = green,
     // above margin transitions green -> yellow -> red linearly
+    // Uses darker tones to ensure white text remains readable
     function gaugeColor(percentage, safetyMargin) {
         if (percentage <= safetyMargin) {
-            return "green"
+            return Qt.rgba(0.0, 0.45, 0.0, 1.0) // Dark green
         }
 
         var t = (percentage - safetyMargin) / (100.0 - safetyMargin)
@@ -64,13 +67,15 @@ Item {
         }
 
         if (t <= 0.5) {
-            // Green -> Yellow
+            // Green -> Yellow (darker tones)
             var k1 = t / 0.5
-            return Qt.rgba(k1, 1.0, 0.0, 1.0) // (0,1,0) -> (1,1,0)
+            // Transition from dark green (0, 0.45, 0) to dark yellow (0.5, 0.45, 0)
+            return Qt.rgba(k1 * 0.5, 0.45, 0.0, 1.0)
         } else {
-            // Yellow -> Red
+            // Yellow -> Red (darker tones)
             var k2 = (t - 0.5) / 0.5
-            return Qt.rgba(1.0, 1.0 - k2, 0.0, 1.0) // (1,1,0) -> (1,0,0)
+            // Transition from dark yellow (0.5, 0.45, 0) to dark red (0.5, 0, 0)
+            return Qt.rgba(0.5, 0.45 * (1.0 - k2), 0.0, 1.0)
         }
     }
 
@@ -115,8 +120,14 @@ Item {
         // Get VESC realtime values (duty cycle, voltage)
         onValuesReceived: {
             if (values) {
-                dutyCycle = Math.abs(values.duty_cycle_now) * 100.0
+                dutyCycle = Math.abs(values.duty_now) * 100.0
                 batteryVoltage = values.v_in
+                if (typeof values.temp_mos !== "undefined") {
+                    tempFet = values.temp_mos
+                }
+                if (typeof values.temp_motor !== "undefined") {
+                    tempMotor = values.temp_motor
+                }
 
                 // Calculate speed in km/h from RPM and wheel diameter if available
                 if (typeof values.rpm !== "undefined" && mMcConf) {
@@ -225,16 +236,86 @@ Item {
                 anchors.fill: parent
                 spacing: 10
                 
-                // Speed text above gauges
-                Text {
-                    id: speedText
+                // Speed and temperature header above gauges
+                RowLayout {
+                    id: headerRow
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 30
-                    horizontalAlignment: Text.AlignHCenter
-                    color: Utility.getAppHexColor("lightText")
-                    font.pixelSize: 30
-                    font.bold: true
-                    text: speedKmh.toFixed(1) + " kmh"
+                    Layout.preferredHeight: 60
+                    Layout.topMargin: 20
+                    Layout.bottomMargin: 10
+                    spacing: 10
+
+                    // FET temperature
+                    ColumnLayout {
+                        Layout.fillWidth: true
+
+                        Text {
+                            id: fetValueText
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
+                            color: Utility.getAppHexColor("lightText")
+                            font.pixelSize: 28
+                            font.weight: Font.Black
+                            text: tempFet.toFixed(1)
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
+                            color: Utility.getAppHexColor("lightText")
+                            font.pixelSize: 16
+                            font.weight: Font.Black
+                            text: "fet °C"
+                        }
+                    }
+
+                    // Speed
+                    ColumnLayout {
+                        Layout.fillWidth: true
+
+                        Text {
+                            id: speedValueText
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
+                            color: Utility.getAppHexColor("lightText")
+                            font.pixelSize: 35
+                            font.weight: Font.Black
+                            text: speedKmh.toFixed(1)
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
+                            color: Utility.getAppHexColor("lightText")
+                            font.pixelSize: 16
+                            font.weight: Font.Black
+                            text: "kmh"
+                        }
+                    }
+
+                    // Motor temperature
+                    ColumnLayout {
+                        Layout.fillWidth: true
+
+                        Text {
+                            id: motValueText
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
+                            color: Utility.getAppHexColor("lightText")
+                            font.pixelSize: 28
+                            font.weight: Font.Black
+                            text: tempMotor.toFixed(1)
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
+                            color: Utility.getAppHexColor("lightText")
+                            font.pixelSize: 16
+                            font.weight: Font.Black
+                            text: "mot °C"
+                        }
+                    }
                 }
                 
                 // Gauges row
@@ -287,12 +368,12 @@ Item {
                         Text {
                             id: dutyValueText
                             anchors.horizontalCenter: parent.horizontalCenter
-                            anchors.bottom: parent.bottom
-                            anchors.bottomMargin: parent.height * 0.2
+                            anchors.top: parent.top
+                            anchors.topMargin: 20
                             color: Utility.getAppHexColor("lightText")
                             text: dutyGauge.value.toFixed(1)
-                            font.pixelSize: 16
-                            font.bold: true
+                            font.pixelSize: 30
+                            font.weight: Font.Black
                         }
 
                         // Label just below the value, inside the gauge
@@ -304,6 +385,7 @@ Item {
                             color: Utility.getAppHexColor("lightText")
                             text: "Duty%"
                             font.pixelSize: 14
+                            font.weight: Font.Black
                         }
                     }
                     
@@ -352,12 +434,12 @@ Item {
                         Text {
                             id: currentValueText
                             anchors.horizontalCenter: parent.horizontalCenter
-                            anchors.bottom: parent.bottom
-                            anchors.bottomMargin: parent.height * 0.2
+                            anchors.top: parent.top
+                            anchors.topMargin: 20
                             color: Utility.getAppHexColor("lightText")
                             text: currentGauge.value.toFixed(1) + "A"
-                            font.pixelSize: 16
-                            font.bold: true
+                            font.pixelSize: 30
+                            font.weight: Font.Black
                         }
 
                         // Label just below the value, inside the gauge
@@ -370,6 +452,7 @@ Item {
                             text: "Phase\nCurrent"
                             font.pixelSize: 14
                             horizontalAlignment: Text.AlignHCenter
+                            font.weight: Font.Black
                         }
                     }
                     
@@ -421,12 +504,12 @@ Item {
                         Text {
                             id: voltageValueText
                             anchors.horizontalCenter: parent.horizontalCenter
-                            anchors.bottom: parent.bottom
-                            anchors.bottomMargin: parent.height * 0.2
+                            anchors.top: parent.top
+                            anchors.topMargin: 20
                             color: Utility.getAppHexColor("lightText")
                             text: voltageGauge.value.toFixed(1) + "V"
-                            font.pixelSize: 16
-                            font.bold: true
+                            font.pixelSize: 30
+                            font.weight: Font.Black
                         }
 
                         // Label just below the value, inside the gauge
@@ -439,6 +522,7 @@ Item {
                             text: "Battery\nVoltage"
                             font.pixelSize: 14
                             horizontalAlignment: Text.AlignHCenter
+                            font.weight: Font.Black
                         }
                     }
                 }
