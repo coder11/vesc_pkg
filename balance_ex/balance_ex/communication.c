@@ -21,7 +21,7 @@ void send_realtime_data(data *d) {
 	buffer_append_uint16(send_buffer, is_kill_switch_triggered(d), &ind);
 	// UI data values
 	buffer_append_float32_auto(send_buffer, d->ui_data.speed_kmh, &ind);
-	buffer_append_float32_auto(send_buffer, d->ui_data.voltage, &ind);
+	buffer_append_float32_auto(send_buffer, d->ui_data.voltage_lowpass_state, &ind);
 	buffer_append_float32_auto(send_buffer, d->ui_data.voltage_min, &ind);
 	buffer_append_float32_auto(send_buffer, d->ui_data.voltage_max, &ind);
 	

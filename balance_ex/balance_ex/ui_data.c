@@ -7,7 +7,7 @@ void ui_data_configure(data *d) {
     d->ui_data.wheel_diameter = VESC_IF->get_cfg_float(CFG_PARAM_si_wheel_diameter);
     d->ui_data.motor_poles = VESC_IF->get_cfg_float(CFG_PARAM_si_motor_poles);
 
-    float fq = 10.0; // Say, 10hz for now
+    float fq = 0.5;
     d->ui_data.voltage_lowpass_k = pt1_calculate_k(fq, d->balance_conf.hertz);
     d->ui_data.voltage_lowpass_state = 0;
 
