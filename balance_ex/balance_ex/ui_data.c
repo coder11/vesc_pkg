@@ -22,8 +22,8 @@ void ui_data_reset(data *d) {
     d->ui_data.voltage_lowpass_state = 0;
 
     d->erpm_accel = 0;
-	d->current_divided_by_erpm = 0;
-	d->current_divided_by_erpm_accel = 0;
+	d->motor_load = 0;
+	d->motor_accel_load = 0;
 }
 
 void ui_data_update(data *d) {
@@ -41,15 +41,16 @@ void ui_data_update(data *d) {
     d->erpm_accel = (d->diff_time > 0) ? (d->erpm - d->last_erpm) / d->diff_time : 0.0;
 
     // Current per ERPM and per ERPM acceleration (avoid division by zero / tiny values)
+    // multiply by 1000 because erpms are in thousands
     if (fabsf(d->erpm) > 0.01f) {
-        d->current_divided_by_erpm = fabsf(d->motor_current / d->erpm * 1000.0);
+        d->motor_load = fabsf(d->motor_current / d->erpm * 1000.0);
     } else {
-        d->current_divided_by_erpm = 0.0f;
+        d->motor_load = 0.0f;
     }
 
     if (fabsf(d->erpm_accel) > 0.01f) {
-        d->current_divided_by_erpm_accel = fabsf(d->motor_current / d->erpm_accel * 1000.0);
+        d->motor_accel_load = fabsf(d->motor_current / d->erpm_accel * 1000.0);
     } else {
-        d->current_divided_by_erpm_accel = 0.0f;
+        d->motor_accel_load = 0.0f;
     }    
 }

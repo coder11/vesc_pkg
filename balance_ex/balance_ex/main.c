@@ -108,18 +108,18 @@ static lbm_value ext_get_erpm_accel(lbm_value *args, lbm_uint argn) {
 	return VESC_IF->lbm_enc_float(d->erpm_accel);
 }
 
-static lbm_value ext_get_current_divided_by_erpm(lbm_value *args, lbm_uint argn) {
+static lbm_value ext_get_motor_load(lbm_value *args, lbm_uint argn) {
 	(void)args;
 	(void)argn;
 	data *d = (data*)ARG;
-	return VESC_IF->lbm_enc_float(d->current_divided_by_erpm);
+	return VESC_IF->lbm_enc_float(d->motor_load);
 }
 
-static lbm_value ext_get_current_divided_by_erpm_accel(lbm_value *args, lbm_uint argn) {
+static lbm_value ext_get_motor_accel_load(lbm_value *args, lbm_uint argn) {
 	(void)args;
 	(void)argn;
 	data *d = (data*)ARG;
-	return VESC_IF->lbm_enc_float(d->current_divided_by_erpm_accel);
+	return VESC_IF->lbm_enc_float(d->motor_accel_load);
 }
 
 // These functions are used to send the config page to VESC Tool
@@ -248,8 +248,8 @@ INIT_FUN(lib_info *info) {
 	VESC_IF->lbm_add_extension("ext-balance-get-pid", ext_get_pid_value);
 	VESC_IF->lbm_add_extension("ext-balance-get-pid_rate", ext_get_pid_rate_value);
 	VESC_IF->lbm_add_extension("ext-balance-get-erpm-accel", ext_get_erpm_accel);
-	VESC_IF->lbm_add_extension("ext-balance-get-current-div-erpm", ext_get_current_divided_by_erpm);
-	VESC_IF->lbm_add_extension("ext-balance-get-current-div-erpm-accel", ext_get_current_divided_by_erpm_accel);
+	VESC_IF->lbm_add_extension("ext-balance-get-motor-load", ext_get_motor_load);
+	VESC_IF->lbm_add_extension("ext-balance-get-motor-accel-load", ext_get_motor_accel_load);
 
 	return true;
 }

@@ -149,8 +149,8 @@ Item {
             var adc1 = dv.getFloat32(ind); ind += 4;
             var adc2 = dv.getFloat32(ind); ind += 4;
             var setpoint = dv.getFloat32(ind); ind += 4;
-            var erpm_div_i = dv.getFloat32(ind); ind += 4;
-            var erpm_accel_div_i = dv.getFloat32(ind); ind += 4;
+            var motor_load = dv.getFloat32(ind); ind += 4;
+            var motor_accel_load = dv.getFloat32(ind); ind += 4;
             var killSwitchTriggered = dv.getInt16(ind); ind += 2;
             // UI data values
             var speed_kmh = dv.getFloat32(ind); ind += 4;
@@ -225,8 +225,8 @@ Item {
                 "roll   : " + roll.toFixed(2) + "°\n" +
                 //"time   : " + (1/time_diff).toFixed(0) + "hz\n" +
                 //"current: " + motor_current.toFixed(2) + "A\n" +
-                "I/erpm : " + erpm_div_i.toFixed(2) + "\n" +
-                "I/acc  : " + erpm_accel_div_i.toFixed(2) + "\n" +
+                "Motor Load : " + motor_load.toFixed(5) + "\n" +
+                "Motor Accel Load : " + motor_accel_load.toFixed(5) + "\n" +
                 "state  : " + stateString + "\n" +
                 //"switch : " + switchString + "\n" +
                 //"adc1   : " + adc1.toFixed(2) + "V\n" +

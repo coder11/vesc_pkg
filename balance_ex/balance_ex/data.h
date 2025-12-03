@@ -99,7 +99,7 @@ typedef struct {
 
 	// Experimental
 	float erpm_accel;
-	float current_divided_by_erpm, current_divided_by_erpm_accel;
+	float motor_load, motor_accel_load;
 
 
 	// Rumtime state values
