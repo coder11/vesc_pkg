@@ -62,6 +62,8 @@ void configure(data *d) {
 	// Reset loop time variables
 	d->last_time = 0.0;
 	d->filtered_loop_overshoot = 0.0;
+
+	ui_data_configure(d);
 }
 
 void reset_vars(data *d) {
@@ -90,6 +92,8 @@ void reset_vars(data *d) {
 	d->diff_time = 0;
 	d->brake_timeout = 0;
 	d->last_erpm = d->erpm;
+
+	ui_data_reset(d);
 }
 
 float get_setpoint_adjustment_step_size(data *d) {
