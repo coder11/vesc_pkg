@@ -345,15 +345,72 @@ Item {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         color: Utility.getAppHexColor("darkBackground")
-                        border.color: Utility.getAppHexColor("lightText")
-                        border.width: 2
 
                         // Safety margin in percent (0-100)
                         property real safetyMargin: 50.0
                         property real value: Math.max(0, Math.min(100, dutyCycle))
+                        property real minValue: 0.0
+                        property real maxValue: 100.0
+                        property real borderWidth: 2
+                        property real labelPadding: 4
+                        
+                        // Left border
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.top: parent.top
+                            anchors.bottom: parent.bottom
+                            width: dutyGauge.borderWidth
+                            color: Utility.getAppHexColor("lightText")
+                        }
+                        
+                        // Right border
+                        Rectangle {
+                            anchors.right: parent.right
+                            anchors.top: parent.top
+                            anchors.bottom: parent.bottom
+                            width: dutyGauge.borderWidth
+                            color: Utility.getAppHexColor("lightText")
+                        }
+                        
+                        // Top border - left segment
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.top: parent.top
+                            anchors.right: maxValueLabelBg.left
+                            height: dutyGauge.borderWidth
+                            color: Utility.getAppHexColor("lightText")
+                        }
+                        
+                        // Top border - right segment
+                        Rectangle {
+                            anchors.left: maxValueLabelBg.right
+                            anchors.top: parent.top
+                            anchors.right: parent.right
+                            height: dutyGauge.borderWidth
+                            color: Utility.getAppHexColor("lightText")
+                        }
+                        
+                        // Bottom border - left segment
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.bottom: parent.bottom
+                            anchors.right: minValueLabelBg.left
+                            height: dutyGauge.borderWidth
+                            color: Utility.getAppHexColor("lightText")
+                        }
+                        
+                        // Bottom border - right segment
+                        Rectangle {
+                            anchors.left: minValueLabelBg.right
+                            anchors.bottom: parent.bottom
+                            anchors.right: parent.right
+                            height: dutyGauge.borderWidth
+                            color: Utility.getAppHexColor("lightText")
+                        }
                         
                         // Fill rectangle
                         Rectangle {
+                            z: 0
                             anchors.bottom: parent.bottom
                             anchors.left: parent.left
                             anchors.right: parent.right
@@ -366,6 +423,56 @@ Item {
                                     easing.type: Easing.OutQuad
                                 }
                             }
+                        }
+                        
+                        // Max value label background (breaks top border)
+                        Rectangle {
+                            id: maxValueLabelBg
+                            z: 1
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.top: parent.top
+                            anchors.topMargin: -dutyGauge.borderWidth
+                            width: maxValueLabelText.width + 4
+                            height: maxValueLabelText.height + dutyGauge.labelPadding * 2
+                            color: "transparent"
+                        }
+                        
+                        // Max value label at top border
+                        Text {
+                            id: maxValueLabelText
+                            z: 2
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.verticalCenter: parent.top
+                            anchors.verticalCenterOffset: dutyGauge.borderWidth / 2
+                            color: Utility.getAppHexColor("lightText")
+                            text: dutyGauge.maxValue.toFixed(0) + "%"
+                            font.pixelSize: 16
+                            font.weight: Font.Normal
+                        }
+                        
+                        // Min value label background (breaks bottom border)
+                        Rectangle {
+                            id: minValueLabelBg
+                            z: 1
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.bottom: parent.bottom
+                            anchors.bottomMargin: -dutyGauge.borderWidth
+                            width: minValueLabelText.width + 4
+                            height: minValueLabelText.height + dutyGauge.labelPadding * 2
+                            color: "transparent"
+                        }
+                        
+                        // Min value label at bottom border
+                        Text {
+                            id: minValueLabelText
+                            z: 2
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.verticalCenter: parent.bottom
+                            anchors.verticalCenterOffset: -dutyGauge.borderWidth / 2
+                            color: Utility.getAppHexColor("lightText")
+                            text: dutyGauge.minValue.toFixed(0) + "%"
+                            font.pixelSize: 16
+                            font.weight: Font.Normal
                         }
 
                         // Safety margin line (horizontal)
@@ -410,16 +517,73 @@ Item {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         color: Utility.getAppHexColor("darkBackground")
-                        border.color: Utility.getAppHexColor("lightText")
-                        border.width: 2
                         
                         property real value: Math.max(0, Math.min(maxMotorCurrent, motorCurrent))
                         property real percentage: maxMotorCurrent > 0 ? (value / maxMotorCurrent) * 100.0 : 0
                         // Safety margin in percent (0-100)
                         property real safetyMargin: 50.0
+                        property real minValue: 0.0
+                        property real maxValue: maxMotorCurrent
+                        property real borderWidth: 2
+                        property real labelPadding: 4
+                        
+                        // Left border
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.top: parent.top
+                            anchors.bottom: parent.bottom
+                            width: currentGauge.borderWidth
+                            color: Utility.getAppHexColor("lightText")
+                        }
+                        
+                        // Right border
+                        Rectangle {
+                            anchors.right: parent.right
+                            anchors.top: parent.top
+                            anchors.bottom: parent.bottom
+                            width: currentGauge.borderWidth
+                            color: Utility.getAppHexColor("lightText")
+                        }
+                        
+                        // Top border - left segment
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.top: parent.top
+                            anchors.right: currentMaxValueLabelBg.left
+                            height: currentGauge.borderWidth
+                            color: Utility.getAppHexColor("lightText")
+                        }
+                        
+                        // Top border - right segment
+                        Rectangle {
+                            anchors.left: currentMaxValueLabelBg.right
+                            anchors.top: parent.top
+                            anchors.right: parent.right
+                            height: currentGauge.borderWidth
+                            color: Utility.getAppHexColor("lightText")
+                        }
+                        
+                        // Bottom border - left segment
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.bottom: parent.bottom
+                            anchors.right: currentMinValueLabelBg.left
+                            height: currentGauge.borderWidth
+                            color: Utility.getAppHexColor("lightText")
+                        }
+                        
+                        // Bottom border - right segment
+                        Rectangle {
+                            anchors.left: currentMinValueLabelBg.right
+                            anchors.bottom: parent.bottom
+                            anchors.right: parent.right
+                            height: currentGauge.borderWidth
+                            color: Utility.getAppHexColor("lightText")
+                        }
                         
                         // Fill rectangle
                         Rectangle {
+                            z: 0
                             anchors.bottom: parent.bottom
                             anchors.left: parent.left
                             anchors.right: parent.right
@@ -432,6 +596,56 @@ Item {
                                     easing.type: Easing.OutQuad
                                 }
                             }
+                        }
+                        
+                        // Max value label background (breaks top border)
+                        Rectangle {
+                            id: currentMaxValueLabelBg
+                            z: 1
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.top: parent.top
+                            anchors.topMargin: -currentGauge.borderWidth
+                            width: currentMaxValueLabelText.width + 4
+                            height: currentMaxValueLabelText.height + currentGauge.labelPadding * 2
+                            color: "transparent"
+                        }
+                        
+                        // Max value label at top border
+                        Text {
+                            id: currentMaxValueLabelText
+                            z: 2
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.verticalCenter: parent.top
+                            anchors.verticalCenterOffset: currentGauge.borderWidth / 2
+                            color: Utility.getAppHexColor("lightText")
+                            text: currentGauge.maxValue.toFixed(1) + "A"
+                            font.pixelSize: 16
+                            font.weight: Font.Normal
+                        }
+                        
+                        // Min value label background (breaks bottom border)
+                        Rectangle {
+                            id: currentMinValueLabelBg
+                            z: 1
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.bottom: parent.bottom
+                            anchors.bottomMargin: -currentGauge.borderWidth
+                            width: currentMinValueLabelText.width + 4
+                            height: currentMinValueLabelText.height + currentGauge.labelPadding * 2
+                            color: "transparent"
+                        }
+                        
+                        // Min value label at bottom border
+                        Text {
+                            id: currentMinValueLabelText
+                            z: 2
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.verticalCenter: parent.bottom
+                            anchors.verticalCenterOffset: -currentGauge.borderWidth / 2
+                            color: Utility.getAppHexColor("lightText")
+                            text: currentGauge.minValue.toFixed(1) + "A"
+                            font.pixelSize: 16
+                            font.weight: Font.Normal
                         }
 
                         // Safety margin line (horizontal)
@@ -477,8 +691,6 @@ Item {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         color: Utility.getAppHexColor("darkBackground")
-                        border.color: Utility.getAppHexColor("lightText")
-                        border.width: 2
                         
                         property real minVoltage: 60.0
                         property real maxVoltage: 84.0
@@ -487,9 +699,68 @@ Item {
                         property real percentage: ((maxVoltage - value) / (maxVoltage - minVoltage)) * 100.0
                         // Safety margin in percent (0-100)
                         property real safetyMargin: 50.0
+                        property real minValue: minVoltage
+                        property real maxValue: maxVoltage
+                        property real borderWidth: 2
+                        property real labelPadding: 4
+                        
+                        // Left border
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.top: parent.top
+                            anchors.bottom: parent.bottom
+                            width: voltageGauge.borderWidth
+                            color: Utility.getAppHexColor("lightText")
+                        }
+                        
+                        // Right border
+                        Rectangle {
+                            anchors.right: parent.right
+                            anchors.top: parent.top
+                            anchors.bottom: parent.bottom
+                            width: voltageGauge.borderWidth
+                            color: Utility.getAppHexColor("lightText")
+                        }
+                        
+                        // Top border - left segment
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.top: parent.top
+                            anchors.right: voltageMaxValueLabelBg.left
+                            height: voltageGauge.borderWidth
+                            color: Utility.getAppHexColor("lightText")
+                        }
+                        
+                        // Top border - right segment
+                        Rectangle {
+                            anchors.left: voltageMaxValueLabelBg.right
+                            anchors.top: parent.top
+                            anchors.right: parent.right
+                            height: voltageGauge.borderWidth
+                            color: Utility.getAppHexColor("lightText")
+                        }
+                        
+                        // Bottom border - left segment
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.bottom: parent.bottom
+                            anchors.right: voltageMinValueLabelBg.left
+                            height: voltageGauge.borderWidth
+                            color: Utility.getAppHexColor("lightText")
+                        }
+                        
+                        // Bottom border - right segment
+                        Rectangle {
+                            anchors.left: voltageMinValueLabelBg.right
+                            anchors.bottom: parent.bottom
+                            anchors.right: parent.right
+                            height: voltageGauge.borderWidth
+                            color: Utility.getAppHexColor("lightText")
+                        }
                         
                         // Fill rectangle
                         Rectangle {
+                            z: 0
                             anchors.bottom: parent.bottom
                             anchors.left: parent.left
                             anchors.right: parent.right
@@ -502,6 +773,56 @@ Item {
                                     easing.type: Easing.OutQuad
                                 }
                             }
+                        }
+                        
+                        // Max value label background (breaks top border)
+                        Rectangle {
+                            id: voltageMaxValueLabelBg
+                            z: 1
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.top: parent.top
+                            anchors.topMargin: -voltageGauge.borderWidth
+                            width: voltageMaxValueLabelText.width + 4
+                            height: voltageMaxValueLabelText.height + voltageGauge.labelPadding * 2
+                            color: "transparent"
+                        }
+                        
+                        // Max value label at top border
+                        Text {
+                            id: voltageMaxValueLabelText
+                            z: 2
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.verticalCenter: parent.top
+                            anchors.verticalCenterOffset: voltageGauge.borderWidth / 2
+                            color: Utility.getAppHexColor("lightText")
+                            text: voltageGauge.maxValue.toFixed(1) + "V"
+                            font.pixelSize: 16
+                            font.weight: Font.Normal
+                        }
+                        
+                        // Min value label background (breaks bottom border)
+                        Rectangle {
+                            id: voltageMinValueLabelBg
+                            z: 1
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.bottom: parent.bottom
+                            anchors.bottomMargin: -voltageGauge.borderWidth
+                            width: voltageMinValueLabelText.width + 4
+                            height: voltageMinValueLabelText.height + voltageGauge.labelPadding * 2
+                            color: "transparent"
+                        }
+                        
+                        // Min value label at bottom border
+                        Text {
+                            id: voltageMinValueLabelText
+                            z: 2
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.verticalCenter: parent.bottom
+                            anchors.verticalCenterOffset: -voltageGauge.borderWidth / 2
+                            color: Utility.getAppHexColor("lightText")
+                            text: voltageGauge.minValue.toFixed(1) + "V"
+                            font.pixelSize: 16
+                            font.weight: Font.Normal
                         }
 
                         // Safety margin line (horizontal)
