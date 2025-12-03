@@ -11,9 +11,11 @@ void ui_data_configure(data *d) {
     d->ui_data.voltage_lowpass_k = pt1_calculate_k(fq, d->balance_conf.hertz);
     d->ui_data.voltage_lowpass_state = 0;
 
-    // TODO: Recalculate from CFG_PARAM_si_battery_cells and CFG_PARAM_si_battery_type
-    d->ui_data.voltage_min = 56.0;
-    d->ui_data.voltage_max = 86.0;
+    // Calculate voltage limits from battery cell count
+    // 2.8V per cell minimum, 4.3V per cell maximum
+    int battery_cells = VESC_IF->get_cfg_int(CFG_PARAM_si_battery_cells);
+    d->ui_data.voltage_min = 2.8f * battery_cells;
+    d->ui_data.voltage_max = 4.3f * battery_cells;
 }
 
 void ui_data_reset(data *d) {
