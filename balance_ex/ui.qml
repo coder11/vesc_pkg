@@ -787,7 +787,7 @@ Item {
                             color: "transparent"
                         }
                         
-                        // Max value label at top border
+                        // Min value label at top border (low voltage = high position on gauge)
                         Text {
                             id: voltageMaxValueLabelText
                             z: 2
@@ -795,12 +795,12 @@ Item {
                             anchors.verticalCenter: parent.top
                             anchors.verticalCenterOffset: voltageGauge.borderWidth / 2
                             color: Utility.getAppHexColor("lightText")
-                            text: voltageGauge.maxValue.toFixed(1) + "V"
+                            text: voltageGauge.minValue.toFixed(1) + "V"
                             font.pixelSize: 16
                             font.weight: Font.Normal
                         }
                         
-                        // Min value label background (breaks bottom border)
+                        // Max value label background (breaks bottom border)
                         Rectangle {
                             id: voltageMinValueLabelBg
                             z: 1
@@ -812,7 +812,7 @@ Item {
                             color: "transparent"
                         }
                         
-                        // Min value label at bottom border
+                        // Max value label at bottom border (high voltage = low position on gauge)
                         Text {
                             id: voltageMinValueLabelText
                             z: 2
@@ -820,7 +820,7 @@ Item {
                             anchors.verticalCenter: parent.bottom
                             anchors.verticalCenterOffset: -voltageGauge.borderWidth / 2
                             color: Utility.getAppHexColor("lightText")
-                            text: voltageGauge.minValue.toFixed(1) + "V"
+                            text: voltageGauge.maxValue.toFixed(1) + "V"
                             font.pixelSize: 16
                             font.weight: Font.Normal
                         }
