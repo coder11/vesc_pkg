@@ -11,6 +11,15 @@ void ui_data_configure(data *d) {
     d->ui_data.voltage_lowpass_k = pt1_calculate_k(fq, d->balance_conf.hertz);
     d->ui_data.voltage_lowpass_state = 0;
 
+    float motor_load_fq = 1;
+    float motor_accel_load_fq = motor_load_fq;
+
+    d->ui_data.motor_load_lowpass_k = pt1_calculate_k(motor_load_fq, d->balance_conf.hertz);
+    d->ui_data.motor_load_lowpass_state = 0;
+
+    d->ui_data.motor_accel_load_lowpass_k = pt1_calculate_k(motor_accel_load_fq, d->balance_conf.hertz);
+    d->ui_data.motor_accel_load_lowpass_state = 0;
+
     // Calculate voltage limits from battery cell count
     // 2.8V per cell minimum, 4.3V per cell maximum
     int battery_cells = VESC_IF->get_cfg_int(CFG_PARAM_si_battery_cells);
@@ -20,6 +29,8 @@ void ui_data_configure(data *d) {
 
 void ui_data_reset(data *d) {
     d->ui_data.voltage_lowpass_state = 0;
+    d->ui_data.motor_load_lowpass_state = 0;
+    d->ui_data.motor_accel_load_lowpass_state = 0;
 
     d->erpm_accel = 0;
 	d->motor_load = 0;
@@ -52,5 +63,9 @@ void ui_data_update(data *d) {
         d->motor_accel_load = fabsf(d->motor_current / d->erpm_accel * 1000.0);
     } else {
         d->motor_accel_load = 0.0f;
-    }    
+    }
+
+    // Filter motor_load and motor_accel_load
+    d->ui_data.motor_load_lowpass_state = pt1_process_lowpass(&d->ui_data.motor_load_lowpass_state, d->ui_data.motor_load_lowpass_k, d->motor_load);
+    d->ui_data.motor_accel_load_lowpass_state = pt1_process_lowpass(&d->ui_data.motor_accel_load_lowpass_state, d->ui_data.motor_accel_load_lowpass_k, d->motor_accel_load);
 }

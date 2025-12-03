@@ -16,8 +16,8 @@ void send_realtime_data(data *d) {
 	buffer_append_float32_auto(send_buffer, d->adc1, &ind);
 	buffer_append_float32_auto(send_buffer, d->adc2, &ind);
 	buffer_append_float32_auto(send_buffer, d->setpoint, &ind);
-	buffer_append_float32_auto(send_buffer, d->motor_load, &ind);
-	buffer_append_float32_auto(send_buffer, d->motor_accel_load, &ind);
+	buffer_append_float32_auto(send_buffer, d->ui_data.motor_load_lowpass_state, &ind);
+	buffer_append_float32_auto(send_buffer, d->ui_data.motor_accel_load_lowpass_state, &ind);
 	buffer_append_uint16(send_buffer, is_kill_switch_triggered(d), &ind);
 	// UI data values
 	buffer_append_float32_auto(send_buffer, d->ui_data.speed_kmh, &ind);

@@ -53,8 +53,10 @@
         ("pitch_deg"                    (rad2deg (ix (get-imu-rpy) 1)))
         ("wh" "Wh"                      (get-wh))
         ("erpm_accel"                   (ext-balance-get-erpm-accel))
-        ("motor_load"              5    (ext-balance-get-motor-load))
-        ("motor_accel_load"        5    (ext-balance-get-motor-accel-load))
+        ("motor_load"              3    (ext-balance-get-motor-load))
+        ("motor_load filtered"     3    (ext-balance-get-motor-load-filtered))
+        ("motor_accel_load"        3    (ext-balance-get-motor-accel-load))
+        ("motor_accel_load filtered" 3  (ext-balance-get-motor-accel-load-filtered))
         ;; pid stuff
         ("pid_p"                        (ext-balance-get-p))
         ("pid_i"                        (ext-balance-get-i))
@@ -65,12 +67,12 @@
         ("pid_value"                    (ext-balance-get-pid))
         ("pid_rate_value"               (ext-balance-get-pid_rate))
         ; raw imu stuff
-        ("acc_x"                         (ix (get-imu-acc) 0))
-        ("acc_y"                         (ix (get-imu-acc) 1))
-        ("acc_z"                         (ix (get-imu-acc) 2))
-        ("gyro_x"                        (ix (get-imu-gyro) 0))
-        ("gyro_y"                        (ix (get-imu-gyro) 1))
-        ("gyro_z"                        (ix (get-imu-gyro) 2))
+        ;("acc_x"                         (ix (get-imu-acc) 0))
+        ;("acc_y"                         (ix (get-imu-acc) 1))
+        ;("acc_z"                         (ix (get-imu-acc) 2))
+        ;("gyro_x"                        (ix (get-imu-gyro) 0))
+        ;("gyro_y"                        (ix (get-imu-gyro) 1))
+        ;("gyro_z"                        (ix (get-imu-gyro) 2))
 ))
 
 

@@ -62,9 +62,13 @@ typedef struct {
 	float voltage_max;
 	float voltage_min;
 	float voltage_lowpass_k;
+	float motor_load_lowpass_k;
+	float motor_accel_load_lowpass_k;
 
 	// runtime values
 	float voltage, voltage_lowpass_state;
+	float motor_load_lowpass_state;
+	float motor_accel_load_lowpass_state;
 	float speed_kmh;
 } UIData;
 
