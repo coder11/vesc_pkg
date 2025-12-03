@@ -117,27 +117,17 @@ Item {
     Connections {
         target: mCommands
         
-        // Get VESC realtime values (duty cycle, voltage)
+        // Get VESC realtime values (duty cycle, temperature)
         onValuesReceived: {
             if (values) {
                 dutyCycle = Math.abs(values.duty_now) * 100.0
-                batteryVoltage = values.v_in
+                // Note: batteryVoltage and speedKmh are now updated from ui_data
+                // in onCustomAppDataReceived
                 if (typeof values.temp_mos !== "undefined") {
                     tempFet = values.temp_mos
                 }
                 if (typeof values.temp_motor !== "undefined") {
                     tempMotor = values.temp_motor
-                }
-
-                // Calculate speed in km/h from RPM and wheel diameter if available
-                if (typeof values.rpm !== "undefined" && mMcConf) {
-                    var wheelDiameter = mMcConf.getParamDouble("si_wheel_diameter")
-                    var motor_poles = mMcConf.getParamDouble("si_motor_poles")
-                    var erpm = Math.abs(values.rpm)
-                    var rpm = erpm * 2 / motor_poles 
-                    var circumference = Math.PI * wheelDiameter // meters
-                    var speedMs = rpm * circumference / 60.0
-                    speedKmh = speedMs * 3.6
                 }
             }
         }
@@ -162,9 +152,24 @@ Item {
             var erpm_div_i = dv.getFloat32(ind); ind += 4;
             var erpm_accel_div_i = dv.getFloat32(ind); ind += 4;
             var killSwitchTriggered = dv.getInt16(ind); ind += 2;
+            // UI data values
+            var speed_kmh = dv.getFloat32(ind); ind += 4;
+            var voltage = dv.getFloat32(ind); ind += 4;
+            var voltage_min = dv.getFloat32(ind); ind += 4;
+            var voltage_max = dv.getFloat32(ind); ind += 4;
             
             // Update motor current for gauge
             motorCurrent = Math.abs(motor_current)
+            
+            // Update speed from ui_data
+            speedKmh = speed_kmh
+            
+            // Update voltage gauge with ui_data values
+            if (voltage_min > 0 && voltage_max > 0) {
+                voltageGauge.minVoltage = voltage_min
+                voltageGauge.maxVoltage = voltage_max
+            }
+            batteryVoltage = voltage
             
             var stateString
             if(state == 0){

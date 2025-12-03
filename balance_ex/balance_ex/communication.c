@@ -5,7 +5,7 @@
 
 void send_realtime_data(data *d) {
 	int32_t ind = 0;
-	uint8_t send_buffer[80];
+	uint8_t send_buffer[100];
 	buffer_append_float32_auto(send_buffer, d->pid_value, &ind);
 	buffer_append_float32_auto(send_buffer, d->pitch_angle, &ind);
 	buffer_append_float32_auto(send_buffer, d->roll_angle, &ind);
@@ -19,6 +19,11 @@ void send_realtime_data(data *d) {
 	buffer_append_float32_auto(send_buffer, d->current_divided_by_erpm, &ind);
 	buffer_append_float32_auto(send_buffer, d->current_divided_by_erpm_accel, &ind);
 	buffer_append_uint16(send_buffer, is_kill_switch_triggered(d), &ind);
+	// UI data values
+	buffer_append_float32_auto(send_buffer, d->ui_data.speed_kmh, &ind);
+	buffer_append_float32_auto(send_buffer, d->ui_data.voltage, &ind);
+	buffer_append_float32_auto(send_buffer, d->ui_data.voltage_min, &ind);
+	buffer_append_float32_auto(send_buffer, d->ui_data.voltage_max, &ind);
 	
 	VESC_IF->send_app_data(send_buffer, ind);
 }
