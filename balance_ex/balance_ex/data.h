@@ -55,6 +55,18 @@ typedef enum {
 	ON
 } SwitchState;
 
+typedef struct {
+	// Config values
+	float wheel_diameter;
+	float motor_poles;
+	float voltage_max;
+	float voltage_min;
+	float voltage_lowpass_k;
+
+	// runtime values
+	float voltage, voltage_lowpass_state;
+	float speed_kmh;
+} UIData;
 
 // This is all persistent state of the application, which will be allocated in init. It
 // is put here because variables can only be read-only when this program is loaded
@@ -78,17 +90,22 @@ typedef struct {
 	float gyro[3];
 	float duty_cycle, abs_duty_cycle;
 	float erpm, abs_erpm, last_erpm;
-	float erpm_accel;
-	float current_divided_by_erpm, current_divided_by_erpm_accel;
 	float motor_current;
-	float motor_position;
 	float adc1, adc2;
 	SwitchState switch_state;
+
+	// Data for UI
+	UIData ui_data;
+
+	// Experimental
+	float erpm_accel;
+	float current_divided_by_erpm, current_divided_by_erpm_accel;
+
 
 	// Rumtime state values
 	BalanceState state;
 	float proportional, exponential, integral, derivative, proportional2, integral2, derivative2;
-	float error, last_error;
+	float error, last_error, abs_error, sign_error;
 	float pid_value, pid_value2;
 	float setpoint, setpoint_target, setpoint_target_interpolated;
 	float noseangling_interpolated;

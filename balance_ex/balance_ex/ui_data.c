@@ -1,0 +1,53 @@
+
+#include "data.h"
+#include "pt1.h"
+#include <math.h>
+
+void ui_data_configure(data *d) {
+    d->ui_data.wheel_diameter = VESC_IF->get_cfg_float(CFG_PARAM_si_wheel_diameter);
+    d->ui_data.motor_poles = VESC_IF->get_cfg_float(CFG_PARAM_si_motor_poles);
+
+    float fq = 10.0; // Say, 10hz for now
+    d->ui_data.voltage_lowpass_k = pt1_calculate_k(fq, d->balance_conf.hertz);
+    d->ui_data.voltage_lowpass_state = 0;
+
+    // TODO: Recalculate from CFG_PARAM_si_battery_cells and CFG_PARAM_si_battery_type
+    d->ui_data.voltage_min = 56.0;
+    d->ui_data.voltage_max = 86.0;
+}
+
+void ui_data_reset(data *d) {
+    d->ui_data.voltage_lowpass_state = 0;
+
+    d->erpm_accel = 0;
+	d->current_divided_by_erpm = 0;
+	d->current_divided_by_erpm_accel = 0;
+}
+
+void ui_data_update(data *d) {
+    // speed in km/h
+    float rpm = d->erpm * 2 / d->ui_data.motor_poles;
+    float circumference = d->ui_data.wheel_diameter * M_PI;
+    float speed_ms = rpm * circumference / 60.0;
+    d->ui_data.speed_kmh = speed_ms * 3.6;
+
+    // voltage
+    d->ui_data.voltage = VESC_IF->mc_get_input_voltage_filtered();
+    d->ui_data.voltage_lowpass_state = pt1_process_lowpass(&d->ui_data.voltage_lowpass_state, d->ui_data.voltage_lowpass_k, d->ui_data.voltage);
+
+    // experimental values
+    d->erpm_accel = (d->diff_time > 0) ? (d->erpm - d->last_erpm) / d->diff_time : 0.0;
+
+    // Current per ERPM and per ERPM acceleration (avoid division by zero / tiny values)
+    if (fabsf(d->erpm) > 0.01f) {
+        d->current_divided_by_erpm = fabsf(d->motor_current / d->erpm * 1000.0);
+    } else {
+        d->current_divided_by_erpm = 0.0f;
+    }
+
+    if (fabsf(d->erpm_accel) > 0.01f) {
+        d->current_divided_by_erpm_accel = fabsf(d->motor_current / d->erpm_accel * 1000.0);
+    } else {
+        d->current_divided_by_erpm_accel = 0.0f;
+    }    
+}

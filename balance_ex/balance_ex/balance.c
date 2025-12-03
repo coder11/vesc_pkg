@@ -3,6 +3,7 @@
 
 #include "biquad.h"
 #include "pt1.h"
+#include "ui_data.h"
 
 #include <math.h>
 #include <string.h>
@@ -89,9 +90,6 @@ void reset_vars(data *d) {
 	d->diff_time = 0;
 	d->brake_timeout = 0;
 	d->last_erpm = d->erpm;
-	d->erpm_accel = 0;
-	d->current_divided_by_erpm = 0;
-	d->current_divided_by_erpm_accel = 0;
 }
 
 float get_setpoint_adjustment_step_size(data *d) {
@@ -388,15 +386,12 @@ void balance_loop_tick(data *d) {
         d->filtered_loop_overshoot = d->loop_overshoot_alpha * d->loop_overshoot + (1.0 - d->loop_overshoot_alpha) * d->filtered_loop_overshoot;
     }
 
-    // Read values for GUI
-    d->motor_current = VESC_IF->mc_get_tot_current_directional_filtered();
-    d->motor_position = VESC_IF->mc_get_pid_pos_now();
-
     // Set "last" values to previous loops values
     d->last_pitch_angle = d->pitch_angle;
     d->last_gyro_y = d->gyro[1];
-
+	
     // Get the values we want
+    d->motor_current = VESC_IF->mc_get_tot_current_directional_filtered();
     d->pitch_angle = RAD2DEG_f(VESC_IF->imu_get_pitch());
     d->roll_angle = RAD2DEG_f(VESC_IF->imu_get_roll());
     d->abs_roll_angle = fabsf(d->roll_angle);
@@ -406,20 +401,7 @@ void balance_loop_tick(data *d) {
     d->abs_duty_cycle = fabsf(d->duty_cycle);
     d->erpm = VESC_IF->mc_get_rpm();
     d->abs_erpm = fabsf(d->erpm);
-    d->erpm_accel = (d->diff_time > 0) ? (d->erpm - d->last_erpm) / d->diff_time : 0.0;
-
-    // Current per ERPM and per ERPM acceleration (avoid division by zero / tiny values)
-    if (fabsf(d->erpm) > 0.01f) {
-        d->current_divided_by_erpm = fabsf(d->motor_current / d->erpm);
-    } else {
-        d->current_divided_by_erpm = 0.0f;
-    }
-
-    if (fabsf(d->erpm_accel) > 0.01f) {
-        d->current_divided_by_erpm_accel = fabsf(d->motor_current / d->erpm_accel);
-    } else {
-        d->current_divided_by_erpm_accel = 0.0f;
-    }
+	ui_data_update(d);
     d->last_erpm = d->erpm;
 
     d->adc1 = VESC_IF->io_read_analog(VESC_PIN_ADC1);
@@ -502,20 +484,19 @@ void balance_loop_tick(data *d) {
 
             // Calcualte error
             d->error = d->setpoint - d->pitch_angle;
-            
-            float abs_error = fabsf(d->error);
-            float sign_error = SIGN(d->error);
+            d->abs_error = fabsf(d->error);
+            d->sign_error = SIGN(d->error);
             float kk = d->balance_conf.error_ln_slope;
             float dd = d->balance_conf.error_linear_limit;
             // Are we in ln already?
-            if(abs_error > dd) {
-				abs_error = kk * logf( (abs_error - dd) / kk + 1 ) + dd;
-                d->error = sign_error * abs_error;
+            if(d->abs_error > dd) {
+				d->abs_error = kk * logf( (d->abs_error - dd) / kk + 1 ) + dd;
+                d->error = d->sign_error * d->abs_error;
             }
 
             // Do PID maths
             d->proportional = d->error;
-			d->exponential = sign_error * (expf( d->balance_conf.kexp * abs_error) - 1.0f);
+			d->exponential = d->sign_error * (expf( d->balance_conf.kexp * d->abs_error) - 1.0f);
             d->integral = d->integral + d->error;
             d->derivative = d->error - d->last_error;
 
@@ -558,12 +539,12 @@ void balance_loop_tick(data *d) {
             }
 
             // Apply Booster
-            if (abs_error > d->balance_conf.booster_angle) {
-                if (abs_error - d->balance_conf.booster_angle < d->balance_conf.booster_ramp) {
-                    resulting_pid_value += (d->balance_conf.booster_current * sign_error) *
-                            ((abs_error - d->balance_conf.booster_angle) / d->balance_conf.booster_ramp);
+            if (d->abs_error > d->balance_conf.booster_angle) {
+                if (d->abs_error - d->balance_conf.booster_angle < d->balance_conf.booster_ramp) {
+                    resulting_pid_value += (d->balance_conf.booster_current * d->sign_error) *
+                            ((d->abs_error - d->balance_conf.booster_angle) / d->balance_conf.booster_ramp);
                 } else {
-                    resulting_pid_value += d->balance_conf.booster_current * sign_error;
+                    resulting_pid_value += d->balance_conf.booster_current * d->sign_error;
                 }
             }
 
