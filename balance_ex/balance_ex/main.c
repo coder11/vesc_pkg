@@ -122,6 +122,13 @@ static lbm_value ext_get_motor_accel_load(lbm_value *args, lbm_uint argn) {
 	return VESC_IF->lbm_enc_float(d->motor_accel_load);
 }
 
+static lbm_value ext_get_voltage_filtered(lbm_value *args, lbm_uint argn) {
+	(void)args;
+	(void)argn;
+	data *d = (data*)ARG;
+	return VESC_IF->lbm_enc_float(d->ui_data.voltage_lowpass_state);
+}
+
 // These functions are used to send the config page to VESC Tool
 // and to make persistent read and write work
 static int get_cfg(uint8_t *buffer, bool is_default) {
@@ -250,6 +257,7 @@ INIT_FUN(lib_info *info) {
 	VESC_IF->lbm_add_extension("ext-balance-get-erpm-accel", ext_get_erpm_accel);
 	VESC_IF->lbm_add_extension("ext-balance-get-motor-load", ext_get_motor_load);
 	VESC_IF->lbm_add_extension("ext-balance-get-motor-accel-load", ext_get_motor_accel_load);
+	VESC_IF->lbm_add_extension("ext-balance-get-voltage-filtered", ext_get_voltage_filtered);
 
 	return true;
 }
