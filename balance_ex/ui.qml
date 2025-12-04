@@ -40,7 +40,7 @@ Item {
     property ConfigParams mCustomConf: VescIf.customConfig(0)
     
     readonly property int balanceCommandGetRealtimeData: 0x01
-    readonly property int balanceCommandTriggerKillSpin: 0x02
+    readonly property int balanceCommandTriggerKillspin: 0x02
     
     // Gauge values
     property real dutyCycle: 0.0
@@ -188,7 +188,7 @@ Item {
             } else if (state == 8) {
                 stateString = "READY"
             } else if (state == 9) {
-                stateString = "KILL_SPIN"
+                stateString = "KILLSPIN"
             } else {
                 stateString = "UNKNOWN"
             }
@@ -897,7 +897,7 @@ Item {
                             onClicked: {
                                 var buffer = new ArrayBuffer(1)
                                 var dv = new DataView(buffer)
-                                dv.setUint8(0, balanceCommandTriggerKillSpin)
+                                dv.setUint8(0, balanceCommandTriggerKillspin)
                                 mCommands.sendCustomAppData(buffer)
                             }
                         }

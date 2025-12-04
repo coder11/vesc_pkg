@@ -15,8 +15,8 @@ void engage_ready(data *d) {
 	d->state = READY;
 }
 
-void engage_kill_spin(data *d) {
-	if(d->state == KILL_SPIN) {
+void engage_killspin(data *d) {
+	if(d->state == KILLSPIN) {
 		// allready engaged, do nothing
 		return;
 	}
@@ -26,11 +26,11 @@ void engage_kill_spin(data *d) {
 		return;
 	}
 
-	d->state = KILL_SPIN;
+	d->state = KILLSPIN;
 }
 
-void disengage_kill_spin(data *d) {
-	if(d->state != KILL_SPIN) {
+void disengage_killspin(data *d) {
+	if(d->state != KILLSPIN) {
 		// allready disengaged, do nothing
 		return;
 	}

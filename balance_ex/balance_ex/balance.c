@@ -309,7 +309,7 @@ void balance_loop_tick(data *d) {
     if(d->balance_conf.balance_enabled) {
         // Control Loop State Logic
         switch(d->state) {
-        case (KILL_SPIN):
+        case (KILLSPIN):
             // Disable output
             brake(d);
             break;

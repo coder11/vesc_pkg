@@ -33,7 +33,7 @@ typedef enum {
 	FAULT_ANGLE_ROLL = 4,
 	FAULT_DUTY = 5,
 	READY = 6,
-	KILL_SPIN = 7
+	KILLSPIN = 7
 } BalanceState;
 
 typedef enum {
