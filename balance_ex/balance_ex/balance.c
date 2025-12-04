@@ -217,9 +217,8 @@ void apply_pid_balancing(data *d) {
 		d->derivative = pt1_process_highpass(&d->d_pt1_highpass_state, d->d_pt1_highpass_k, d->derivative);
 	}
 
-	float resulting_pid_value;
 	d->pid_value = (d->balance_conf.kp * d->proportional) + d->exponential + (d->balance_conf.ki * d->integral) + (d->balance_conf.kd * d->derivative);
-	resulting_pid_value = d->pid_value;
+	d->output_current = d->pid_value;
 
 	if (d->balance_conf.pid_mode == BALANCE_PID_MODE_ANGLE_RATE_CASCADE) {
 		d->proportional2 = d->pid_value - d->gyro[1];
@@ -238,22 +237,22 @@ void apply_pid_balancing(data *d) {
 
 		d->pid_value2 = (d->balance_conf.kp2 * d->proportional2) +
 				(d->balance_conf.ki2 * d->integral2) + (d->balance_conf.kd2 * d->derivative2);
-		resulting_pid_value = d->pid_value2;
+				d->output_current = d->pid_value2;
 	}
 
 	// Apply Booster
 	if (d->abs_error > d->balance_conf.booster_angle) {
 		if (d->abs_error - d->balance_conf.booster_angle < d->balance_conf.booster_ramp) {
-			resulting_pid_value += (d->balance_conf.booster_current * d->sign_error) *
+			d->output_current += (d->balance_conf.booster_current * d->sign_error) *
 					((d->abs_error - d->balance_conf.booster_angle) / d->balance_conf.booster_ramp);
 		} else {
-			resulting_pid_value += d->balance_conf.booster_current * d->sign_error;
+			d->output_current += d->balance_conf.booster_current * d->sign_error;
 		}
 	}
 
 	// Output to motor
 	d->last_error = d->error;
-	set_current(d, resulting_pid_value);
+	set_current(d, d->output_current);
 }
 
 bool is_valid_startup_position(data *d, bool ignore_pitch) {
