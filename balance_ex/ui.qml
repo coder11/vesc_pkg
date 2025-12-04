@@ -169,27 +169,27 @@ Item {
             batteryVoltage = voltage
             
             var stateString
-            if(state == 0){
+            if (state == 0) {
                 stateString = "STARTUP"
-            }else if(state == 1){
+            } else if (state == 1) {
                 stateString = "RUNNING"
-            }else if(state == 2){
+            } else if (state == 2) {
                 stateString = "RUNNING_TILTBACK_DUTY"
-            }else if(state == 3){
+            } else if (state == 3) {
                 stateString = "RUNNING_TILTBACK_HIGH_VOLTAGE"
-            }else if(state == 4){
+            } else if (state == 4) {
                 stateString = "RUNNING_TILTBACK_LOW_VOLTAGE"
-            }else if(state == 5){
-                stateString = "UNKNOWN"
-            }else if(state == 6){
+            } else if (state == 5) {
                 stateString = "FAULT_ANGLE_PITCH"
-            }else if(state == 7){
+            } else if (state == 6) {
                 stateString = "FAULT_ANGLE_ROLL"
-            }else if(state == 8){
+            } else if (state == 7) {
                 stateString = "FAULT_DUTY"
-            }else if(state == 9){
-                stateString = "FAULT_STARTUP"
-            }else{     
+            } else if (state == 8) {
+                stateString = "READY"
+            } else if (state == 9) {
+                stateString = "KILL_SPIN"
+            } else {
                 stateString = "UNKNOWN"
             }
             
@@ -207,8 +207,6 @@ Item {
                 "pitch  : " + pitch.toFixed(2) + "°\n" +
                 "setp-pitch :" + (setpoint-pitch).toFixed(2) + "\n" +
                 "roll   : " + roll.toFixed(2) + "°\n" +
-                //"time   : " + (1/time_diff).toFixed(0) + "hz\n" +
-                //"current: " + motor_current.toFixed(2) + "A\n" +
                 "Motor Load : " + motor_load.toFixed(5) + "\n" +
                 "Motor Accel Load : " + motor_accel_load.toFixed(5) + "\n" +
                 "state  : " + stateString + "\n" +

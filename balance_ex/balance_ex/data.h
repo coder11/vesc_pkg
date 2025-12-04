@@ -25,18 +25,17 @@
 #include "conf/datatypes.h"
 #include "biquad.h"
 
-// Data type (Value 5 was removed, and can be reused at a later date, but i wanted to preserve the current value's numbers for UIs)
 typedef enum {
 	STARTUP = 0,
 	RUNNING = 1,
 	RUNNING_TILTBACK_DUTY = 2,
 	RUNNING_TILTBACK_HIGH_VOLTAGE = 3,
 	RUNNING_TILTBACK_LOW_VOLTAGE = 4,
-	FAULT_ANGLE_PITCH = 6,
-	FAULT_ANGLE_ROLL = 7,
-	FAULT_DUTY = 8,
-	READY = 9,
-	KILL_SPIN = 10
+	FAULT_ANGLE_PITCH = 5,
+	FAULT_ANGLE_ROLL = 6,
+	FAULT_DUTY = 7,
+	READY = 8,
+	KILL_SPIN = 9
 } BalanceState;
 
 typedef enum {
