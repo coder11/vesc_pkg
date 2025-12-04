@@ -1,6 +1,13 @@
 #include "fault.h"
+#include "data.h"
 
 #include <math.h>
+
+void engage_centering(data *d) {
+	reset_vars(d);
+	d->setpoint = d->pitch_angle;
+	d->state = CENTERING;
+}
 
 void engage_ready(data *d) {
 	reset_vars(d);

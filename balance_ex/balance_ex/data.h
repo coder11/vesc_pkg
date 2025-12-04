@@ -27,19 +27,16 @@
 
 typedef enum {
 	STARTUP = 0,
-	RUNNING = 1,
-	RUNNING_TILTBACK_DUTY = 2,
-	RUNNING_TILTBACK_HIGH_VOLTAGE = 3,
-	RUNNING_TILTBACK_LOW_VOLTAGE = 4,
-	FAULT_ANGLE_PITCH = 5,
-	FAULT_ANGLE_ROLL = 6,
-	FAULT_DUTY = 7,
-	READY = 8,
-	KILL_SPIN = 9
+	CENTERING = 1,
+	RUNNING = 2,
+	FAULT_ANGLE_PITCH = 3,
+	FAULT_ANGLE_ROLL = 4,
+	FAULT_DUTY = 5,
+	READY = 6,
+	KILL_SPIN = 7
 } BalanceState;
 
 typedef enum {
-	CENTERING = 0,
 	TILTBACK_DUTY,
 	TILTBACK_HV,
 	TILTBACK_LV,
@@ -75,7 +72,7 @@ typedef struct {
 
 	// Config values
 	float loop_time_seconds;
-	float startup_step_size;
+	float centering_step_size;
 	float tiltback_duty_step_size, tiltback_hv_step_size, tiltback_lv_step_size, tiltback_return_step_size;
 	float torquetilt_on_step_size, torquetilt_off_step_size, turntilt_step_size;
 	float tiltback_variable, tiltback_variable_max_erpm, noseangling_step_size;

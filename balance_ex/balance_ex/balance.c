@@ -7,14 +7,13 @@
 #include "data_ui.h"
 
 #include <math.h>
+#include <stdbool.h>
 #include <string.h>
 #include "util.h"
 #include "data.h"
 
 float get_setpoint_adjustment_step_size(data *d) {
 	switch(d->setpointAdjustmentType){
-		case (CENTERING):
-			return d->startup_step_size;
 		case (TILTBACK_DUTY):
 			return d->tiltback_duty_step_size;
 		case (TILTBACK_HV):
@@ -30,17 +29,13 @@ float get_setpoint_adjustment_step_size(data *d) {
 }
 
 void calculate_setpoint_target(data *d) {
-	if (d->setpointAdjustmentType == CENTERING && d->setpoint_target_interpolated != d->setpoint_target) {
-		// Ignore tiltback during centering sequence
-		d->state = RUNNING;
-	} else if (d->abs_duty_cycle > d->balance_conf.tiltback_duty) {
+	if (d->abs_duty_cycle > d->balance_conf.tiltback_duty) {
 		if (d->erpm > 0) {
 			d->setpoint_target = d->balance_conf.tiltback_duty_angle;
 		} else {
 			d->setpoint_target = -d->balance_conf.tiltback_duty_angle;
 		}
 		d->setpointAdjustmentType = TILTBACK_DUTY;
-		d->state = RUNNING_TILTBACK_DUTY;
 	} else if (d->abs_duty_cycle > 0.05 && VESC_IF->mc_get_input_voltage_filtered() > d->balance_conf.tiltback_hv) {
 		if (d->erpm > 0){
 			d->setpoint_target = d->balance_conf.tiltback_hv_angle;
@@ -49,7 +44,6 @@ void calculate_setpoint_target(data *d) {
 		}
 
 		d->setpointAdjustmentType = TILTBACK_HV;
-		d->state = RUNNING_TILTBACK_HIGH_VOLTAGE;
 	} else if (d->abs_duty_cycle > 0.05 && VESC_IF->mc_get_input_voltage_filtered() < d->balance_conf.tiltback_lv) {
 		if (d->erpm > 0) {
 			d->setpoint_target = d->balance_conf.tiltback_lv_angle;
@@ -58,7 +52,6 @@ void calculate_setpoint_target(data *d) {
 		}
 
 		d->setpointAdjustmentType = TILTBACK_LV;
-		d->state = RUNNING_TILTBACK_LOW_VOLTAGE;
 	} else {
 		d->setpointAdjustmentType = TILTBACK_NONE;
 		d->setpoint_target = 0;
@@ -66,18 +59,6 @@ void calculate_setpoint_target(data *d) {
 	}
 }
 
-void calculate_setpoint_interpolated(data *d) {
-	if (d->setpoint_target_interpolated != d->setpoint_target) {
-		// If we are less than one step size away, go all the way
-		if (fabsf(d->setpoint_target - d->setpoint_target_interpolated) < get_setpoint_adjustment_step_size(d)) {
-			d->setpoint_target_interpolated = d->setpoint_target;
-		} else if (d->setpoint_target - d->setpoint_target_interpolated > 0) {
-			d->setpoint_target_interpolated += get_setpoint_adjustment_step_size(d);
-		} else {
-			d->setpoint_target_interpolated -= get_setpoint_adjustment_step_size(d);
-		}
-	}
-}
 
 void apply_noseangling(data *d){
 	// Nose angle adjustment, add variable tiltback
@@ -205,6 +186,86 @@ void set_current(data *d, float current){
 	VESC_IF->mc_set_current(current);
 }
 
+void apply_pid_balancing(data *d) {
+	// Calcualte error
+	d->error = d->setpoint - d->pitch_angle;
+	d->abs_error = fabsf(d->error);
+	d->sign_error = SIGN(d->error);
+	float kk = d->balance_conf.error_ln_slope;
+	float dd = d->balance_conf.error_linear_limit;
+	// Are we in ln already?
+	if(d->abs_error > dd) {
+		d->abs_error = kk * logf( (d->abs_error - dd) / kk + 1 ) + dd;
+		d->error = d->sign_error * d->abs_error;
+	}
+
+	// Do PID maths
+	d->proportional = d->error;
+	d->exponential = d->sign_error * (expf( d->balance_conf.kexp * d->abs_error) - 1.0f);
+	d->integral = d->integral + d->error;
+	d->derivative = d->error - d->last_error;
+
+	// Apply I term Filter
+	if (d->balance_conf.ki_limit > 0 && fabsf(d->integral * d->balance_conf.ki) > d->balance_conf.ki_limit) {
+		d->integral = d->balance_conf.ki_limit / d->balance_conf.ki * SIGN(d->integral);
+	}
+
+	// Apply D term filters
+	if (d->balance_conf.kd_pt1_lowpass_frequency > 0) {
+		d->derivative = pt1_process_lowpass(&d->d_pt1_lowpass_state, d->d_pt1_lowpass_k, d->derivative);
+	}
+
+	if (d->balance_conf.kd_pt1_highpass_frequency > 0){
+		d->derivative = pt1_process_highpass(&d->d_pt1_highpass_state, d->d_pt1_highpass_k, d->derivative);
+	}
+
+	float resulting_pid_value;
+	d->pid_value = (d->balance_conf.kp * d->proportional) + d->exponential + (d->balance_conf.ki * d->integral) + (d->balance_conf.kd * d->derivative);
+	resulting_pid_value = d->pid_value;
+
+	if (d->balance_conf.pid_mode == BALANCE_PID_MODE_ANGLE_RATE_CASCADE) {
+		d->proportional2 = d->pid_value - d->gyro[1];
+		d->integral2 = d->integral2 + d->proportional2;
+		d->derivative2 = d->last_gyro_y - d->gyro[1];
+
+		// Apply D term filter
+		if (d->balance_conf.kd2_pt1_lowpass_frequency > 0) {
+			d->derivative2 = pt1_process_lowpass(&d->d2_pt1_lowpass_state, d->d2_pt1_lowpass_k, d->derivative2);
+		}
+
+		// Apply I term Filter
+		if (d->balance_conf.ki_limit > 0 && fabsf(d->integral2 * d->balance_conf.ki2) > d->balance_conf.ki_limit) {
+			d->integral2 = d->balance_conf.ki_limit / d->balance_conf.ki2 * SIGN(d->integral2);
+		}
+
+		d->pid_value2 = (d->balance_conf.kp2 * d->proportional2) +
+				(d->balance_conf.ki2 * d->integral2) + (d->balance_conf.kd2 * d->derivative2);
+		resulting_pid_value = d->pid_value2;
+	}
+
+	// Apply Booster
+	if (d->abs_error > d->balance_conf.booster_angle) {
+		if (d->abs_error - d->balance_conf.booster_angle < d->balance_conf.booster_ramp) {
+			resulting_pid_value += (d->balance_conf.booster_current * d->sign_error) *
+					((d->abs_error - d->balance_conf.booster_angle) / d->balance_conf.booster_ramp);
+		} else {
+			resulting_pid_value += d->balance_conf.booster_current * d->sign_error;
+		}
+	}
+
+	// Output to motor
+	d->last_error = d->error;
+	set_current(d, resulting_pid_value);
+}
+
+bool is_valid_startup_position(data *d, bool ignore_pitch) {
+	bool is_pitch_good = ignore_pitch 
+		|| fabsf(d->pitch_angle) < d->balance_conf.startup_pitch_tolerance;
+
+	bool is_roll_good = fabsf(d->roll_angle) < d->balance_conf.startup_roll_tolerance;
+	return is_pitch_good && is_roll_good;
+}
+
 void balance_loop_tick(data *d) {
     // Update times
     d->current_time = VESC_IF->system_time();
@@ -254,117 +315,50 @@ void balance_loop_tick(data *d) {
             break;
 
         case (STARTUP):
-                // Disable output
-                brake(d);
-                if (VESC_IF->imu_startup_done()) {
-                    engage_ready(d);
-                }
-                break;
+			// Disable output
+			brake(d);
+			if (VESC_IF->imu_startup_done()) {
+				engage_ready(d);
+			}
+			break;
+
+		// Use explicit case in case (pun intended) we would need to customize
+		// Centering logic in future. E.g smooth out, use different PIDs or whatever
+		case (CENTERING):
+			// Check for faults in case we roll the wheel while its centering
+			if (check_faults(d, false)) {
+				break;
+			}
+
+			if(advance_interpolation(&d->setpoint, d->setpoint_target, d->centering_step_size)) {
+				d->state = RUNNING;
+			}
+			apply_pid_balancing(d);
+			break;
 
         case (RUNNING):
-        case (RUNNING_TILTBACK_DUTY):
-        case (RUNNING_TILTBACK_HIGH_VOLTAGE):
-        case (RUNNING_TILTBACK_LOW_VOLTAGE):
             // Check for faults
             if (check_faults(d, false)) {
                 break;
             }
 
-            // Calculate setpoint and interpolation
-			d->setpoint = d->balance_conf.pitch_adjustment;
 			calculate_setpoint_target(d);
-            calculate_setpoint_interpolated(d);
-            d->setpoint += d->setpoint_target_interpolated;
+			d->setpoint_target += d->balance_conf.pitch_adjustment;
+			// d->setpoint_target = clampf(d->setpoint_target, d->balance_conf.setpoint_min, d->balance_conf.setpoint_max)
+			advance_interpolation(&d->setpoint, d->setpoint_target, get_setpoint_adjustment_step_size(d));
+
 			apply_noseangling(d);
             apply_torquetilt(d);
             apply_turntilt(d);
 
-			if(d->setpoint > d->balance_conf.setpoint_max) {
-				d->setpoint = d->balance_conf.setpoint_max;
-			}
-
-			if(d->setpoint < d->balance_conf.setpoint_min) {
-				d->setpoint = d->balance_conf.setpoint_min;
-			}
-
-            // Calcualte error
-            d->error = d->setpoint - d->pitch_angle;
-            d->abs_error = fabsf(d->error);
-            d->sign_error = SIGN(d->error);
-            float kk = d->balance_conf.error_ln_slope;
-            float dd = d->balance_conf.error_linear_limit;
-            // Are we in ln already?
-            if(d->abs_error > dd) {
-				d->abs_error = kk * logf( (d->abs_error - dd) / kk + 1 ) + dd;
-                d->error = d->sign_error * d->abs_error;
-            }
-
-            // Do PID maths
-            d->proportional = d->error;
-			d->exponential = d->sign_error * (expf( d->balance_conf.kexp * d->abs_error) - 1.0f);
-            d->integral = d->integral + d->error;
-            d->derivative = d->error - d->last_error;
-
-            // Apply I term Filter
-            if (d->balance_conf.ki_limit > 0 && fabsf(d->integral * d->balance_conf.ki) > d->balance_conf.ki_limit) {
-                d->integral = d->balance_conf.ki_limit / d->balance_conf.ki * SIGN(d->integral);
-            }
-
-            // Apply D term filters
-            if (d->balance_conf.kd_pt1_lowpass_frequency > 0) {
-                d->derivative = pt1_process_lowpass(&d->d_pt1_lowpass_state, d->d_pt1_lowpass_k, d->derivative);
-            }
-
-            if (d->balance_conf.kd_pt1_highpass_frequency > 0){
-                d->derivative = pt1_process_highpass(&d->d_pt1_highpass_state, d->d_pt1_highpass_k, d->derivative);
-            }
-
-            float resulting_pid_value;
-            d->pid_value = (d->balance_conf.kp * d->proportional) + d->exponential + (d->balance_conf.ki * d->integral) + (d->balance_conf.kd * d->derivative);
-            resulting_pid_value = d->pid_value;
-
-            if (d->balance_conf.pid_mode == BALANCE_PID_MODE_ANGLE_RATE_CASCADE) {
-                d->proportional2 = d->pid_value - d->gyro[1];
-                d->integral2 = d->integral2 + d->proportional2;
-                d->derivative2 = d->last_gyro_y - d->gyro[1];
-
-                // Apply D term filter
-                if (d->balance_conf.kd2_pt1_lowpass_frequency > 0) {
-                    d->derivative2 = pt1_process_lowpass(&d->d2_pt1_lowpass_state, d->d2_pt1_lowpass_k, d->derivative2);
-                }
-
-                // Apply I term Filter
-                if (d->balance_conf.ki_limit > 0 && fabsf(d->integral2 * d->balance_conf.ki2) > d->balance_conf.ki_limit) {
-                    d->integral2 = d->balance_conf.ki_limit / d->balance_conf.ki2 * SIGN(d->integral2);
-                }
-
-                d->pid_value2 = (d->balance_conf.kp2 * d->proportional2) +
-                        (d->balance_conf.ki2 * d->integral2) + (d->balance_conf.kd2 * d->derivative2);
-                resulting_pid_value = d->pid_value2;
-            }
-
-            // Apply Booster
-            if (d->abs_error > d->balance_conf.booster_angle) {
-                if (d->abs_error - d->balance_conf.booster_angle < d->balance_conf.booster_ramp) {
-                    resulting_pid_value += (d->balance_conf.booster_current * d->sign_error) *
-                            ((d->abs_error - d->balance_conf.booster_angle) / d->balance_conf.booster_ramp);
-                } else {
-                    resulting_pid_value += d->balance_conf.booster_current * d->sign_error;
-                }
-            }
-
-            // Output to motor
-            d->last_error = d->error;
-            set_current(d, resulting_pid_value);
+			apply_pid_balancing(d);
             break;
 
         case (FAULT_ANGLE_PITCH):
         case (FAULT_ANGLE_ROLL):
         case (READY):
-            // Check for valid startup position
-            if (fabsf(d->pitch_angle) < d->balance_conf.startup_pitch_tolerance &&
-                    fabsf(d->roll_angle) < d->balance_conf.startup_roll_tolerance) {
-				reset_vars(d);
+            if (is_valid_startup_position(d, false)) {
+				engage_centering(d);
                 break;
             }
 

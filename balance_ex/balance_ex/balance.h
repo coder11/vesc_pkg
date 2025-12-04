@@ -11,15 +11,9 @@
 #include "util.h"
 #include "data.h"
 
-void configure(data *d);
-
-
-
 float get_setpoint_adjustment_step_size(data *d);
 
 void calculate_setpoint_target(data *d);
-
-void calculate_setpoint_interpolated(data *d);
 
 void apply_noseangling(data *d);
 

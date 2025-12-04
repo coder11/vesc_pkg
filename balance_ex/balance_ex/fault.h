@@ -3,7 +3,8 @@
 
 #include "data.h"
 
-// Fault and kill-spin helpers
+void engage_centering(data *d);
+
 void engage_ready(data *d);
 
 void engage_kill_spin(data *d);

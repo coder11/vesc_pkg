@@ -1,3 +1,4 @@
+#include "data.h"
 #include "data_ui.h"
 #include "math.h"
 #include "pt1.h"
@@ -10,10 +11,16 @@ void reset_vars(data *d) {
 	d->d_pt1_lowpass_state = 0;
 	d->d_pt1_highpass_state = 0;
 	d->d2_pt1_lowpass_state = 0;
-	// Set values for startup
+	
+	// Set values for centering
+	// We assume centering is about to start
+	// Begin the process starting from the current pitch angle up to d->balance_conf.pitch_adjustment
+	// TOOD:: consider moving this part into a more appropriate place
+	d->state = CENTERING;
 	d->setpoint = d->pitch_angle;
 	d->setpoint_target_interpolated = d->pitch_angle;
-	d->setpoint_target = 0;
+	d->setpoint_target = d->balance_conf.pitch_adjustment;
+
 	d->noseangling_interpolated = 0;
 	d->torquetilt_target = 0;
 	d->torquetilt_interpolated = 0;
@@ -22,7 +29,6 @@ void reset_vars(data *d) {
 	d->turntilt_target = 0;
 	d->turntilt_interpolated = 0;
 	d->setpointAdjustmentType = CENTERING;
-	d->state = RUNNING;
 	d->current_time = 0;
 	d->last_time = 0;
 	d->diff_time = 0;
@@ -38,7 +44,7 @@ void configure(data *d) {
 
 	d->motor_timeout_seconds = d->loop_time_seconds * 20; // Times 20 for a nice long grace period
 
-	d->startup_step_size = d->balance_conf.startup_speed / d->balance_conf.hertz;
+	d->centering_step_size = d->balance_conf.startup_speed / d->balance_conf.hertz;
 	d->tiltback_duty_step_size = d->balance_conf.tiltback_duty_speed / d->balance_conf.hertz;
 	d->tiltback_hv_step_size = d->balance_conf.tiltback_hv_speed / d->balance_conf.hertz;
 	d->tiltback_lv_step_size = d->balance_conf.tiltback_lv_speed / d->balance_conf.hertz;
