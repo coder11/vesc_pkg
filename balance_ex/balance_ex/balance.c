@@ -13,14 +13,14 @@
 #include "data.h"
 
 float get_setpoint_adjustment_step_size(data *d) {
-	switch(d->setpointAdjustmentType){
+	switch(d->tiltback_type){
 		case (TILTBACK_DUTY):
 			return d->tiltback_duty_step_size;
 		case (TILTBACK_HV):
 			return d->tiltback_hv_step_size;
 		case (TILTBACK_LV):
 			return d->tiltback_lv_step_size;
-		case (TILTBACK_NONE):
+		case (TILTBACK_BACKING_OFF):
 			return d->tiltback_return_step_size;
 		default:
 			;
@@ -28,53 +28,58 @@ float get_setpoint_adjustment_step_size(data *d) {
 	return 0;
 }
 
-void calculate_setpoint_target(data *d) {
+void process_tiltback(data *d) {
 	if (d->abs_duty_cycle > d->balance_conf.tiltback_duty) {
 		if (d->erpm > 0) {
-			d->setpoint_target = d->balance_conf.tiltback_duty_angle;
+			d->tiltback_target = d->balance_conf.tiltback_duty_angle;
 		} else {
-			d->setpoint_target = -d->balance_conf.tiltback_duty_angle;
+			d->tiltback_target = -d->balance_conf.tiltback_duty_angle;
 		}
-		d->setpointAdjustmentType = TILTBACK_DUTY;
+		d->tiltback_type = TILTBACK_DUTY;
 	} else if (d->abs_duty_cycle > 0.05 && VESC_IF->mc_get_input_voltage_filtered() > d->balance_conf.tiltback_hv) {
 		if (d->erpm > 0){
-			d->setpoint_target = d->balance_conf.tiltback_hv_angle;
+			d->tiltback_target = d->balance_conf.tiltback_hv_angle;
 		} else {
-			d->setpoint_target = -d->balance_conf.tiltback_hv_angle;
+			d->tiltback_target = -d->balance_conf.tiltback_hv_angle;
 		}
 
-		d->setpointAdjustmentType = TILTBACK_HV;
+		d->tiltback_type = TILTBACK_HV;
 	} else if (d->abs_duty_cycle > 0.05 && VESC_IF->mc_get_input_voltage_filtered() < d->balance_conf.tiltback_lv) {
 		if (d->erpm > 0) {
-			d->setpoint_target = d->balance_conf.tiltback_lv_angle;
+			d->tiltback_target = d->balance_conf.tiltback_lv_angle;
 		} else {
-			d->setpoint_target = -d->balance_conf.tiltback_lv_angle;
+			d->tiltback_target = -d->balance_conf.tiltback_lv_angle;
 		}
 
-		d->setpointAdjustmentType = TILTBACK_LV;
-	} else {
-		d->setpointAdjustmentType = TILTBACK_NONE;
-		d->setpoint_target = 0;
-		d->state = RUNNING;
-	}
-}
+		d->tiltback_type = TILTBACK_LV;
+	} 
 
+	if(d->tiltback_type == TITLBACK_NONE) {
+		// nothing to do, we've finished
+		return;
+	}
+
+	bool has_finished = advance_interpolation(&d->tiltback_target_interpolated, d->tiltback_target, get_setpoint_adjustment_step_size(d));
+	if(has_finished && d->tiltback_type == TILTBACK_BACKING_OFF) {
+		// if the backing off sequence finished, we're done
+		d->tiltback_type = TITLBACK_NONE;
+	} else if(has_finished) {
+		// proceed to backing off sequence
+		d->tiltback_type = TILTBACK_BACKING_OFF;
+	}
+
+	d->setpoint += d->tiltback_target_interpolated;
+}
 
 void apply_noseangling(data *d){
 	// Nose angle adjustment, add variable tiltback
 	float noseangling_target = d->tiltback_variable * d->erpm;
 
-	if (fabsf(noseangling_target - d->noseangling_interpolated) < d->noseangling_step_size) {
-		d->noseangling_interpolated = noseangling_target;
-	} else if (noseangling_target - d->noseangling_interpolated > 0) {
-		d->noseangling_interpolated += d->noseangling_step_size;
-	} else {
-		d->noseangling_interpolated -= d->noseangling_step_size;
-	}
-
+	advance_interpolation(&d->noseangling_interpolated, noseangling_target, d->noseangling_step_size);
 	d->setpoint += d->noseangling_interpolated;
 }
 
+// candidate for removal. Don't touch it for now
 void apply_torquetilt(data *d) {
 	// Filter current (Biquad)
 	if (d->balance_conf.torquetilt_filter > 0) {
@@ -141,14 +146,7 @@ void apply_turntilt(data *d) {
 	}
 
 	// Move towards target limited by max speed
-	if (fabsf(d->turntilt_target - d->turntilt_interpolated) < d->turntilt_step_size) {
-		d->turntilt_interpolated = d->turntilt_target;
-	} else if (d->turntilt_target - d->turntilt_interpolated > 0) {
-		d->turntilt_interpolated += d->turntilt_step_size;
-	} else {
-		d->turntilt_interpolated -= d->turntilt_step_size;
-	}
-
+	advance_interpolation(&d->turntilt_interpolated, d->turntilt_target, d->turntilt_step_size);
 	d->setpoint += d->turntilt_interpolated;
 }
 
@@ -330,7 +328,7 @@ void balance_loop_tick(data *d) {
 				break;
 			}
 
-			if(advance_interpolation(&d->setpoint, d->setpoint_target, d->centering_step_size)) {
+			if(advance_interpolation(&d->setpoint, d->center_target, d->centering_step_size)) {
 				d->state = RUNNING;
 			}
 			apply_pid_balancing(d);
@@ -342,15 +340,16 @@ void balance_loop_tick(data *d) {
                 break;
             }
 
-			calculate_setpoint_target(d);
-			d->setpoint_target += d->balance_conf.pitch_adjustment;
-			// d->setpoint_target = clampf(d->setpoint_target, d->balance_conf.setpoint_min, d->balance_conf.setpoint_max)
-			advance_interpolation(&d->setpoint, d->setpoint_target, get_setpoint_adjustment_step_size(d));
-
+			// apply various setpoint adjustments
+			d->setpoint = d->center_target;
 			apply_noseangling(d);
             apply_torquetilt(d);
             apply_turntilt(d);
+			clampf(&d->setpoint, d->balance_conf.setpoint_min, d->balance_conf.setpoint_max);
 
+			// allow tiltback to work outside of clamp
+			process_tiltback(d);
+			
 			apply_pid_balancing(d);
             break;
 

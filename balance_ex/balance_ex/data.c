@@ -18,8 +18,11 @@ void reset_vars(data *d) {
 	// TOOD:: consider moving this part into a more appropriate place
 	d->state = CENTERING;
 	d->setpoint = d->pitch_angle;
-	d->setpoint_target_interpolated = d->pitch_angle;
-	d->setpoint_target = d->balance_conf.pitch_adjustment;
+	d->center_target = d->balance_conf.pitch_adjustment;
+	
+	d->tiltback_type = TITLBACK_NONE;
+	d->tiltback_target_interpolated = 0;
+	d->tiltback_target = 0;
 
 	d->noseangling_interpolated = 0;
 	d->torquetilt_target = 0;
@@ -28,7 +31,6 @@ void reset_vars(data *d) {
 	biquad_reset(&d->torquetilt_current_biquad);
 	d->turntilt_target = 0;
 	d->turntilt_interpolated = 0;
-	d->setpointAdjustmentType = CENTERING;
 	d->current_time = 0;
 	d->last_time = 0;
 	d->diff_time = 0;

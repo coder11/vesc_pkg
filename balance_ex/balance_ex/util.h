@@ -13,6 +13,6 @@
 // If the interpolation has finished return true, false otherwise
 bool advance_interpolation(float *value, float target, float step);
 
-float clampf(float value, float min, float max);
+void clampf(float *value, float min, float max);
 
 #endif // BALANCE_EX_UTIL_H

@@ -23,7 +23,12 @@ bool advance_interpolation(float *value, float target, float step) {
 	return false;
 }
 
-float clampf(float value, float min, float max) {
-    const float m = value < min ? min : value;
-    return m > max ? max : m;
+void clampf(float *value, float min, float max) {
+    if(*value > max) {
+		*value = max;
+	}
+
+	if(*value < min) {
+		*value = min;
+	}
 }

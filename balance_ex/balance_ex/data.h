@@ -37,11 +37,12 @@ typedef enum {
 } BalanceState;
 
 typedef enum {
-	TILTBACK_DUTY,
-	TILTBACK_HV,
-	TILTBACK_LV,
-	TILTBACK_NONE
-} SetpointAdjustmentType;
+	TITLBACK_NONE = 0,
+	TILTBACK_DUTY = 1,
+	TILTBACK_HV = 2,
+	TILTBACK_LV = 3,
+	TILTBACK_BACKING_OFF = 4
+} TiltbackType;
 
 typedef struct {
 	// Config values
@@ -98,12 +99,13 @@ typedef struct {
 	float proportional, exponential, integral, derivative, proportional2, integral2, derivative2;
 	float error, last_error, abs_error, sign_error;
 	float pid_value, pid_value2;
-	float setpoint, setpoint_target, setpoint_target_interpolated;
+	float setpoint, center_target;
+	float tiltback_target, tiltback_target_interpolated;
 	float noseangling_interpolated;
 	float torquetilt_filtered_current, torquetilt_target, torquetilt_interpolated;
 	Biquad torquetilt_current_biquad;
 	float turntilt_target, turntilt_interpolated;
-	SetpointAdjustmentType setpointAdjustmentType;
+	TiltbackType tiltback_type;
 	float current_time, last_time, diff_time, loop_overshoot; // Seconds
 	float filtered_loop_overshoot, loop_overshoot_alpha, filtered_diff_time;
 	float fault_angle_pitch_timer, fault_angle_roll_timer, fault_duty_timer; // Seconds
