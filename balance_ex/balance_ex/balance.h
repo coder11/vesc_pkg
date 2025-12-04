@@ -13,12 +13,9 @@
 
 void configure(data *d);
 
-void reset_vars(data *d);
+
 
 float get_setpoint_adjustment_step_size(data *d);
-
-// Fault checking order does not really matter. From a UX perspective, switch should be before angle.
-bool check_faults(data *d, bool ignoreTimers);
 
 void calculate_setpoint_target(data *d);
 
@@ -33,14 +30,6 @@ void apply_turntilt(data *d);
 void brake(data *d);
 
 void set_current(data *d, float current);
-
-bool is_kill_spin_triggered(data *d);
-
-void trigger_kill_spin(data *d);
-
-void engage_kill_spin(data *d);
-
-void disengage_kill_spin(data *d);
 
 void balance_loop_tick(data *d);
 

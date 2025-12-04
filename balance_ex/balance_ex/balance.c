@@ -1,4 +1,5 @@
 #include "balance.h"
+#include "fault.h"
 #include "conf/datatypes.h"
 
 #include "biquad.h"
@@ -9,92 +10,6 @@
 #include <string.h>
 #include "util.h"
 #include "data.h"
-
-void configure(data *d) {
-	// Set calculated values from config
-	d->loop_time_seconds = 1.0 / d->balance_conf.hertz;
-
-	d->motor_timeout_seconds = d->loop_time_seconds * 20; // Times 20 for a nice long grace period
-
-	d->startup_step_size = d->balance_conf.startup_speed / d->balance_conf.hertz;
-	d->tiltback_duty_step_size = d->balance_conf.tiltback_duty_speed / d->balance_conf.hertz;
-	d->tiltback_hv_step_size = d->balance_conf.tiltback_hv_speed / d->balance_conf.hertz;
-	d->tiltback_lv_step_size = d->balance_conf.tiltback_lv_speed / d->balance_conf.hertz;
-	d->tiltback_return_step_size = d->balance_conf.tiltback_return_speed / d->balance_conf.hertz;
-	d->torquetilt_on_step_size = d->balance_conf.torquetilt_on_speed / d->balance_conf.hertz;
-	d->torquetilt_off_step_size = d->balance_conf.torquetilt_off_speed / d->balance_conf.hertz;
-	d->turntilt_step_size = d->balance_conf.turntilt_speed / d->balance_conf.hertz;
-	d->noseangling_step_size = d->balance_conf.noseangling_speed / d->balance_conf.hertz;
-
-	// Init Filters
-	if (d->balance_conf.loop_time_filter > 0) {
-		d->loop_overshoot_alpha = 2.0 * M_PI * ((float)1.0 / (float)d->balance_conf.hertz) *
-				(float)d->balance_conf.loop_time_filter / (2.0 * M_PI * (1.0 / (float)d->balance_conf.hertz) *
-						(float)d->balance_conf.loop_time_filter + 1.0);
-	}
-
-	if (d->balance_conf.kd_pt1_lowpass_frequency > 0) {
-		d->d_pt1_lowpass_k = pt1_calculate_k(d->balance_conf.kd_pt1_lowpass_frequency, d->balance_conf.hertz);
-	}
-
-	if (d->balance_conf.kd2_pt1_lowpass_frequency > 0) {
-		d->d2_pt1_lowpass_k = pt1_calculate_k(d->balance_conf.kd2_pt1_lowpass_frequency, d->balance_conf.hertz);
-	}
-
-	if (d->balance_conf.kd_pt1_highpass_frequency > 0) {
-		d->d_pt1_highpass_k = pt1_calculate_k(d->balance_conf.kd_pt1_highpass_frequency, d->balance_conf.hertz);
-	}
-
-	if (d->balance_conf.torquetilt_filter > 0) { // Torquetilt Current Biquad
-		float fc = d->balance_conf.torquetilt_filter / d->balance_conf.hertz;
-		biquad_config(&d->torquetilt_current_biquad, BQ_LOWPASS, fc);
-	}
-
-	// Variable nose angle adjustment / tiltback (setting is per 1000erpm, convert to per erpm)
-	d->tiltback_variable = d->balance_conf.tiltback_variable / 1000;
-	if (d->tiltback_variable > 0) {
-		// just keep max/min setpoint clamp for now
-		// d->tiltback_variable_max_erpm = fabsf(d->balance_conf.setpoint_max / d->tiltback_variable);
-	} else {
-		d->tiltback_variable_max_erpm = 100000;
-	}
-
-	// Reset loop time variables
-	d->last_time = 0.0;
-	d->filtered_loop_overshoot = 0.0;
-
-	ui_data_configure(d);
-}
-
-void reset_vars(data *d) {
-	// Clear accumulated values.
-	d->integral = 0;
-	d->last_error = 0;
-	d->integral2 = 0;
-	d->d_pt1_lowpass_state = 0;
-	d->d_pt1_highpass_state = 0;
-	d->d2_pt1_lowpass_state = 0;
-	// Set values for startup
-	d->setpoint = d->pitch_angle;
-	d->setpoint_target_interpolated = d->pitch_angle;
-	d->setpoint_target = 0;
-	d->noseangling_interpolated = 0;
-	d->torquetilt_target = 0;
-	d->torquetilt_interpolated = 0;
-	d->torquetilt_filtered_current = 0;
-	biquad_reset(&d->torquetilt_current_biquad);
-	d->turntilt_target = 0;
-	d->turntilt_interpolated = 0;
-	d->setpointAdjustmentType = CENTERING;
-	d->state = RUNNING;
-	d->current_time = 0;
-	d->last_time = 0;
-	d->diff_time = 0;
-	d->brake_timeout = 0;
-	d->last_erpm = d->erpm;
-
-	ui_data_reset(d);
-}
 
 float get_setpoint_adjustment_step_size(data *d) {
 	switch(d->setpointAdjustmentType){
@@ -112,40 +27,6 @@ float get_setpoint_adjustment_step_size(data *d) {
 			;
 	}
 	return 0;
-}
-
-bool check_faults(data *d, bool ignoreTimers){
-	// Check pitch angle
-	if (fabsf(d->pitch_angle) > d->balance_conf.fault_pitch) {
-		if ((1000.0 * (d->current_time - d->fault_angle_pitch_timer)) > d->balance_conf.fault_delay_pitch || ignoreTimers) {
-			d->state = FAULT_ANGLE_PITCH;
-			return true;
-		}
-	} else {
-		d->fault_angle_pitch_timer = d->current_time;
-	}
-
-	// Check roll angle
-	if (fabsf(d->roll_angle) > d->balance_conf.fault_roll) {
-		if ((1000.0 * (d->current_time - d->fault_angle_roll_timer)) > d->balance_conf.fault_delay_roll || ignoreTimers) {
-			d->state = FAULT_ANGLE_ROLL;
-			return true;
-		}
-	} else {
-		d->fault_angle_roll_timer = d->current_time;
-	}
-
-	// Check for duty
-	if (d->abs_duty_cycle > d->balance_conf.fault_duty){
-		if ((1000.0 * (d->current_time - d->fault_duty_timer)) > d->balance_conf.fault_delay_duty || ignoreTimers) {
-			d->state = FAULT_DUTY;
-			return true;
-		}
-	} else {
-		d->fault_duty_timer = d->current_time;
-	}
-
-	return false;
 }
 
 void calculate_setpoint_target(data *d) {
@@ -200,13 +81,7 @@ void calculate_setpoint_interpolated(data *d) {
 
 void apply_noseangling(data *d){
 	// Nose angle adjustment, add variable tiltback
-	float noseangling_target = 0;
-	// if (fabsf(d->erpm) > d->tiltback_variable_max_erpm) {
-	// 	noseangling_target = fabsf(d->balance_conf.setpoint_max) * SIGN(d->erpm);
-	// } else {
-	    // just keep setpoint max/min clamp for now
-		noseangling_target = d->tiltback_variable * d->erpm;
-	//}
+	float noseangling_target = d->tiltback_variable * d->erpm;
 
 	if (fabsf(noseangling_target - d->noseangling_interpolated) < d->noseangling_step_size) {
 		d->noseangling_interpolated = noseangling_target;
@@ -328,35 +203,6 @@ void set_current(data *d, float current){
 	VESC_IF->mc_set_current_off_delay(d->motor_timeout_seconds);
 	// Set Current
 	VESC_IF->mc_set_current(current);
-}
-
-void engage_ready(data *d) {
-	reset_vars(d);
-	// Trigger a fault so we need to meet start conditions to start
-	d->state = READY;
-}
-
-void engage_kill_spin(data *d) {
-	if(d->state == KILL_SPIN) {
-		// allreadt engaged, do nothing
-		return;
-	}
-
-	if(d->abs_erpm > 2000) {
-		// for safety, don't trigger the kill spin if the motor is running
-		return;
-	}
-
-	d->state = KILL_SPIN;
-}
-
-void disengage_kill_spin(data *d) {
-	if(d->state != KILL_SPIN) {
-		// allreadt disengaged, do nothing
-		return;
-	}
-
-	engage_ready(d);
 }
 
 void balance_loop_tick(data *d) {

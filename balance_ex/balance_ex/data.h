@@ -116,5 +116,8 @@ typedef struct {
 	float brake_timeout; // Seconds
 } data;
 
+void reset_vars(data *d);
+void configure(data *d);
+
 #endif // DATA_H_
 

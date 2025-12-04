@@ -1,6 +1,7 @@
 #include "vesc_c_if.h"
 #include "communication.h"
 #include "balance.h"
+#include "fault.h"
 #include "conf/buffer.h"
 
 bool is_kill_spin_triggered(data *d) {
