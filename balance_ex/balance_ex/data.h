@@ -47,7 +47,6 @@ typedef enum {
 	TILTBACK_NONE
 } SetpointAdjustmentType;
 
-typedef enum {
 typedef struct {
 	// Config values
 	float wheel_diameter;
@@ -88,6 +87,7 @@ typedef struct {
 	float duty_cycle, abs_duty_cycle;
 	float erpm, abs_erpm, last_erpm;
 	float motor_current;
+	float adc1, adc2;
 
 	// Data for UI
 	UIData ui_data;

@@ -384,6 +384,12 @@ void balance_loop_tick(data *d) {
 	ui_data_update(d);
     d->last_erpm = d->erpm;
 
+    d->adc1 = VESC_IF->io_read_analog(VESC_PIN_ADC1);
+    d->adc2 = VESC_IF->io_read_analog(VESC_PIN_ADC2); // Returns -1.0 if the pin is missing on the hardware
+    if (d->adc2 < 0.0) {
+        d->adc2 = 0.0;
+    }
+
     if(d->balance_conf.balance_enabled) {
         // Control Loop State Logic
         switch(d->state) {
