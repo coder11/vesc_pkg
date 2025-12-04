@@ -15,7 +15,7 @@ void send_realtime_data(data *d) {
 	buffer_append_float32_auto(send_buffer, d->setpoint, &ind);
 	buffer_append_float32_auto(send_buffer, d->ui_data.motor_load_lowpass_state, &ind);
 	buffer_append_float32_auto(send_buffer, d->ui_data.motor_accel_load_lowpass_state, &ind);
-	buffer_append_uint16(send_buffer, is_kill_switch_triggered(d), &ind);
+	buffer_append_uint16(send_buffer, is_kill_spin_triggered(d), &ind);
 	// UI data values
 	buffer_append_float32_auto(send_buffer, d->ui_data.speed_kmh, &ind);
 	buffer_append_float32_auto(send_buffer, d->ui_data.voltage_lowpass_state, &ind);
@@ -31,7 +31,7 @@ void on_command_recieved(data* d, unsigned char *buffer, unsigned int len) {
 		if(command == BALANCE_COMMAND_GET_REALTIME_DATA) {
 			send_realtime_data(d);
 		} else if(command == BALANCE_COMMAND_KILL_SWITCH_TRIGGER) {
-			trigger_kill_switch(d);
+			trigger_kill_spin(d);
 		} else {
 			VESC_IF->printf("Unknown command received %d", command);
 		}

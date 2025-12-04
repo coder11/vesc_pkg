@@ -212,7 +212,7 @@ Item {
                 "Motor Load : " + motor_load.toFixed(5) + "\n" +
                 "Motor Accel Load : " + motor_accel_load.toFixed(5) + "\n" +
                 "state  : " + stateString + "\n" +
-                "kill switch triggered: " + killSwitchTriggeredString
+                "kill spin triggered: " + killSwitchTriggeredString
         }
     }
 

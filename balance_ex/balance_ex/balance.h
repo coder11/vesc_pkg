@@ -34,9 +34,9 @@ void brake(data *d);
 
 void set_current(data *d, float current);
 
-bool is_kill_switch_triggered(data *d);
+bool is_kill_spin_triggered(data *d);
 
-void trigger_kill_switch(data *d);
+void trigger_kill_spin(data *d);
 
 void balance_loop_tick(data *d);
 

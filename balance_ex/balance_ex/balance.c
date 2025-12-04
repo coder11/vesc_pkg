@@ -330,12 +330,12 @@ void set_current(data *d, float current){
 	VESC_IF->mc_set_current(current);
 }
 
-bool is_kill_switch_triggered(data *d) {
-	return d->state == KILL_SWITCH_TRIGGERED;
+bool is_kill_spin_triggered(data *d) {
+	return d->state == KILL_SPIN_TRIGGERED;
 }
 
-void trigger_kill_switch(data *d) {
-	if(d->state == KILL_SWITCH_TRIGGERED) {
+void trigger_kill_spin(data *d) {
+	if(d->state == KILL_SPIN_TRIGGERED) {
 		// Same as in startup
 		reset_vars(d);
 		d->state = FAULT_STARTUP; // Trigger a fault so we need to meet start conditions to start
@@ -347,7 +347,7 @@ void trigger_kill_switch(data *d) {
 		return;
 	}
 
-	d->state = KILL_SWITCH_TRIGGERED;
+	d->state = KILL_SPIN_TRIGGERED;
 }
 
 void balance_loop_tick(data *d) {
@@ -393,7 +393,7 @@ void balance_loop_tick(data *d) {
     if(d->balance_conf.balance_enabled) {
         // Control Loop State Logic
         switch(d->state) {
-        case (KILL_SWITCH_TRIGGERED):
+        case (KILL_SPIN_TRIGGERED):
             // Disable output
             brake(d);
             break;
