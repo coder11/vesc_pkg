@@ -145,9 +145,6 @@ Item {
             var time_diff = dv.getFloat32(ind); ind += 4;
             var motor_current = dv.getFloat32(ind); ind += 4;
             var state = dv.getInt16(ind); ind += 2;
-            var switch_state = dv.getInt16(ind); ind += 2;
-            var adc1 = dv.getFloat32(ind); ind += 4;
-            var adc2 = dv.getFloat32(ind); ind += 4;
             var setpoint = dv.getFloat32(ind); ind += 4;
             var motor_load = dv.getFloat32(ind); ind += 4;
             var motor_accel_load = dv.getFloat32(ind); ind += 4;
@@ -189,24 +186,11 @@ Item {
             }else if(state == 7){
                 stateString = "FAULT_ANGLE_ROLL"
             }else if(state == 8){
-                stateString = "FAULT_SWITCH_HALF"
-            }else if(state == 9){
-                stateString = "FAULT_SWITCH_FULL"
-            }else if(state == 10){
                 stateString = "FAULT_DUTY"
-            }else if(state == 11){
+            }else if(state == 9){
                 stateString = "FAULT_STARTUP"
             }else{     
                 stateString = "UNKNOWN"
-            }
-            
-            var switchString
-            if(switch_state == 0){
-                switchString = "Off"
-            }else if(switch_state == 1){
-                switchString = "Half"
-            }else{
-                switchString = "On"
             }
             
             var killSwitchTriggeredString
@@ -228,9 +212,6 @@ Item {
                 "Motor Load : " + motor_load.toFixed(5) + "\n" +
                 "Motor Accel Load : " + motor_accel_load.toFixed(5) + "\n" +
                 "state  : " + stateString + "\n" +
-                //"switch : " + switchString + "\n" +
-                //"adc1   : " + adc1.toFixed(2) + "V\n" +
-                //"adc2   : " + adc2.toFixed(2) + "V\n" +
                 "kill switch triggered: " + killSwitchTriggeredString
         }
     }

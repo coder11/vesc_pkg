@@ -34,11 +34,9 @@ typedef enum {
 	RUNNING_TILTBACK_LOW_VOLTAGE = 4,
 	FAULT_ANGLE_PITCH = 6,
 	FAULT_ANGLE_ROLL = 7,
-	FAULT_SWITCH_HALF = 8,
-	FAULT_SWITCH_FULL = 9,
-	FAULT_DUTY = 10,
-	FAULT_STARTUP = 11,
-	KILL_SWITCH_TRIGGERED = 12
+	FAULT_DUTY = 8,
+	FAULT_STARTUP = 9,
+	KILL_SWITCH_TRIGGERED = 10
 } BalanceState;
 
 typedef enum {
@@ -50,11 +48,6 @@ typedef enum {
 } SetpointAdjustmentType;
 
 typedef enum {
-	OFF = 0,
-	HALF,
-	ON
-} SwitchState;
-
 typedef struct {
 	// Config values
 	float wheel_diameter;
@@ -95,8 +88,6 @@ typedef struct {
 	float duty_cycle, abs_duty_cycle;
 	float erpm, abs_erpm, last_erpm;
 	float motor_current;
-	float adc1, adc2;
-	SwitchState switch_state;
 
 	// Data for UI
 	UIData ui_data;
@@ -119,7 +110,7 @@ typedef struct {
 	SetpointAdjustmentType setpointAdjustmentType;
 	float current_time, last_time, diff_time, loop_overshoot; // Seconds
 	float filtered_loop_overshoot, loop_overshoot_alpha, filtered_diff_time;
-	float fault_angle_pitch_timer, fault_angle_roll_timer, fault_switch_timer, fault_switch_half_timer, fault_duty_timer; // Seconds
+	float fault_angle_pitch_timer, fault_angle_roll_timer, fault_duty_timer; // Seconds
 	float d_pt1_lowpass_state, d_pt1_lowpass_k, d_pt1_highpass_state, d_pt1_highpass_k;
 	float d2_pt1_lowpass_state, d2_pt1_lowpass_k;
 	float motor_timeout_seconds;

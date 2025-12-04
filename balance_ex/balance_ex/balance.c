@@ -114,31 +114,7 @@ float get_setpoint_adjustment_step_size(data *d) {
 	return 0;
 }
 
-// Fault checking order does not really matter. From a UX perspective, switch should be before angle.
 bool check_faults(data *d, bool ignoreTimers){
-	// Check switch
-	// Switch fully open
-	if (d->switch_state == OFF) {
-		if((1000.0 * (d->current_time - d->fault_switch_timer)) > d->balance_conf.fault_delay_switch_full || ignoreTimers){
-			d->state = FAULT_SWITCH_FULL;
-			return true;
-		}
-	} else {
-		d->fault_switch_timer = d->current_time;
-	}
-
-	// Switch partially open and stopped
-	if(!d->balance_conf.fault_is_dual_switch) {
-		if((d->switch_state == HALF || d->switch_state == OFF) && d->abs_erpm < d->balance_conf.fault_adc_half_erpm){
-			if ((1000.0 * (d->current_time - d->fault_switch_half_timer)) > d->balance_conf.fault_delay_switch_half || ignoreTimers){
-				d->state = FAULT_SWITCH_HALF;
-				return true;
-			}
-		} else {
-			d->fault_switch_half_timer = d->current_time;
-		}
-	}
-
 	// Check pitch angle
 	if (fabsf(d->pitch_angle) > d->balance_conf.fault_pitch) {
 		if ((1000.0 * (d->current_time - d->fault_angle_pitch_timer)) > d->balance_conf.fault_delay_pitch || ignoreTimers) {
@@ -408,41 +384,6 @@ void balance_loop_tick(data *d) {
 	ui_data_update(d);
     d->last_erpm = d->erpm;
 
-    d->adc1 = VESC_IF->io_read_analog(VESC_PIN_ADC1);
-    d->adc2 = VESC_IF->io_read_analog(VESC_PIN_ADC2); // Returns -1.0 if the pin is missing on the hardware
-    if (d->adc2 < 0.0) {
-        d->adc2 = 0.0;
-    }
-
-    // Calculate switch state from ADC values
-    if (d->balance_conf.fault_adc1 == 0 && d->balance_conf.fault_adc2 == 0){ // No Switch
-        d->switch_state = ON;
-    } else if (d->balance_conf.fault_adc2 == 0) { // Single switch on ADC1
-        if (d->adc1 > d->balance_conf.fault_adc1) {
-            d->switch_state = ON;
-        } else {
-            d->switch_state = OFF;
-        }
-    } else if (d->balance_conf.fault_adc1 == 0) { // Single switch on ADC2
-        if (d->adc2 > d->balance_conf.fault_adc2) {
-            d->switch_state = ON;
-        } else {
-            d->switch_state = OFF;
-        }
-    } else { // Double switch
-        if (d->adc1 > d->balance_conf.fault_adc1 && d->adc2 > d->balance_conf.fault_adc2) {
-            d->switch_state = ON;
-        } else if (d->adc1 > d->balance_conf.fault_adc1 || d->adc2 > d->balance_conf.fault_adc2) {
-            if (d->balance_conf.fault_is_dual_switch) {
-                d->switch_state = ON;
-            } else {
-                d->switch_state = HALF;
-            }
-        } else {
-            d->switch_state = OFF;
-        }
-    }
-
     if(d->balance_conf.balance_enabled) {
         // Control Loop State Logic
         switch(d->state) {
@@ -559,12 +500,10 @@ void balance_loop_tick(data *d) {
 
         case (FAULT_ANGLE_PITCH):
         case (FAULT_ANGLE_ROLL):
-        case (FAULT_SWITCH_HALF):
-        case (FAULT_SWITCH_FULL):
         case (FAULT_STARTUP):
-            // Check for valid startup position and switch state
+            // Check for valid startup position
             if (fabsf(d->pitch_angle) < d->balance_conf.startup_pitch_tolerance &&
-                    fabsf(d->roll_angle) < d->balance_conf.startup_roll_tolerance && d->switch_state == ON) {
+                    fabsf(d->roll_angle) < d->balance_conf.startup_roll_tolerance) {
                 reset_vars(d);
                 break;
             }
