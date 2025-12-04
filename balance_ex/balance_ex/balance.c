@@ -80,11 +80,6 @@ void calculate_setpoint_interpolated(data *d) {
 }
 
 void apply_noseangling(data *d){
-	if(fabsf(d->erpm) < 1000) {
-		// apply deadzone to remove twitching at zero angle
-		return;
-	}
-
 	// Nose angle adjustment, add variable tiltback
 	float noseangling_target = d->tiltback_variable * d->erpm;
 
