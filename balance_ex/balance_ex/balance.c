@@ -66,9 +66,12 @@ void process_tiltback(data *d) {
 	} else if(has_finished) {
 		// proceed to backing off sequence
 		d->tiltback_type = TILTBACK_BACKING_OFF;
+		d->tiltback_target = 0;
+	} else {
+		// TODO: it should not have been under if
+		// but the wheel is jerky otherwise
+		d->setpoint += d->tiltback_target_interpolated;
 	}
-
-	d->setpoint += d->tiltback_target_interpolated;
 }
 
 void apply_noseangling(data *d){
