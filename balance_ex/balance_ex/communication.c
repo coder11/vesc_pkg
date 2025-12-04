@@ -4,15 +4,15 @@
 #include "fault.h"
 #include "conf/buffer.h"
 
-bool is_kill_spin_triggered(data *d) {
+bool is_kill_spin_engaged(data *d) {
 	return d->state == KILL_SPIN;
 }
 
 void trigger_kill_spin(data *d) {
-	if(is_kill_spin_triggered(d)) {
-		engage_kill_spin(d);
-	} else {
+	if(is_kill_spin_engaged(d)) {
 		disengage_kill_spin(d);
+	} else {
+		engage_kill_spin(d);
 	}
 }
 
@@ -28,7 +28,7 @@ void send_realtime_data(data *d) {
 	buffer_append_float32_auto(send_buffer, d->setpoint, &ind);
 	buffer_append_float32_auto(send_buffer, d->ui_data.motor_load_lowpass_state, &ind);
 	buffer_append_float32_auto(send_buffer, d->ui_data.motor_accel_load_lowpass_state, &ind);
-	buffer_append_uint16(send_buffer, is_kill_spin_triggered(d), &ind);
+	buffer_append_uint16(send_buffer, is_kill_spin_engaged(d), &ind);
 	// UI data values
 	buffer_append_float32_auto(send_buffer, d->ui_data.speed_kmh, &ind);
 	buffer_append_float32_auto(send_buffer, d->ui_data.voltage_lowpass_state, &ind);
@@ -43,7 +43,7 @@ void on_command_recieved(data* d, unsigned char *buffer, unsigned int len) {
 		uint8_t command = buffer[0];
 		if(command == BALANCE_COMMAND_GET_REALTIME_DATA) {
 			send_realtime_data(d);
-		} else if(command == BALANCE_COMMAND_KILL_SWITCH_TRIGGER) {
+		} else if(command == BALANCE_COMMAND_TRIGGER_KILL_SPIN) {
 			trigger_kill_spin(d);
 		} else {
 			VESC_IF->printf("Unknown command received %d", command);

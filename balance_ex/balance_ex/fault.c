@@ -10,7 +10,7 @@ void engage_ready(data *d) {
 
 void engage_kill_spin(data *d) {
 	if(d->state == KILL_SPIN) {
-		// allreadt engaged, do nothing
+		// allready engaged, do nothing
 		return;
 	}
 
@@ -24,7 +24,7 @@ void engage_kill_spin(data *d) {
 
 void disengage_kill_spin(data *d) {
 	if(d->state != KILL_SPIN) {
-		// allreadt disengaged, do nothing
+		// allready disengaged, do nothing
 		return;
 	}
 
