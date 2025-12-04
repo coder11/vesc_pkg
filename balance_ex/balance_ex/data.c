@@ -18,7 +18,6 @@ void reset_vars(data *d) {
 	// TOOD:: consider moving this part into a more appropriate place
 	d->state = CENTERING;
 	d->setpoint = d->pitch_angle;
-	d->center_target = d->balance_conf.pitch_adjustment;
 	
 	d->tiltback_type = TITLBACK_NONE;
 	d->tiltback_target_interpolated = 0;
@@ -46,6 +45,7 @@ void configure(data *d) {
 
 	d->motor_timeout_seconds = d->loop_time_seconds * 20; // Times 20 for a nice long grace period
 
+	d->center_target = d->balance_conf.pitch_adjustment;
 	d->centering_step_size = d->balance_conf.startup_speed / d->balance_conf.hertz;
 	d->tiltback_duty_step_size = d->balance_conf.tiltback_duty_speed / d->balance_conf.hertz;
 	d->tiltback_hv_step_size = d->balance_conf.tiltback_hv_speed / d->balance_conf.hertz;
