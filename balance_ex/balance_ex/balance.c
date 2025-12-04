@@ -184,7 +184,7 @@ void set_current(data *d, float current){
 	VESC_IF->mc_set_current(current);
 }
 
-void apply_pid_balancing(data *d) {
+void calculate_balance_current(data *d) {
 	// Calcualte error
 	d->error = d->setpoint - d->pitch_angle;
 	d->abs_error = fabsf(d->error);
@@ -250,9 +250,7 @@ void apply_pid_balancing(data *d) {
 		}
 	}
 
-	// Output to motor
 	d->last_error = d->error;
-	set_current(d, d->output_current);
 }
 
 bool is_valid_startup_position(data *d, bool ignore_pitch) {
@@ -330,7 +328,8 @@ void balance_loop_tick(data *d) {
 			if(advance_interpolation(&d->setpoint, d->center_target, d->centering_step_size)) {
 				d->state = RUNNING;
 			}
-			apply_pid_balancing(d);
+			calculate_balance_current(d);
+			set_current(d, d->output_current);
 			break;
 
         case (RUNNING):
@@ -349,7 +348,8 @@ void balance_loop_tick(data *d) {
 			// allow tiltback to work outside of clamp
 			process_tiltback(d);
 			
-			apply_pid_balancing(d);
+			calculate_balance_current(d);
+			set_current(d, d->output_current);
             break;
 
         case (FAULT_ANGLE_PITCH):
