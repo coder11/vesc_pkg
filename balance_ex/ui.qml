@@ -149,6 +149,7 @@ Item {
             var motor_load = dv.getFloat32(ind); ind += 4;
             var motor_accel_load = dv.getFloat32(ind); ind += 4;
             var killSwitchTriggered = dv.getInt16(ind); ind += 2;
+            var tiltback_type = dv.getInt16(ind); ind += 2;
             // UI data values
             var speed_kmh = dv.getFloat32(ind); ind += 4;
             var voltage = dv.getFloat32(ind); ind += 4;
@@ -172,22 +173,18 @@ Item {
             if (state == 0) {
                 stateString = "STARTUP"
             } else if (state == 1) {
-                stateString = "RUNNING"
+                stateString = "CENTERING"
             } else if (state == 2) {
-                stateString = "RUNNING_TILTBACK_DUTY"
+                stateString = "RUNNING"
             } else if (state == 3) {
-                stateString = "RUNNING_TILTBACK_HIGH_VOLTAGE"
-            } else if (state == 4) {
-                stateString = "RUNNING_TILTBACK_LOW_VOLTAGE"
-            } else if (state == 5) {
                 stateString = "FAULT_ANGLE_PITCH"
-            } else if (state == 6) {
+            } else if (state == 4) {
                 stateString = "FAULT_ANGLE_ROLL"
-            } else if (state == 7) {
+            } else if (state == 5) {
                 stateString = "FAULT_DUTY"
-            } else if (state == 8) {
+            } else if (state == 6) {
                 stateString = "READY"
-            } else if (state == 9) {
+            } else if (state == 7) {
                 stateString = "KILLSPIN"
             } else {
                 stateString = "UNKNOWN"
@@ -200,6 +197,20 @@ Item {
                 killSwitchTriggeredString = "Yes"
             }
             
+            var tiltbackString
+            if (tiltback_type == 0) {
+                tiltbackString = "None"
+            } else if (tiltback_type == 1) {
+                tiltbackString = "Duty"
+            } else if (tiltback_type == 2) {
+                tiltbackString = "High Voltage"
+            } else if (tiltback_type == 3) {
+                tiltbackString = "Low Voltage"
+            } else if (tiltback_type == 4) {
+                tiltbackString = "Backing Off"
+            } else {
+                tiltbackString = "Unknown"
+            }
             
             valText1.text =
                 //"pid    : " + pid_value.toFixed(2) + "A\n" +
@@ -210,7 +221,8 @@ Item {
                 "Motor Load : " + motor_load.toFixed(5) + "\n" +
                 "Motor Accel Load : " + motor_accel_load.toFixed(5) + "\n" +
                 "state  : " + stateString + "\n" +
-                "kill spin triggered: " + killSwitchTriggeredString
+                "tiltback: " + tiltbackString + "\n" +
+                "kill spin triggered: " + killSwitchTriggeredString;
         }
     }
 
