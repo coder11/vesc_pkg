@@ -150,6 +150,7 @@ void apply_turntilt(data *d) {
 	d->setpoint += d->turntilt_interpolated;
 }
 
+// Disable output and break according to configuration
 void brake(data *d) {
 	// Brake timeout logic
 	if (d->balance_conf.brake_timeout > 0 && (d->abs_erpm > 1 || d->brake_timeout == 0)) {
@@ -305,12 +306,10 @@ void balance_loop_tick(data *d) {
         // Control Loop State Logic
         switch(d->state) {
         case (KILLSPIN):
-            // Disable output
             brake(d);
             break;
 
         case (STARTUP):
-			// Disable output
 			brake(d);
 			if (VESC_IF->imu_startup_done()) {
 				engage_ready(d);
@@ -360,7 +359,6 @@ void balance_loop_tick(data *d) {
                 break;
             }
 
-            // Disable output
             brake(d);
             break;
 
@@ -370,7 +368,6 @@ void balance_loop_tick(data *d) {
             // Rendering this fault useless.
             check_faults(d, true);
 
-            // Disable output
             brake(d);
             break;
         }
