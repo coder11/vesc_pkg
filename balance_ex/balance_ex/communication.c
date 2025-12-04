@@ -3,6 +3,18 @@
 #include "balance.h"
 #include "conf/buffer.h"
 
+bool is_kill_spin_triggered(data *d) {
+	return d->state == KILL_SPIN;
+}
+
+void trigger_kill_spin(data *d) {
+	if(is_kill_spin_triggered(d)) {
+		engage_kill_spin(d);
+	} else {
+		disengage_kill_spin(d);
+	}
+}
+
 void send_realtime_data(data *d) {
 	int32_t ind = 0;
 	uint8_t send_buffer[100];

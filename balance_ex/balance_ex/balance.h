@@ -38,6 +38,10 @@ bool is_kill_spin_triggered(data *d);
 
 void trigger_kill_spin(data *d);
 
+void engage_kill_spin(data *d);
+
+void disengage_kill_spin(data *d);
+
 void balance_loop_tick(data *d);
 
 #endif // BALANCE_H

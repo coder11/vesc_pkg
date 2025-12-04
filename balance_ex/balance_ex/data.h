@@ -35,8 +35,8 @@ typedef enum {
 	FAULT_ANGLE_PITCH = 6,
 	FAULT_ANGLE_ROLL = 7,
 	FAULT_DUTY = 8,
-	FAULT_STARTUP = 9,
-	KILL_SPIN_TRIGGERED = 10
+	READY = 9,
+	KILL_SPIN = 10
 } BalanceState;
 
 typedef enum {

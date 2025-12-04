@@ -330,24 +330,33 @@ void set_current(data *d, float current){
 	VESC_IF->mc_set_current(current);
 }
 
-bool is_kill_spin_triggered(data *d) {
-	return d->state == KILL_SPIN_TRIGGERED;
+void engage_ready(data *d) {
+	reset_vars(d);
+	// Trigger a fault so we need to meet start conditions to start
+	d->state = READY;
 }
 
-void trigger_kill_spin(data *d) {
-	if(d->state == KILL_SPIN_TRIGGERED) {
-		// Same as in startup
-		reset_vars(d);
-		d->state = FAULT_STARTUP; // Trigger a fault so we need to meet start conditions to start
+void engage_kill_spin(data *d) {
+	if(d->state == KILL_SPIN) {
+		// allreadt engaged, do nothing
 		return;
 	}
 
 	if(d->abs_erpm > 2000) {
-		// for safety, don't trigger the kill switch if the motor is running
+		// for safety, don't trigger the kill spin if the motor is running
 		return;
 	}
 
-	d->state = KILL_SPIN_TRIGGERED;
+	d->state = KILL_SPIN;
+}
+
+void disengage_kill_spin(data *d) {
+	if(d->state != KILL_SPIN) {
+		// allreadt disengaged, do nothing
+		return;
+	}
+
+	engage_ready(d);
 }
 
 void balance_loop_tick(data *d) {
@@ -393,7 +402,7 @@ void balance_loop_tick(data *d) {
     if(d->balance_conf.balance_enabled) {
         // Control Loop State Logic
         switch(d->state) {
-        case (KILL_SPIN_TRIGGERED):
+        case (KILL_SPIN):
             // Disable output
             brake(d);
             break;
@@ -402,8 +411,7 @@ void balance_loop_tick(data *d) {
                 // Disable output
                 brake(d);
                 if (VESC_IF->imu_startup_done()) {
-                    reset_vars(d);
-                    d->state = FAULT_STARTUP; // Trigger a fault so we need to meet start conditions to start
+                    engage_ready(d);
                 }
                 break;
 
@@ -506,11 +514,11 @@ void balance_loop_tick(data *d) {
 
         case (FAULT_ANGLE_PITCH):
         case (FAULT_ANGLE_ROLL):
-        case (FAULT_STARTUP):
+        case (READY):
             // Check for valid startup position
             if (fabsf(d->pitch_angle) < d->balance_conf.startup_pitch_tolerance &&
                     fabsf(d->roll_angle) < d->balance_conf.startup_roll_tolerance) {
-                reset_vars(d);
+				reset_vars(d);
                 break;
             }
 
