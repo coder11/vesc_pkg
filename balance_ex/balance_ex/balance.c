@@ -207,8 +207,10 @@ void balance_loop_tick(data *d) {
             apply_turntilt(d);
 			clampf(&d->setpoint, d->balance_conf.setpoint_min, d->balance_conf.setpoint_max);
 
-			// allow tiltback to work outside of clamp
-			apply_tiltback(d);
+			if(d->balance_conf.tiltback_enabled) {
+				// allow tiltback to work outside of clamp
+				apply_tiltback(d);
+			}
 			
 			calculate_balance_current(d);
 			set_current(d);

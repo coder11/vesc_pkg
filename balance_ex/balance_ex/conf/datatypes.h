@@ -48,6 +48,7 @@ typedef struct {
 	uint16_t fault_delay_pitch;
 	uint16_t fault_delay_roll;
 	uint16_t fault_delay_duty;
+	bool tiltback_enabled;
 	float tiltback_return_speed;
 	float tiltback_duty_angle;
 	float tiltback_duty_speed;
