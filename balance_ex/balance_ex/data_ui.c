@@ -5,7 +5,7 @@
 
 void ui_data_configure(data *d) {
     d->ui_data.wheel_diameter = VESC_IF->get_cfg_float(CFG_PARAM_si_wheel_diameter);
-    d->ui_data.motor_poles = VESC_IF->get_cfg_float(CFG_PARAM_si_motor_poles);
+    d->ui_data.motor_poles = VESC_IF->get_cfg_int(CFG_PARAM_si_motor_poles);
 
     float fq = 0.5;
     d->ui_data.voltage_lowpass_k = pt1_calculate_k(fq, d->balance_conf.hertz);
@@ -39,9 +39,9 @@ void ui_data_reset(data *d) {
 
 void ui_data_update(data *d) {
     // speed in km/h
-    float rpm = d->erpm * 2 / d->ui_data.motor_poles;
+    d->ui_data.rpm = d->erpm * 2.0 / d->ui_data.motor_poles;
     float circumference = d->ui_data.wheel_diameter * M_PI;
-    float speed_ms = rpm * circumference / 60.0;
+    float speed_ms = d->ui_data.rpm * circumference / 60.0;
     d->ui_data.speed_kmh = speed_ms * 3.6;
 
     // voltage

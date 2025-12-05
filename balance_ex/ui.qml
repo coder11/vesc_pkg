@@ -151,6 +151,7 @@ Item {
             var killSwitchTriggered = dv.getInt16(ind); ind += 2;
             var tiltback_type = dv.getInt16(ind); ind += 2;
             // UI data values
+            var rpm = dv.getFloat32(ind); ind += 4;
             var speed_kmh = dv.getFloat32(ind); ind += 4;
             var voltage = dv.getFloat32(ind); ind += 4;
             var voltage_min = dv.getFloat32(ind); ind += 4;
@@ -213,7 +214,8 @@ Item {
             }
             
             valText1.text =
-                //"pid    : " + pid_value.toFixed(2) + "A\n" +
+                "rpm: " + rpm.toFixed(1) + "\n" +
+                "speed: " + speed_kmh.toFixed(1) + "kmh\n" +
                 "setpt: " + setpoint.toFixed(2) + "°\n" +
                 "pitch  : " + pitch.toFixed(2) + "°\n" +
                 "setp-pitch :" + (setpoint-pitch).toFixed(2) + "\n" +

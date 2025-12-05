@@ -47,7 +47,7 @@ typedef enum {
 typedef struct {
 	// Config values
 	float wheel_diameter;
-	float motor_poles;
+	int motor_poles;
 	float voltage_max;
 	float voltage_min;
 	float voltage_lowpass_k;
@@ -58,6 +58,7 @@ typedef struct {
 	float voltage, voltage_lowpass_state;
 	float motor_load_lowpass_state;
 	float motor_accel_load_lowpass_state;
+	float rpm;
 	float speed_kmh;
 } UIData;
 
