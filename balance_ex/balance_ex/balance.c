@@ -202,13 +202,13 @@ void balance_loop_tick(data *d) {
 
 			// apply various setpoint adjustments
 			d->setpoint = d->center_target;
-			apply_noseangling(d);
+			apply_speed_tilt(d);
             apply_torquetilt(d);
             apply_turntilt(d);
 			clampf(&d->setpoint, d->balance_conf.setpoint_min, d->balance_conf.setpoint_max);
 
 			// allow tiltback to work outside of clamp
-			process_tiltback(d);
+			apply_tiltback(d);
 			
 			calculate_balance_current(d);
 			set_current(d);

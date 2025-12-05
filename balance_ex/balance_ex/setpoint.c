@@ -22,7 +22,7 @@ float get_setpoint_adjustment_step_size(data *d) {
 	return 0;
 }
 
-void process_tiltback(data *d) {
+void apply_tiltback(data *d) {
 	if (d->abs_duty_cycle > d->balance_conf.tiltback_duty) {
 		if (d->erpm > 0) {
 			d->tiltback_target = d->balance_conf.tiltback_duty_angle;
@@ -68,11 +68,9 @@ void process_tiltback(data *d) {
 	}
 }
 
-void apply_noseangling(data *d){
-	// Nose angle adjustment, add variable tiltback
-	float noseangling_target = d->setpoint_speed_based * d->erpm;
-
-	advance_interpolation(&d->setpoint_speed_based_interpolated, noseangling_target, d->setpoint_speed_based_step_size);
+void apply_speed_tilt(data *d){
+	float apply_speed_tilt_target = d->setpoint_speed_based * d->erpm;
+	advance_interpolation(&d->setpoint_speed_based_interpolated, apply_speed_tilt_target, d->setpoint_speed_based_step_size);
 	d->setpoint += d->setpoint_speed_based_interpolated;
 }
 
