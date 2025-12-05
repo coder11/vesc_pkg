@@ -11,20 +11,6 @@
 #include "util.h"
 #include "data.h"
 
-float get_setpoint_adjustment_step_size(data *d);
-
-void calculate_setpoint_target(data *d);
-
-void apply_noseangling(data *d);
-
-void apply_torquetilt(data *d);
-
-void apply_turntilt(data *d);
-
-void brake(data *d);
-
-void set_current(data *d, float current);
-
 void balance_loop_tick(data *d);
 
 #endif // BALANCE_H

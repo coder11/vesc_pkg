@@ -99,7 +99,6 @@ typedef struct {
 	float proportional, exponential, integral, derivative, proportional2, integral2, derivative2;
 	float error, last_error, abs_error, sign_error;
 	float pid_value, pid_value2;
-	float output_current;
 	float setpoint, center_target;
 	float tiltback_target, tiltback_target_interpolated;
 	float noseangling_interpolated;
@@ -112,6 +111,8 @@ typedef struct {
 	float fault_angle_pitch_timer, fault_angle_roll_timer, fault_duty_timer; // Seconds
 	float d_pt1_lowpass_state, d_pt1_lowpass_k, d_pt1_highpass_state, d_pt1_highpass_k;
 	float d2_pt1_lowpass_state, d2_pt1_lowpass_k;
+	
+	float output_current;
 	float motor_timeout_seconds;
 	float brake_timeout; // Seconds
 } data;

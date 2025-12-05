@@ -1,0 +1,149 @@
+#include "setpoint.h"
+#include "util.h"
+#include "biquad.h"
+#include "vesc_c_if.h"
+
+#include <math.h>
+#include <stdbool.h>
+
+float get_setpoint_adjustment_step_size(data *d) {
+	switch(d->tiltback_type){
+		case (TILTBACK_DUTY):
+			return d->tiltback_duty_step_size;
+		case (TILTBACK_HV):
+			return d->tiltback_hv_step_size;
+		case (TILTBACK_LV):
+			return d->tiltback_lv_step_size;
+		case (TILTBACK_BACKING_OFF):
+			return d->tiltback_return_step_size;
+		default:
+			;
+	}
+	return 0;
+}
+
+void process_tiltback(data *d) {
+	if (d->abs_duty_cycle > d->balance_conf.tiltback_duty) {
+		if (d->erpm > 0) {
+			d->tiltback_target = d->balance_conf.tiltback_duty_angle;
+		} else {
+			d->tiltback_target = -d->balance_conf.tiltback_duty_angle;
+		}
+		d->tiltback_type = TILTBACK_DUTY;
+	} else if (d->abs_duty_cycle > 0.05 && VESC_IF->mc_get_input_voltage_filtered() > d->balance_conf.tiltback_hv) {
+		if (d->erpm > 0){
+			d->tiltback_target = d->balance_conf.tiltback_hv_angle;
+		} else {
+			d->tiltback_target = -d->balance_conf.tiltback_hv_angle;
+		}
+
+		d->tiltback_type = TILTBACK_HV;
+	} else if (d->abs_duty_cycle > 0.05 && VESC_IF->mc_get_input_voltage_filtered() < d->balance_conf.tiltback_lv) {
+		if (d->erpm > 0) {
+			d->tiltback_target = d->balance_conf.tiltback_lv_angle;
+		} else {
+			d->tiltback_target = -d->balance_conf.tiltback_lv_angle;
+		}
+
+		d->tiltback_type = TILTBACK_LV;
+	} 
+
+	if(d->tiltback_type == TITLBACK_NONE) {
+		// nothing to do, we've finished
+		return;
+	}
+
+	bool has_finished = advance_interpolation(&d->tiltback_target_interpolated, d->tiltback_target, get_setpoint_adjustment_step_size(d));
+	if(has_finished && d->tiltback_type == TILTBACK_BACKING_OFF) {
+		// if the backing off sequence finished, we're done
+		d->tiltback_type = TITLBACK_NONE;
+	} else if(has_finished) {
+		// proceed to backing off sequence
+		d->tiltback_type = TILTBACK_BACKING_OFF;
+		d->tiltback_target = 0;
+	} else {
+		// TODO: it should not have been under if
+		// but the wheel is jerky otherwise
+		d->setpoint += d->tiltback_target_interpolated;
+	}
+}
+
+void apply_noseangling(data *d){
+	// Nose angle adjustment, add variable tiltback
+	float noseangling_target = d->tiltback_variable * d->erpm;
+
+	advance_interpolation(&d->noseangling_interpolated, noseangling_target, d->noseangling_step_size);
+	d->setpoint += d->noseangling_interpolated;
+}
+
+// candidate for removal. Don't touch it for now
+void apply_torquetilt(data *d) {
+	// Filter current (Biquad)
+	if (d->balance_conf.torquetilt_filter > 0) {
+		d->torquetilt_filtered_current = biquad_process(&d->torquetilt_current_biquad, d->motor_current);
+	} else {
+		d->torquetilt_filtered_current = d->motor_current;
+	}
+
+	// Wat is this line O_o
+	// Take abs motor current, subtract start offset, and take the max of that with 0 to get the current above our start threshold (absolute).
+	// Then multiply it by "power" to get our desired angle, and min with the limit to respect boundaries.
+	// Finally multiply it by sign motor current to get directionality back
+	d->torquetilt_target = fminf(fmaxf((fabsf(d->torquetilt_filtered_current) - d->balance_conf.torquetilt_start_current), 0) *
+			d->balance_conf.torquetilt_strength, d->balance_conf.torquetilt_angle_limit) * SIGN(d->torquetilt_filtered_current);
+
+	float step_size;
+	if ((d->torquetilt_interpolated - d->torquetilt_target > 0 && d->torquetilt_target > 0) ||
+			(d->torquetilt_interpolated - d->torquetilt_target < 0 && d->torquetilt_target < 0)) {
+		step_size = d->torquetilt_off_step_size;
+	} else {
+		step_size = d->torquetilt_on_step_size;
+	}
+
+	if (fabsf(d->torquetilt_target - d->torquetilt_interpolated) < step_size) {
+		d->torquetilt_interpolated = d->torquetilt_target;
+	} else if (d->torquetilt_target - d->torquetilt_interpolated > 0) {
+		d->torquetilt_interpolated += step_size;
+	} else {
+		d->torquetilt_interpolated -= step_size;
+	}
+
+	d->setpoint += d->torquetilt_interpolated;
+}
+
+void apply_turntilt(data *d) {
+	// Calculate desired angle
+	d->turntilt_target = d->abs_roll_angle_sin * d->balance_conf.turntilt_strength;
+
+	// Apply cutzone
+	if (d->abs_roll_angle < d->balance_conf.turntilt_start_angle) {
+		d->turntilt_target = 0;
+	}
+
+	// Disable below erpm threshold otherwise add directionality
+	if (d->abs_erpm < d->balance_conf.turntilt_start_erpm) {
+		d->turntilt_target = 0;
+	} else {
+		d->turntilt_target *= SIGN(d->erpm);
+	}
+
+	// Apply speed scaling
+	if (d->abs_erpm < d->balance_conf.turntilt_erpm_boost_end) {
+		d->turntilt_target *= 1 + ((d->balance_conf.turntilt_erpm_boost / 100.0f) *
+				(d->abs_erpm / d->balance_conf.turntilt_erpm_boost_end));
+	} else {
+		d->turntilt_target *= 1 + (d->balance_conf.turntilt_erpm_boost / 100.0f);
+	}
+
+	// Limit angle to max angle
+	if (d->turntilt_target > 0) {
+		d->turntilt_target = fminf(d->turntilt_target, d->balance_conf.turntilt_angle_limit);
+	} else {
+		d->turntilt_target = fmaxf(d->turntilt_target, -d->balance_conf.turntilt_angle_limit);
+	}
+
+	// Move towards target limited by max speed
+	advance_interpolation(&d->turntilt_interpolated, d->turntilt_target, d->turntilt_step_size);
+	d->setpoint += d->turntilt_interpolated;
+}
+
