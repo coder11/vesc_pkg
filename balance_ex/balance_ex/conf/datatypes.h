@@ -45,15 +45,10 @@ typedef struct {
 	float fault_pitch;
 	float fault_roll;
 	float fault_duty;
-	float fault_adc1;
-	float fault_adc2;
 	uint16_t fault_delay_pitch;
 	uint16_t fault_delay_roll;
 	uint16_t fault_delay_duty;
-	uint16_t fault_delay_switch_half;
-	uint16_t fault_delay_switch_full;
-	uint16_t fault_adc_half_erpm;
-	bool fault_is_dual_switch;
+	float tiltback_return_speed;
 	float tiltback_duty_angle;
 	float tiltback_duty_speed;
 	float tiltback_duty;
@@ -63,7 +58,6 @@ typedef struct {
 	float tiltback_lv_angle;
 	float tiltback_lv_speed;
 	float tiltback_lv;
-	float noseangling_speed;
 	float startup_pitch_tolerance;
 	float startup_roll_tolerance;
 	float startup_speed;
@@ -90,11 +84,11 @@ typedef struct {
 	uint16_t turntilt_erpm_boost;
 	uint16_t turntilt_erpm_boost_end;
 
-	float pitch_adjustment;
-	float tiltback_return_speed;
-	float tiltback_variable;
-	float setpoint_max;
 	float setpoint_min;
+	float setpoint_max;
+	float setpoint_constant;
+	float setpoint_speed_based;
+	float setpoint_change_speed;
 } balance_config;
 
 // DATATYPES_H_

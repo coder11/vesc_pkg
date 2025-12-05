@@ -23,7 +23,7 @@ void reset_vars(data *d) {
 	d->tiltback_target_interpolated = 0;
 	d->tiltback_target = 0;
 
-	d->noseangling_interpolated = 0;
+	d->setpoint_speed_based_interpolated = 0;
 	d->torquetilt_target = 0;
 	d->torquetilt_interpolated = 0;
 	d->torquetilt_filtered_current = 0;
@@ -45,7 +45,7 @@ void configure(data *d) {
 
 	d->motor_timeout_seconds = d->loop_time_seconds * 20; // Times 20 for a nice long grace period
 
-	d->center_target = d->balance_conf.pitch_adjustment;
+	d->center_target = d->balance_conf.setpoint_constant;
 	d->centering_step_size = d->balance_conf.startup_speed / d->balance_conf.hertz;
 	d->tiltback_duty_step_size = d->balance_conf.tiltback_duty_speed / d->balance_conf.hertz;
 	d->tiltback_hv_step_size = d->balance_conf.tiltback_hv_speed / d->balance_conf.hertz;
@@ -54,7 +54,7 @@ void configure(data *d) {
 	d->torquetilt_on_step_size = d->balance_conf.torquetilt_on_speed / d->balance_conf.hertz;
 	d->torquetilt_off_step_size = d->balance_conf.torquetilt_off_speed / d->balance_conf.hertz;
 	d->turntilt_step_size = d->balance_conf.turntilt_speed / d->balance_conf.hertz;
-	d->noseangling_step_size = d->balance_conf.noseangling_speed / d->balance_conf.hertz;
+	d->setpoint_speed_based_step_size = d->balance_conf.setpoint_change_speed / d->balance_conf.hertz;
 
 	// Init Filters
 	if (d->balance_conf.loop_time_filter > 0) {
@@ -81,9 +81,7 @@ void configure(data *d) {
 	}
 
 	// Variable nose angle adjustment / tiltback (setting is per 1000erpm, convert to per erpm)
-	d->tiltback_variable = d->balance_conf.tiltback_variable / 1000;
-	// Will be handled by max/min erpm clamp
-	d->tiltback_variable_max_erpm = 100000;
+	d->setpoint_speed_based = d->balance_conf.setpoint_speed_based / 1000;
 
 	// Reset loop time variables
 	d->last_time = 0.0;

@@ -70,10 +70,10 @@ void process_tiltback(data *d) {
 
 void apply_noseangling(data *d){
 	// Nose angle adjustment, add variable tiltback
-	float noseangling_target = d->tiltback_variable * d->erpm;
+	float noseangling_target = d->setpoint_speed_based * d->erpm;
 
-	advance_interpolation(&d->noseangling_interpolated, noseangling_target, d->noseangling_step_size);
-	d->setpoint += d->noseangling_interpolated;
+	advance_interpolation(&d->setpoint_speed_based_interpolated, noseangling_target, d->setpoint_speed_based_step_size);
+	d->setpoint += d->setpoint_speed_based_interpolated;
 }
 
 // candidate for removal. Don't touch it for now

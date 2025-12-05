@@ -1283,6 +1283,28 @@ p, li { white-space: pre-wrap; }
             <suffix> °/1000 ERPM</suffix>
             <vTx>9</vTx>
         </setpoint_speed_based>
+        <setpoint_change_speed>
+            <longName>Setpoint change speed</longName>
+            <type>1</type>
+            <transmittable>1</transmittable>
+            <description>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Roboto'; ; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Speed at which setpoint changes will go towards chaning target&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
+            <cDefine>APPCONF_SETPOINT_CHANGE_SPEED</cDefine>
+            <editorDecimalsDouble>1</editorDecimalsDouble>
+            <editorScale>1</editorScale>
+            <editAsPercentage>0</editAsPercentage>
+            <maxDouble>100</maxDouble>
+            <minDouble>0</minDouble>
+            <showDisplay>0</showDisplay>
+            <stepDouble>0.5</stepDouble>
+            <valDouble>5</valDouble>
+            <vTxDoubleScale>100</vTxDoubleScale>
+            <suffix> °/s</suffix>
+            <vTx>7</vTx>
+        </setpoint_change_speed>
     </Params>
     <SerOrder>
         <ser>balance_enabled</ser>
@@ -1301,15 +1323,10 @@ p, li { white-space: pre-wrap; }
         <ser>fault_pitch</ser>
         <ser>fault_roll</ser>
         <ser>fault_duty</ser>
-        <ser>fault_adc1</ser>
-        <ser>fault_adc2</ser>
         <ser>fault_delay_pitch</ser>
         <ser>fault_delay_roll</ser>
         <ser>fault_delay_duty</ser>
-        <ser>fault_delay_switch_half</ser>
-        <ser>fault_delay_switch_full</ser>
-        <ser>fault_adc_half_erpm</ser>
-        <ser>fault_is_dual_switch</ser>
+        <ser>tiltback_return_speed</ser>
         <ser>tiltback_duty_angle</ser>
         <ser>tiltback_duty_speed</ser>
         <ser>tiltback_duty</ser>
@@ -1319,7 +1336,6 @@ p, li { white-space: pre-wrap; }
         <ser>tiltback_lv_angle</ser>
         <ser>tiltback_lv_speed</ser>
         <ser>tiltback_lv</ser>
-        <ser>noseangling_speed</ser>
         <ser>startup_pitch_tolerance</ser>
         <ser>startup_roll_tolerance</ser>
         <ser>startup_speed</ser>
@@ -1345,11 +1361,11 @@ p, li { white-space: pre-wrap; }
         <ser>turntilt_speed</ser>
         <ser>turntilt_erpm_boost</ser>
         <ser>turntilt_erpm_boost_end</ser>
-        <ser>pitch_adjustment</ser>
-        <ser>tiltback_variable</ser>
-        <ser>tiltback_return_speed</ser>
-        <ser>setpoint_max</ser>
         <ser>setpoint_min</ser>
+        <ser>setpoint_max</ser>
+        <ser>setpoint_constant</ser>
+        <ser>setpoint_speed_based</ser>
+        <ser>setpoint_change_speed</ser>
     </SerOrder>
     <Grouping>
         <group>
@@ -1389,6 +1405,7 @@ p, li { white-space: pre-wrap; }
                     <param>setpoint_constant</param>
                     <param>::sep::Speed based</param>
                     <param>setpoint_speed_based</param>
+                    <param>setpoint_change_speed</param>
                 </subgroupParams>
             </subgroup>
             <subgroup>
