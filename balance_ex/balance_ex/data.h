@@ -25,36 +25,42 @@
 #include "conf/datatypes.h"
 #include "biquad.h"
 
-// Data type (Value 5 was removed, and can be reused at a later date, but i wanted to preserve the current value's numbers for UIs)
 typedef enum {
 	STARTUP = 0,
-	RUNNING = 1,
-	RUNNING_TILTBACK_DUTY = 2,
-	RUNNING_TILTBACK_HIGH_VOLTAGE = 3,
-	RUNNING_TILTBACK_LOW_VOLTAGE = 4,
-	FAULT_ANGLE_PITCH = 6,
-	FAULT_ANGLE_ROLL = 7,
-	FAULT_SWITCH_HALF = 8,
-	FAULT_SWITCH_FULL = 9,
-	FAULT_DUTY = 10,
-	FAULT_STARTUP = 11,
-	KILL_SWITCH_TRIGGERED = 12
+	CENTERING = 1,
+	RUNNING = 2,
+	FAULT_ANGLE_PITCH = 3,
+	FAULT_ANGLE_ROLL = 4,
+	FAULT_DUTY = 5,
+	READY = 6,
+	KILLSPIN = 7
 } BalanceState;
 
 typedef enum {
-	CENTERING = 0,
-	TILTBACK_DUTY,
-	TILTBACK_HV,
-	TILTBACK_LV,
-	TILTBACK_NONE
-} SetpointAdjustmentType;
+	TITLBACK_NONE = 0,
+	TILTBACK_DUTY = 1,
+	TILTBACK_HV = 2,
+	TILTBACK_LV = 3,
+	TILTBACK_BACKING_OFF = 4
+} TiltbackType;
 
-typedef enum {
-	OFF = 0,
-	HALF,
-	ON
-} SwitchState;
+typedef struct {
+	// Config values
+	float wheel_diameter;
+	int motor_poles;
+	float voltage_max;
+	float voltage_min;
+	float voltage_lowpass_k;
+	float motor_load_lowpass_k;
+	float motor_accel_load_lowpass_k;
 
+	// runtime values
+	float voltage, voltage_lowpass_state;
+	float motor_load_lowpass_state;
+	float motor_accel_load_lowpass_state;
+	float rpm;
+	float speed_kmh;
+} UIData;
 
 // This is all persistent state of the application, which will be allocated in init. It
 // is put here because variables can only be read-only when this program is loaded
@@ -68,42 +74,52 @@ typedef struct {
 
 	// Config values
 	float loop_time_seconds;
-	float startup_step_size;
+	float centering_step_size;
 	float tiltback_duty_step_size, tiltback_hv_step_size, tiltback_lv_step_size, tiltback_return_step_size;
 	float torquetilt_on_step_size, torquetilt_off_step_size, turntilt_step_size;
-	float tiltback_variable, tiltback_variable_max_erpm, noseangling_step_size;
+	float setpoint_speed_based, setpoint_speed_based_step_size;
 
 	// Runtime values read from elsewhere
 	float pitch_angle, last_pitch_angle, roll_angle, abs_roll_angle, abs_roll_angle_sin, last_gyro_y;
 	float gyro[3];
 	float duty_cycle, abs_duty_cycle;
 	float erpm, abs_erpm, last_erpm;
-	float erpm_accel;
-	float erpm_accel_divided_by_current;
 	float motor_current;
-	float motor_position;
 	float adc1, adc2;
-	SwitchState switch_state;
+
+	// Data for UI
+	UIData ui_data;
+
+	// Experimental
+	float erpm_accel;
+	float motor_load, motor_accel_load;
+
 
 	// Rumtime state values
 	BalanceState state;
 	float proportional, exponential, integral, derivative, proportional2, integral2, derivative2;
-	float error, last_error;
+	float error, last_error, abs_error, sign_error;
 	float pid_value, pid_value2;
-	float setpoint, setpoint_target, setpoint_target_interpolated;
-	float noseangling_interpolated;
+	float setpoint, center_target;
+	float tiltback_target, tiltback_target_interpolated;
+	float setpoint_speed_based_interpolated;
 	float torquetilt_filtered_current, torquetilt_target, torquetilt_interpolated;
 	Biquad torquetilt_current_biquad;
 	float turntilt_target, turntilt_interpolated;
-	SetpointAdjustmentType setpointAdjustmentType;
+	TiltbackType tiltback_type;
 	float current_time, last_time, diff_time, loop_overshoot; // Seconds
 	float filtered_loop_overshoot, loop_overshoot_alpha, filtered_diff_time;
-	float fault_angle_pitch_timer, fault_angle_roll_timer, fault_switch_timer, fault_switch_half_timer, fault_duty_timer; // Seconds
+	float fault_angle_pitch_timer, fault_angle_roll_timer, fault_duty_timer; // Seconds
 	float d_pt1_lowpass_state, d_pt1_lowpass_k, d_pt1_highpass_state, d_pt1_highpass_k;
 	float d2_pt1_lowpass_state, d2_pt1_lowpass_k;
+	
+	float output_current;
 	float motor_timeout_seconds;
 	float brake_timeout; // Seconds
 } data;
+
+void reset_vars(data *d);
+void configure(data *d);
 
 #endif // DATA_H_
 

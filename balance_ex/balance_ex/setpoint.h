@@ -1,0 +1,12 @@
+#ifndef SETPOINT_H
+#define SETPOINT_H
+
+#include "data.h"
+
+void apply_tiltback(data *d);
+void apply_speed_tilt(data *d);
+void apply_torquetilt(data *d);
+void apply_turntilt(data *d);
+
+#endif // SETPOINT_H
+

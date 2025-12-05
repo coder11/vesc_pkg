@@ -108,11 +108,46 @@ static lbm_value ext_get_erpm_accel(lbm_value *args, lbm_uint argn) {
 	return VESC_IF->lbm_enc_float(d->erpm_accel);
 }
 
-static lbm_value ext_get_erpm_accel_divided_by_current(lbm_value *args, lbm_uint argn) {
+static lbm_value ext_get_motor_load(lbm_value *args, lbm_uint argn) {
 	(void)args;
 	(void)argn;
 	data *d = (data*)ARG;
-	return VESC_IF->lbm_enc_float(d->erpm_accel_divided_by_current);
+	return VESC_IF->lbm_enc_float(d->motor_load);
+}
+
+static lbm_value ext_get_motor_accel_load(lbm_value *args, lbm_uint argn) {
+	(void)args;
+	(void)argn;
+	data *d = (data*)ARG;
+	return VESC_IF->lbm_enc_float(d->motor_accel_load);
+}
+
+static lbm_value ext_get_voltage_filtered(lbm_value *args, lbm_uint argn) {
+	(void)args;
+	(void)argn;
+	data *d = (data*)ARG;
+	return VESC_IF->lbm_enc_float(d->ui_data.voltage_lowpass_state);
+}
+
+static lbm_value ext_get_motor_load_filtered(lbm_value *args, lbm_uint argn) {
+	(void)args;
+	(void)argn;
+	data *d = (data*)ARG;
+	return VESC_IF->lbm_enc_float(d->ui_data.motor_load_lowpass_state);
+}
+
+static lbm_value ext_get_motor_accel_load_filtered(lbm_value *args, lbm_uint argn) {
+	(void)args;
+	(void)argn;
+	data *d = (data*)ARG;
+	return VESC_IF->lbm_enc_float(d->ui_data.motor_accel_load_lowpass_state);
+}
+
+static lbm_value ext_get_rpm(lbm_value *args, lbm_uint argn) {
+	(void)args;
+	(void)argn;
+	data *d = (data*)ARG;
+	return VESC_IF->lbm_enc_float(d->ui_data.rpm);
 }
 
 // These functions are used to send the config page to VESC Tool
@@ -241,7 +276,12 @@ INIT_FUN(lib_info *info) {
 	VESC_IF->lbm_add_extension("ext-balance-get-pid", ext_get_pid_value);
 	VESC_IF->lbm_add_extension("ext-balance-get-pid_rate", ext_get_pid_rate_value);
 	VESC_IF->lbm_add_extension("ext-balance-get-erpm-accel", ext_get_erpm_accel);
-	VESC_IF->lbm_add_extension("ext-balance-get-erpm-accel-div-current", ext_get_erpm_accel_divided_by_current);
+	VESC_IF->lbm_add_extension("ext-balance-get-motor-load", ext_get_motor_load);
+	VESC_IF->lbm_add_extension("ext-balance-get-motor-accel-load", ext_get_motor_accel_load);
+	VESC_IF->lbm_add_extension("ext-balance-get-voltage-filtered", ext_get_voltage_filtered);
+	VESC_IF->lbm_add_extension("ext-balance-get-motor-load-filtered", ext_get_motor_load_filtered);
+	VESC_IF->lbm_add_extension("ext-balance-get-motor-accel-load-filtered", ext_get_motor_accel_load_filtered);
+	VESC_IF->lbm_add_extension("ext-balance-get-rpm", ext_get_rpm);
 
 	return true;
 }
