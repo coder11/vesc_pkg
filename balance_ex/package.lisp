@@ -44,7 +44,9 @@
         ("Current dir" "A"              (get-current-dir))
         ("Current In" "A"               (get-current-in))
         ("Duty"                         (get-duty))
-        ("RPM"                          (get-rpm))
+        ("ERPM"                         (get-rpm))
+        ("RPM"                          (ext-balance-get-rpm))
+        
         ("Temp Fet" "degC" 1            (get-temp-fet))
         ("roll"                         (ix (get-imu-rpy) 0))
         ("pitch"                        (ix (get-imu-rpy) 1))
