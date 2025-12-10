@@ -85,13 +85,12 @@ void apply_accel_tilt(data *d){
 	float effective_accel = d->motor_data.accel_abs - d->balance_conf.setpoint_accel_based_deadzone;
 	clampf_min(&effective_accel, 0);
 
-	float k;
+	float k = (d->motor_data.accel_sign > 0)
+		? d->balance_conf.setpoint_accel_based_fwd
+		: d->balance_conf.setpoint_accel_based_bwd;
+
 	// Setting is per 1000 ERPM/s, convert to per ERPM/s (similar to speed-based)
-	if (d->motor_data.accel_sign > 0) {
-		k = d->balance_conf.setpoint_accel_based_fwd / 1000.0f;
-	} else {
-		k = d->balance_conf.setpoint_accel_based_bwd / 1000.0f;
-	}
+	k /= 1000.0f;
 
 	float apply_accel_tilt_target = k * effective_accel * d->motor_data.accel_sign;
 	advance_interpolation(&d->setpoint_accel_based_interpolated, apply_accel_tilt_target, d->setpoint_accel_based_step_size);
@@ -102,13 +101,12 @@ void apply_accel2_tilt(data *d){
 	float effective_accel2 = d->motor_data.accel2_abs - d->balance_conf.setpoint_accel2_based_deadzone;
 	clampf_min(&effective_accel2, 0);
 
-	float k;
+	float k = (d->motor_data.accel2_sign > 0)
+		? d->balance_conf.setpoint_accel2_based_fwd
+		: d->balance_conf.setpoint_accel2_based_bwd;
+
 	// Setting is per 1000 ERPM/s^2, convert to per ERPM/s^2 (similar to speed-based)
-	if (d->motor_data.accel2_sign > 0) {
-		k = d->balance_conf.setpoint_accel2_based_fwd / 1000.0f;
-	} else {
-		k = d->balance_conf.setpoint_accel2_based_bwd / 1000.0f;
-	}
+	k /= 1000.0f;
 
 	float apply_accel2_tilt_target = k * effective_accel2 * d->motor_data.accel2_sign;
 	advance_interpolation(&d->setpoint_accel2_based_interpolated, apply_accel2_tilt_target, d->setpoint_accel2_based_step_size);

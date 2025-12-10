@@ -238,6 +238,8 @@ void balance_loop_tick(data *d) {
 			// apply various setpoint adjustments
 			d->setpoint = d->center_target;
 			apply_speed_tilt(d);
+			apply_accel_tilt(d);
+			apply_accel2_tilt(d);
             apply_torquetilt(d);
             apply_turntilt(d);
 			clampf(&d->setpoint, d->balance_conf.setpoint_min, d->balance_conf.setpoint_max);
