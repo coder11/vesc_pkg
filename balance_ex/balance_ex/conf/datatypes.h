@@ -25,7 +25,8 @@
 
 typedef enum {
 	BALANCE_PID_MODE_ANGLE = 0,
-	BALANCE_PID_MODE_ANGLE_RATE_CASCADE
+	BALANCE_PID_MODE_ANGLE_RATE_CASCADE = 1,
+	BALANCE_PID_MODE_ANGLE_RATE_CASCADE_ALT = 2
 } BALANCE_PID_MODE;
 
 typedef struct {
@@ -40,6 +41,7 @@ typedef struct {
 	float kp2;
 	float ki2;
 	float kd2;
+	float pid2_deadzone;
 	uint16_t hertz;
 	uint16_t loop_time_filter;
 	float fault_pitch;

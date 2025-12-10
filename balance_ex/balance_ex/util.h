@@ -14,5 +14,7 @@
 bool advance_interpolation(float *value, float target, float step);
 
 void clampf(float *value, float min, float max);
+void clampf_min(float *value, float min);
+void clampf_max(float *value, float max);
 
 #endif // BALANCE_EX_UTIL_H

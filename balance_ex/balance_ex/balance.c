@@ -84,6 +84,7 @@ void calculate_balance_current(data *d) {
 	d->pid_value = (d->balance_conf.kp * d->proportional) + d->exponential + (d->balance_conf.ki * d->integral) + (d->balance_conf.kd * d->derivative);
 	d->output_current = d->pid_value;
 
+	// Leave the OG cascade mode as it is
 	if (d->balance_conf.pid_mode == BALANCE_PID_MODE_ANGLE_RATE_CASCADE) {
 		d->proportional2 = d->pid_value - d->gyro[1];
 		d->integral2 = d->integral2 + d->proportional2;
@@ -102,6 +103,38 @@ void calculate_balance_current(data *d) {
 		d->pid_value2 = (d->balance_conf.kp2 * d->proportional2) +
 				(d->balance_conf.ki2 * d->integral2) + (d->balance_conf.kd2 * d->derivative2);
 				d->output_current = d->pid_value2;
+	}
+
+	// Alt cascade mode with deadzone and rate P not affecting the PID output directly
+	if(d->balance_conf.pid_mode == BALANCE_PID_MODE_ANGLE_RATE_CASCADE_ALT) {
+		d->error2 = 0 - d->gyro[1];
+		d->abs_error2 = fabs(d->error2);
+		d->sign_error2 = SIGN(d->error2);
+		
+		// apply deadzone
+		d->abs_error2 -= d->balance_conf.setpoint_speed_based_deadzone;
+		clampf_min(&d->abs_error2, 0);
+		d->error2 = d->sign_error2 * d->abs_error2;
+
+		d->proportional2 = d->error2;
+		d->integral2 = d->integral2 + d->error2;
+		d->derivative2 = d->last_gyro_y - d->gyro[1];
+
+		// Apply D term filter
+		if (d->balance_conf.kd2_pt1_lowpass_frequency > 0) {
+			d->derivative2 = pt1_process_lowpass(&d->d2_pt1_lowpass_state, d->d2_pt1_lowpass_k, d->derivative2);
+		}
+
+		// Apply I term Filter
+		if (d->balance_conf.ki_limit > 0 && fabsf(d->integral2 * d->balance_conf.ki2) > d->balance_conf.ki_limit) {
+			d->integral2 = d->balance_conf.ki_limit / d->balance_conf.ki2 * SIGN(d->integral2);
+		}
+
+		d->pid_value2 = d->pid_value +
+			d->balance_conf.kp2 * d->proportional2 +
+			d->balance_conf.ki2 * d->integral2 + 
+			d->balance_conf.kd2 * d->derivative2;
+		d->output_current = d->pid_value2;
 	}
 
 	// Apply Booster

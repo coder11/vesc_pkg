@@ -32,3 +32,15 @@ void clampf(float *value, float min, float max) {
 		*value = min;
 	}
 }
+
+void clampf_min(float *value, float min) {
+	if(*value < min) {
+		*value = min;
+	}
+}
+
+void clampf_max(float *value, float max) {
+	if(*value > max) {
+		*value = max;
+	}
+}

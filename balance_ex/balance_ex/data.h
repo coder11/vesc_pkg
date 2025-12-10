@@ -99,6 +99,7 @@ typedef struct {
 	BalanceState state;
 	float proportional, exponential, integral, derivative, proportional2, integral2, derivative2;
 	float error, last_error, abs_error, sign_error;
+	float error2, last_error2, abs_error2, sign_error2;
 	float pid_value, pid_value2;
 	float setpoint, center_target;
 	float tiltback_target, tiltback_target_interpolated;

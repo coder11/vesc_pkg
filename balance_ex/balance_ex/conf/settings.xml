@@ -1511,6 +1511,7 @@ p, li { white-space: pre-wrap; }
         <ser>kp2</ser>
         <ser>ki2</ser>
         <ser>kd2</ser>
+        <ser>pid2_deadzone</ser>
         <ser>hertz</ser>
         <ser>loop_time_filter</ser>
         <ser>fault_pitch</ser>

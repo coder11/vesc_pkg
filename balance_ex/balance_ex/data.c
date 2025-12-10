@@ -7,6 +7,7 @@ void reset_vars(data *d) {
 	// Clear accumulated values.
 	d->integral = 0;
 	d->last_error = 0;
+	d->last_error2 = 0;
 	d->integral2 = 0;
 	d->d_pt1_lowpass_state = 0;
 	d->d_pt1_highpass_state = 0;
