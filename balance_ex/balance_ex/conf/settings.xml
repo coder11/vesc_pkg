@@ -1558,8 +1558,15 @@ p, li { white-space: pre-wrap; }
         <ser>setpoint_min</ser>
         <ser>setpoint_max</ser>
         <ser>setpoint_constant</ser>
+        <ser>setpoint_change_rate</ser>
         <ser>setpoint_speed_based</ser>
-        <ser>setpoint_change_speed</ser>
+        <ser>setpoint_speed_based_deadzone</ser>
+        <ser>setpoint_accel_based_fwd</ser>
+        <ser>setpoint_accel_based_bwd</ser>
+        <ser>setpoint_accel_based_deadzone</ser>
+        <ser>setpoint_accel2_based_fwd</ser>
+        <ser>setpoint_accel2_based_bwd</ser>
+        <ser>setpoint_accel2_based_deadzone</ser>
     </SerOrder>
     <Grouping>
         <group>

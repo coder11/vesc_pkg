@@ -54,7 +54,7 @@ void configure(data *d) {
 	d->torquetilt_on_step_size = d->balance_conf.torquetilt_on_speed / d->balance_conf.hertz;
 	d->torquetilt_off_step_size = d->balance_conf.torquetilt_off_speed / d->balance_conf.hertz;
 	d->turntilt_step_size = d->balance_conf.turntilt_speed / d->balance_conf.hertz;
-	d->setpoint_speed_based_step_size = d->balance_conf.setpoint_change_speed / d->balance_conf.hertz;
+	d->setpoint_speed_based_step_size = d->balance_conf.setpoint_change_rate / d->balance_conf.hertz;
 
 	// Init Filters
 	if (d->balance_conf.loop_time_filter > 0) {

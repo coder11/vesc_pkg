@@ -88,8 +88,15 @@ typedef struct {
 	float setpoint_min;
 	float setpoint_max;
 	float setpoint_constant;
+	float setpoint_change_rate;
 	float setpoint_speed_based;
-	float setpoint_change_speed;
+	float setpoint_speed_based_deadzone;
+	float setpoint_accel_based_fwd;
+	float setpoint_accel_based_bwd;
+	float setpoint_accel_based_deadzone;
+	float setpoint_accel2_based_fwd;
+	float setpoint_accel2_based_bwd;
+	float setpoint_accel2_based_deadzone;
 } balance_config;
 
 // DATATYPES_H_
