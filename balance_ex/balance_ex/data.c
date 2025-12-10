@@ -1,4 +1,5 @@
 #include "data.h"
+#include "data_motor.h"
 #include "data_ui.h"
 #include "math.h"
 #include "pt1.h"
@@ -38,6 +39,7 @@ void reset_vars(data *d) {
 	d->last_erpm = d->erpm;
 
 	ui_data_reset(d);
+	data_motor_reset(&d->motor_data);
 }
 
 void configure(data *d) {
@@ -89,4 +91,5 @@ void configure(data *d) {
 	d->filtered_loop_overshoot = 0.0;
 
 	ui_data_configure(d);
+	data_motor_configure(&d->motor_data);
 }

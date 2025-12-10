@@ -21,6 +21,7 @@
 #ifndef DATA_H_
 #define DATA_H_
 
+#include "data_motor.h"
 #include "vesc_c_if.h"
 #include "conf/datatypes.h"
 #include "biquad.h"
@@ -86,6 +87,9 @@ typedef struct {
 	float erpm, abs_erpm, last_erpm;
 	float motor_current;
 	float adc1, adc2;
+
+	// TODO:: remove variables (above) which are duplicates of motor data
+	DataMotor motor_data;
 
 	// Data for UI
 	UIData ui_data;

@@ -3,6 +3,7 @@
 #include "conf/datatypes.h"
 
 #include "biquad.h"
+#include "data_motor.h"
 #include "pt1.h"
 #include "data_ui.h"
 #include "setpoint.h"
@@ -190,6 +191,7 @@ void balance_loop_tick(data *d) {
     d->erpm = VESC_IF->mc_get_rpm();
     d->abs_erpm = fabsf(d->erpm);
 	ui_data_update(d);
+	data_motor_update(&d->motor_data);
     d->last_erpm = d->erpm;
 
     d->adc1 = VESC_IF->io_read_analog(VESC_PIN_ADC1);
