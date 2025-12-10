@@ -98,6 +98,23 @@ void apply_accel_tilt(data *d){
 	d->setpoint += d->setpoint_accel_based_interpolated;
 }
 
+void apply_accel2_tilt(data *d){
+	float effective_accel2 = d->motor_data.accel2_abs - d->balance_conf.setpoint_accel2_based_deadzone;
+	clampf_min(&effective_accel2, 0);
+
+	float k;
+	// Setting is per 1000 ERPM/s^2, convert to per ERPM/s^2 (similar to speed-based)
+	if (d->motor_data.accel2_sign > 0) {
+		k = d->balance_conf.setpoint_accel2_based_fwd / 1000.0f;
+	} else {
+		k = d->balance_conf.setpoint_accel2_based_bwd / 1000.0f;
+	}
+
+	float apply_accel2_tilt_target = k * effective_accel2 * d->motor_data.accel2_sign;
+	advance_interpolation(&d->setpoint_accel2_based_interpolated, apply_accel2_tilt_target, d->setpoint_accel2_based_step_size);
+	d->setpoint += d->setpoint_accel2_based_interpolated;
+}
+
 // candidate for removal. Don't touch it for now
 void apply_torquetilt(data *d) {
 	// Filter current (Biquad)

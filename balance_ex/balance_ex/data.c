@@ -27,6 +27,7 @@ void reset_vars(data *d) {
 
 	d->setpoint_speed_based_interpolated = 0;
 	d->setpoint_accel_based_interpolated = 0;
+	d->setpoint_accel2_based_interpolated = 0;
 	d->torquetilt_target = 0;
 	d->torquetilt_interpolated = 0;
 	d->torquetilt_filtered_current = 0;
@@ -60,6 +61,7 @@ void configure(data *d) {
 	d->turntilt_step_size = d->balance_conf.turntilt_speed / d->balance_conf.hertz;
 	d->setpoint_speed_based_step_size = d->balance_conf.setpoint_change_rate / d->balance_conf.hertz;
 	d->setpoint_accel_based_step_size = d->balance_conf.setpoint_change_rate / d->balance_conf.hertz;
+	d->setpoint_accel2_based_step_size = d->balance_conf.setpoint_change_rate / d->balance_conf.hertz;
 
 	// Init Filters
 	if (d->balance_conf.loop_time_filter > 0) {

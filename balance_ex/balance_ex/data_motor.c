@@ -21,6 +21,8 @@ void data_motor_reset(DataMotor *m) {
     m->accel_sign = 0;
     m->accel_last = 0;
     m->accel2 = 0;
+    m->accel2_abs = 0;
+    m->accel2_sign = 0;
 }
 
 void data_motor_configure(DataMotor *m) {
@@ -59,6 +61,8 @@ void data_motor_update(DataMotor *m) {
     m->accel_abs = fabsf(m->accel);
     m->accel_sign = SIGN(m->accel);
     m->accel2 = m->accel - m->accel_last;
+    m->accel2_abs = fabsf(m->accel2);
+    m->accel2_sign = SIGN(m->accel2);
 }
 
 

@@ -111,6 +111,7 @@ typedef struct {
 	float tiltback_target, tiltback_target_interpolated;
 	float setpoint_speed_based_interpolated;
 	float setpoint_accel_based_interpolated;
+	float setpoint_accel2_based_interpolated;
 	float torquetilt_filtered_current, torquetilt_target, torquetilt_interpolated;
 	Biquad torquetilt_current_biquad;
 	float turntilt_target, turntilt_interpolated;

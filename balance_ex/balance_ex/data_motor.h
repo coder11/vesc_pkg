@@ -22,6 +22,8 @@ typedef struct {
     float accel_sign;
     float accel_last;
     float accel2;
+    float accel2_abs;
+    float accel2_sign;
 } DataMotor;
 
 void data_motor_reset(DataMotor *m);
