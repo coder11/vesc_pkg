@@ -17,6 +17,8 @@ void data_motor_reset(DataMotor *m) {
     memset(m->erpm_sma_buffer, 0, sizeof(m->erpm_sma_buffer));
 
     m->accel = 0;
+    m->accel_abs = 0;
+    m->accel_sign = 0;
     m->accel_last = 0;
     m->accel2 = 0;
 }
@@ -54,6 +56,8 @@ void data_motor_update(DataMotor *m) {
     m->erpm_sma_sign = SIGN(m->erpm_sma);
 
     m->accel = m->erpm_sma - m->erpm_sma_last;
+    m->accel_abs = fabsf(m->accel);
+    m->accel_sign = SIGN(m->accel);
     m->accel2 = m->accel - m->accel_last;
 }
 

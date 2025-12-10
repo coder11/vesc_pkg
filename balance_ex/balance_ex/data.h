@@ -78,7 +78,9 @@ typedef struct {
 	float centering_step_size;
 	float tiltback_duty_step_size, tiltback_hv_step_size, tiltback_lv_step_size, tiltback_return_step_size;
 	float torquetilt_on_step_size, torquetilt_off_step_size, turntilt_step_size;
-	float setpoint_speed_based, setpoint_speed_based_step_size;
+	float setpoint_speed_based_step_size;
+	float setpoint_accel_based_step_size;
+	float setpoint_accel2_based_step_size;
 
 	// Runtime values read from elsewhere
 	float pitch_angle, last_pitch_angle, roll_angle, abs_roll_angle, abs_roll_angle_sin, last_gyro_y;
@@ -108,6 +110,7 @@ typedef struct {
 	float setpoint, center_target;
 	float tiltback_target, tiltback_target_interpolated;
 	float setpoint_speed_based_interpolated;
+	float setpoint_accel_based_interpolated;
 	float torquetilt_filtered_current, torquetilt_target, torquetilt_interpolated;
 	Biquad torquetilt_current_biquad;
 	float turntilt_target, turntilt_interpolated;

@@ -26,6 +26,7 @@ void reset_vars(data *d) {
 	d->tiltback_target = 0;
 
 	d->setpoint_speed_based_interpolated = 0;
+	d->setpoint_accel_based_interpolated = 0;
 	d->torquetilt_target = 0;
 	d->torquetilt_interpolated = 0;
 	d->torquetilt_filtered_current = 0;
@@ -58,6 +59,7 @@ void configure(data *d) {
 	d->torquetilt_off_step_size = d->balance_conf.torquetilt_off_speed / d->balance_conf.hertz;
 	d->turntilt_step_size = d->balance_conf.turntilt_speed / d->balance_conf.hertz;
 	d->setpoint_speed_based_step_size = d->balance_conf.setpoint_change_rate / d->balance_conf.hertz;
+	d->setpoint_accel_based_step_size = d->balance_conf.setpoint_change_rate / d->balance_conf.hertz;
 
 	// Init Filters
 	if (d->balance_conf.loop_time_filter > 0) {
@@ -82,9 +84,6 @@ void configure(data *d) {
 		float fc = d->balance_conf.torquetilt_filter / d->balance_conf.hertz;
 		biquad_config(&d->torquetilt_current_biquad, BQ_LOWPASS, fc);
 	}
-
-	// Variable nose angle adjustment / tiltback (setting is per 1000erpm, convert to per erpm)
-	d->setpoint_speed_based = d->balance_conf.setpoint_speed_based / 1000;
 
 	// Reset loop time variables
 	d->last_time = 0.0;

@@ -74,9 +74,28 @@ void apply_speed_tilt(data *d){
 	clampf_min(&effective_erpm, 0);
 	effective_erpm = effective_erpm * d->motor_data.erpm_sign;
 
-	float apply_speed_tilt_target = d->setpoint_speed_based * effective_erpm;
+	// Setting is per 1000 ERPM/s, convert to per ERPM/s
+	float k = d->balance_conf.setpoint_speed_based / 1000;
+	float apply_speed_tilt_target = k * effective_erpm;
 	advance_interpolation(&d->setpoint_speed_based_interpolated, apply_speed_tilt_target, d->setpoint_speed_based_step_size);
 	d->setpoint += d->setpoint_speed_based_interpolated;
+}
+
+void apply_accel_tilt(data *d){
+	float effective_accel = d->motor_data.accel_abs - d->balance_conf.setpoint_accel_based_deadzone;
+	clampf_min(&effective_accel, 0);
+
+	float k;
+	// Setting is per 1000 ERPM/s, convert to per ERPM/s (similar to speed-based)
+	if (d->motor_data.accel_sign > 0) {
+		k = d->balance_conf.setpoint_accel_based_fwd / 1000.0f;
+	} else {
+		k = d->balance_conf.setpoint_accel_based_bwd / 1000.0f;
+	}
+
+	float apply_accel_tilt_target = k * effective_accel * d->motor_data.accel_sign;
+	advance_interpolation(&d->setpoint_accel_based_interpolated, apply_accel_tilt_target, d->setpoint_accel_based_step_size);
+	d->setpoint += d->setpoint_accel_based_interpolated;
 }
 
 // candidate for removal. Don't touch it for now

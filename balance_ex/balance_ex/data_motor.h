@@ -18,6 +18,8 @@ typedef struct {
     float erpm_sma_last;
 
     float accel;
+    float accel_abs;
+    float accel_sign;
     float accel_last;
     float accel2;
 } DataMotor;
