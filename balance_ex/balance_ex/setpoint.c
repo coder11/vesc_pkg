@@ -69,7 +69,12 @@ void apply_tiltback(data *d) {
 }
 
 void apply_speed_tilt(data *d){
-	float apply_speed_tilt_target = d->setpoint_speed_based * d->erpm;
+	// TODO:: consider using sma value
+	float effective_erpm = d->motor_data.erpm_abs - d->balance_conf.setpoint_speed_based_deadzone;
+	clampf_min(&effective_erpm, 0);
+	effective_erpm = effective_erpm * d->motor_data.erpm_sign;
+
+	float apply_speed_tilt_target = d->setpoint_speed_based * effective_erpm;
 	advance_interpolation(&d->setpoint_speed_based_interpolated, apply_speed_tilt_target, d->setpoint_speed_based_step_size);
 	d->setpoint += d->setpoint_speed_based_interpolated;
 }

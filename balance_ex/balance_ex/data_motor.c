@@ -50,6 +50,9 @@ void data_motor_update(DataMotor *m) {
     m->erpm_sma = sum / m->erpm_sma_size;
     m->erpm_sma_buffer_ix = (m->erpm_sma_buffer_ix + 1) % m->erpm_sma_size;
 
+    m->erpm_sma_abs = fabsf(m->erpm_sma);
+    m->erpm_sma_sign = SIGN(m->erpm_sma);
+
     m->accel = m->erpm_sma - m->erpm_sma_last;
     m->accel2 = m->accel - m->accel_last;
 }

@@ -13,6 +13,8 @@ typedef struct {
     int erpm_sma_size;
     int erpm_sma_buffer_ix;
     float erpm_sma;
+    float erpm_sma_abs;
+    float erpm_sma_sign;
     float erpm_sma_last;
 
     float accel;
