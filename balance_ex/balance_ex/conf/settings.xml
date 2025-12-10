@@ -1585,6 +1585,7 @@ p, li { white-space: pre-wrap; }
                     <param>kexp</param>
                     <param>ki</param>
                     <param>kd</param>
+                    <param>pid2_deadzone</param>
                     <param>kp2</param>
                     <param>ki2</param>
                     <param>kd2</param>
