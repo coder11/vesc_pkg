@@ -36,6 +36,8 @@ void send_realtime_data(data *d) {
 	buffer_append_float32_auto(send_buffer, d->ui_data.voltage_lowpass_state, &ind);
 	buffer_append_float32_auto(send_buffer, d->ui_data.voltage_min, &ind);
 	buffer_append_float32_auto(send_buffer, d->ui_data.voltage_max, &ind);
+	buffer_append_float32_auto(send_buffer, d->motor_data.accel, &ind);
+	buffer_append_float32_auto(send_buffer, d->motor_data.accel2, &ind);
 	
 	VESC_IF->send_app_data(send_buffer, ind);
 }

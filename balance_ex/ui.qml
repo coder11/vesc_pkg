@@ -156,6 +156,8 @@ Item {
             var voltage = dv.getFloat32(ind); ind += 4;
             var voltage_min = dv.getFloat32(ind); ind += 4;
             var voltage_max = dv.getFloat32(ind); ind += 4;
+            var accel = dv.getFloat32(ind); ind += 4;
+            var accel2 = dv.getFloat32(ind); ind += 4;
             
             // Update motor current for gauge
             motorCurrent = Math.abs(motor_current)
@@ -216,12 +218,15 @@ Item {
             valText1.text =
                 "rpm: " + rpm.toFixed(1) + "\n" +
                 "speed: " + speed_kmh.toFixed(1) + "kmh\n" +
+                
                 "setpt: " + setpoint.toFixed(2) + "°\n" +
                 "pitch  : " + pitch.toFixed(2) + "°\n" +
                 "setp-pitch :" + (setpoint-pitch).toFixed(2) + "\n" +
                 "roll   : " + roll.toFixed(2) + "°\n" +
                 "Motor Load : " + motor_load.toFixed(5) + "\n" +
                 "Motor Accel Load : " + motor_accel_load.toFixed(5) + "\n" +
+                "accel: " + accel.toFixed(5) + "\n" +
+                "accel2: " + accel2.toFixed(5) + "\n" +
                 "state  : " + stateString + "\n" +
                 "tiltback: " + tiltbackString + "\n" +
                 "kill spin triggered: " + killSwitchTriggeredString;
