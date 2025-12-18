@@ -819,7 +819,7 @@ p, li { white-space: pre-wrap; }
             <minDouble>0</minDouble>
             <showDisplay>0</showDisplay>
             <stepDouble>2</stepDouble>
-            <valDouble>0</valDouble>
+            <valDouble>50</valDouble>
             <vTxDoubleScale>1000</vTxDoubleScale>
             <suffix> A</suffix>
             <vTx>9</vTx>
@@ -1357,13 +1357,13 @@ p, li { white-space: pre-wrap; }
             <editorDecimalsDouble>2</editorDecimalsDouble>
             <editorScale>1</editorScale>
             <editAsPercentage>0</editAsPercentage>
-            <maxDouble>10</maxDouble>
+            <maxDouble>1e+08</maxDouble>
             <minDouble>0</minDouble>
             <showDisplay>0</showDisplay>
             <stepDouble>0.01</stepDouble>
             <valDouble>0</valDouble>
             <vTxDoubleScale>1</vTxDoubleScale>
-            <suffix> °/1000 ERPM</suffix>
+            <suffix> ERPM</suffix>
             <vTx>9</vTx>
         </setpoint_speed_based_deadzone>
         <setpoint_accel_based_fwd>
