@@ -1,6 +1,7 @@
 #include "data.h"
 #include "data_motor.h"
 #include "data_ui.h"
+#include "setpoint.h"
 #include "util.h"
 #include "math.h"
 #include "pt1.h"
@@ -43,6 +44,7 @@ void reset_vars(data *d) {
 
 	ui_data_reset(d);
 	data_motor_reset(&d->motor_data);
+	setpoint_spring_reset(&d->setpoint_spring);
 }
 
 void configure(data *d) {
@@ -97,4 +99,5 @@ void configure(data *d) {
 	int erpm_sma_size = d->balance_conf.erpm_sma_size;
 	clamp(&erpm_sma_size, 1, ERPM_SMA_BUFFER_MAX_SIZE);
 	data_motor_configure(&d->motor_data, erpm_sma_size);
+	setpoint_spring_configure(&d->setpoint_spring, d->balance_conf.setpoint_spring_k, d->balance_conf.setpoint_spring_c);
 }

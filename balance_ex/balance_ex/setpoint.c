@@ -1,4 +1,6 @@
+#include "setpoint_spring.h"
 #include "setpoint.h"
+#include "data.h"
 #include "util.h"
 #include "biquad.h"
 #include "vesc_c_if.h"
@@ -176,7 +178,7 @@ void apply_turntilt(data *d) {
 	d->setpoint += d->turntilt_interpolated;
 }
 
-void setpoing_spring_reset(SetpointSpring *data) {
+void setpoint_spring_reset(SetpointSpring *data) {
 	data->x = 0;
 	data->a = 0;
 	data->v = 0;
@@ -185,14 +187,15 @@ void setpoing_spring_reset(SetpointSpring *data) {
 	data->f_user_abs = 0;
 }
 
-void setpoing_spring_configure(SetpointSpring *data) {
-	data->k = 1;
-	data->c = 2;
+void setpoint_spring_configure(SetpointSpring *data, float k, float c) {
+	data->k = k;
+	data->c = c;
 
-	data->f_deadzone = 1;
+	// zero for now
+	data->f_deadzone = 0;
 }
 
-void setpoing_spring_update(SetpointSpring *data) {
+void setpoint_spring_update(SetpointSpring *data) {
 	float f_eff = data->f_user_sign * max(data->f_user_abs - data->f_deadzone, 0);
 	float f_spring = data->k * data->x;
 	float f_damp = data->c * data->v;

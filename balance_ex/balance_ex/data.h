@@ -22,6 +22,7 @@
 #define DATA_H_
 
 #include "data_motor.h"
+#include "setpoint_spring.h"
 #include "vesc_c_if.h"
 #include "conf/datatypes.h"
 #include "biquad.h"
@@ -92,6 +93,8 @@ typedef struct {
 
 	// TODO:: remove variables (above) which are duplicates of motor data
 	DataMotor motor_data;
+
+	SetpointSpring setpoint_spring;
 
 	// Data for UI
 	UIData ui_data;
