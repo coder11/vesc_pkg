@@ -1,7 +1,7 @@
 #ifndef DATA_MOTOR_H
 #define DATA_MOTOR_H
 
-#define ERPM_SMA_BUFFER_MAX_SIZE 200
+#define ERPM_SMA_BUFFER_MAX_SIZE 1000
 
 typedef struct {
     float erpm;
@@ -28,7 +28,7 @@ typedef struct {
 
 void data_motor_reset(DataMotor *m);
 
-void data_motor_configure(DataMotor *m);
+void data_motor_configure(DataMotor *m, int erpm_sma_size);
 
 void data_motor_update(DataMotor *m);
 

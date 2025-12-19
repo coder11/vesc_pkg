@@ -1,6 +1,7 @@
 #include "data.h"
 #include "data_motor.h"
 #include "data_ui.h"
+#include "util.h"
 #include "math.h"
 #include "pt1.h"
 
@@ -92,5 +93,8 @@ void configure(data *d) {
 	d->filtered_loop_overshoot = 0.0;
 
 	ui_data_configure(d);
-	data_motor_configure(&d->motor_data);
+	
+	int erpm_sma_size = d->balance_conf.erpm_sma_size;
+	clamp(&erpm_sma_size, 1, ERPM_SMA_BUFFER_MAX_SIZE);
+	data_motor_configure(&d->motor_data, erpm_sma_size);
 }

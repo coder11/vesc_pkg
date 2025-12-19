@@ -99,6 +99,7 @@ typedef struct {
 	float setpoint_accel2_based_fwd;
 	float setpoint_accel2_based_bwd;
 	float setpoint_accel2_based_deadzone;
+	int erpm_sma_size;
 } balance_config;
 
 // DATATYPES_H_

@@ -17,4 +17,8 @@ void clampf(float *value, float min, float max);
 void clampf_min(float *value, float min);
 void clampf_max(float *value, float max);
 
+void clamp(int *value, int min, int max);
+void clamp_min(int *value, int min);
+void clamp_max(int *value, int max);
+
 #endif // BALANCE_EX_UTIL_H

@@ -25,8 +25,8 @@ void data_motor_reset(DataMotor *m) {
     m->accel2_sign = 0;
 }
 
-void data_motor_configure(DataMotor *m) {
-    m->erpm_sma_size = 40;
+void data_motor_configure(DataMotor *m, int erpm_sma_size) {
+    m->erpm_sma_size = erpm_sma_size;
     m->erpm_sma_buffer_ix = 0;
     m->erpm_sma = 0;
     m->erpm_sma_last = 0;
