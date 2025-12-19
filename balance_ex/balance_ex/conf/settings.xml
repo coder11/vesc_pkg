@@ -1628,7 +1628,6 @@ p, li { white-space: pre-wrap; }
                     <param>setpoint_max</param>
                     <param>setpoint_constant</param>
                     <param>::sep::Speed based</param>
-                    <param>setpoint_change_rate</param>
                     <param>setpoint_speed_based</param>
                     <param>setpoint_speed_based_deadzone</param>
                     <param>::sep::Accel based</param>

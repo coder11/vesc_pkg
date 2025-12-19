@@ -76,9 +76,7 @@ void apply_speed_tilt(data *d){
 
 	// Setting is per 1000 ERPM/s, convert to per ERPM/s
 	float k = d->balance_conf.setpoint_speed_based / 1000;
-	float apply_speed_tilt_target = k * effective_erpm;
-	advance_interpolation(&d->setpoint_speed_based_interpolated, apply_speed_tilt_target, d->setpoint_speed_based_step_size);
-	d->setpoint += d->setpoint_speed_based_interpolated;
+	d->setpoint += k * effective_erpm;
 }
 
 void apply_accel_tilt(data *d){
