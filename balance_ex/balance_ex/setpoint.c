@@ -176,3 +176,30 @@ void apply_turntilt(data *d) {
 	d->setpoint += d->turntilt_interpolated;
 }
 
+void setpoing_spring_reset(SetpointSpring *data) {
+	data->x = 0;
+	data->a = 0;
+	data->v = 0;
+	data->f_user = 0;
+	data->f_user_sign = 1;
+	data->f_user_abs = 0;
+}
+
+void setpoing_spring_configure(SetpointSpring *data) {
+	data->k = 1;
+	data->c = 2;
+
+	data->f_deadzone = 1;
+}
+
+void setpoing_spring_update(SetpointSpring *data) {
+	float f_eff = data->f_user_sign * max(data->f_user_abs - data->f_deadzone, 0);
+	float f_spring = data->k * data->x;
+	float f_damp = data->c * data->v;
+
+	data->a = f_eff - f_spring - f_damp;
+
+	// treat dt as 1 (the same way as in the balance loop)
+	data->v += data->a ;
+	data->x += data->v;
+}
