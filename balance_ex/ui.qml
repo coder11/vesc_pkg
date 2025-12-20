@@ -975,6 +975,34 @@ Item {
                     }
                 }
             }
+            
+            // Tab 3 - Setpoint
+            ColumnLayout {
+                id: setpointColumn
+                anchors.fill: parent
+                
+                ScrollView {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    clip: true
+                    
+                    ColumnLayout {
+                        Text {
+                            Layout.fillWidth: true
+                            color: Utility.getAppHexColor("lightText")
+                            horizontalAlignment: Text.AlignHCenter
+                            font.pointSize: 20
+                            text: "Setpoint things"
+                        }
+                        
+                        // Placeholder for setpoint controls
+                        Item {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                        }
+                    }
+                }
+            }
         }
         
         TabBar {
@@ -987,6 +1015,10 @@ Item {
             
             TabButton {
                 text: "Debug stuff"
+            }
+            
+            TabButton {
+                text: "setpoint"
             }
         }
     }
