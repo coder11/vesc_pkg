@@ -53,6 +53,7 @@ Item {
     property real tempMotor: 0.0
     property real setpointAngle: 0.0
     property real setpointSpringX: 0.0
+    property real setpointSpringV: 0.0
 
     // Gauge color utility: below safety margin = green,
     // above margin transitions green -> yellow -> red linearly
@@ -150,6 +151,7 @@ Item {
             var state = dv.getInt16(ind); ind += 2;
             var setpoint = dv.getFloat32(ind); ind += 4;
             var setpoint_spring_x = dv.getFloat32(ind); ind += 4;
+            var setpoint_spring_v = dv.getFloat32(ind); ind += 4;
             var motor_load = dv.getFloat32(ind); ind += 4;
             var motor_accel_load = dv.getFloat32(ind); ind += 4;
             var killSwitchTriggered = dv.getInt16(ind); ind += 2;
@@ -180,6 +182,8 @@ Item {
             setpointAngle = setpoint
             // Update setpoint spring x value
             setpointSpringX = setpoint_spring_x
+            // Update setpoint spring v value
+            setpointSpringV = setpoint_spring_v
             
             var stateString
             if (state == 0) {
@@ -1056,6 +1060,29 @@ Item {
                                     dv.setUint8(0, balanceCommandAdjustFUser)
                                     dv.setFloat32(1, forceValue, false) // littleEndian = false (big-endian)
                                     mCommands.sendCustomAppData(buffer)
+                                }
+                            }
+                            
+                            // Display v value
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 5
+                                
+                                Text {
+                                    Layout.fillWidth: true
+                                    horizontalAlignment: Text.AlignHCenter
+                                    color: Utility.getAppHexColor("lightText")
+                                    font.pixelSize: 20
+                                    font.weight: Font.Black
+                                    text: setpointSpringV.toFixed(4)
+                                }
+                                
+                                Text {
+                                    Layout.fillWidth: true
+                                    horizontalAlignment: Text.AlignHCenter
+                                    color: Utility.getAppHexColor("lightText")
+                                    font.pixelSize: 14
+                                    text: "v"
                                 }
                             }
                         }

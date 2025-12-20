@@ -99,5 +99,8 @@ void configure(data *d) {
 	int erpm_sma_size = d->balance_conf.erpm_sma_size;
 	clamp(&erpm_sma_size, 1, ERPM_SMA_BUFFER_MAX_SIZE);
 	data_motor_configure(&d->motor_data, erpm_sma_size);
-	setpoint_spring_configure(&d->setpoint_spring, d->balance_conf.setpoint_spring_k, d->balance_conf.setpoint_spring_c);
+	setpoint_spring_configure(&d->setpoint_spring, 
+		d->balance_conf.setpoint_spring_k, 
+		d->balance_conf.setpoint_spring_c,
+		d->loop_time_seconds);
 }

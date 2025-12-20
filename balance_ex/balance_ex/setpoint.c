@@ -180,32 +180,33 @@ void apply_turntilt(data *d) {
 
 void setpoint_spring_reset(SetpointSpring *data) {
 	data->x = 0.0;
-	data->a = 0.0;
 	data->v = 0.0;
 	data->f_user = 0.0;
 }
 
-void setpoint_spring_configure(SetpointSpring *data, float k, float c) {
+void setpoint_spring_configure(SetpointSpring *data, float k, float c, float dt) {
 	data->k = k;
 	data->c = c;
+	data->dt = dt;
 
 	// zero for now
 	data->f_deadzone = 0.0;
 }
 
 void setpoint_spring_update(SetpointSpring *data) {
+	const float dt = data->dt;
+
 	float f_user_abs = fabsf(data->f_user);
 	float f_user_sign = SIGN(data->f_user);
 
 	float f_eff = f_user_sign * max(f_user_abs - data->f_deadzone, 0);
 	float f_spring = data->k * data->x;
-	float f_damp = data->c * data->v;
 
-	data->a = f_eff - f_spring - f_damp;
+    // Implicit damping velocity update to prevent high damping pushing in reverse.
+    // derived from:
+	// v_{n+1} = v_n + dt(f_eff - f_spring - v_{n+1} * c)
+    data->v = (data->v + dt * (f_eff - f_spring)) / (1.0f + dt * data->c);
 
-	// treat dt as 1 (the same way as in the balance loop)
-	data->v += data->a;
-	data->x += data->v;
-
-	clampf(&data->x, -50, 50);
+    // Semi-implicit position update
+    data->x += dt * data->v;
 }
