@@ -50,6 +50,7 @@ Item {
     property real maxMotorCurrent: mMcConf ? mMcConf.getParamDouble("l_current_max") : 100.0
     property real tempFet: 0.0
     property real tempMotor: 0.0
+    property real setpointAngle: 0.0
 
     // Gauge color utility: below safety margin = green,
     // above margin transitions green -> yellow -> red linearly
@@ -171,6 +172,9 @@ Item {
                 voltageGauge.maxVoltage = voltage_max
             }
             batteryVoltage = voltage
+            
+            // Update setpoint angle
+            setpointAngle = setpoint
             
             var stateString
             if (state == 0) {
@@ -987,6 +991,9 @@ Item {
                     clip: true
                     
                     ColumnLayout {
+                        spacing: 20
+                        Layout.margins: 20
+                        
                         Text {
                             Layout.fillWidth: true
                             color: Utility.getAppHexColor("lightText")
@@ -995,7 +1002,105 @@ Item {
                             text: "Setpoint things"
                         }
                         
-                        // Placeholder for setpoint controls
+                        // Setpoint tilt indicator
+                        Rectangle {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 300
+                            Layout.alignment: Qt.AlignHCenter
+                            color: Utility.getAppHexColor("darkBackground")
+                            border.color: Utility.getAppHexColor("lightText")
+                            border.width: 2
+                            radius: 10
+                            
+                            // Horizontal reference line (zero position)
+                            Rectangle {
+                                id: zeroLine
+                                anchors.centerIn: parent
+                                width: parent.width - 40
+                                height: 2
+                                color: Utility.getAppHexColor("lightText")
+                                opacity: 0.5
+                            }
+                            
+                            // Tilt indicator line (rotates based on setpoint angle)
+                            Rectangle {
+                                id: tiltLine
+                                x: parent.width / 2 - width / 2
+                                y: parent.height / 2 - height / 2
+                                width: parent.width - 40
+                                height: 3
+                                color: setpointAngle > 0 ? Qt.rgba(0.0, 0.8, 0.0, 1.0) : Qt.rgba(0.8, 0.0, 0.0, 1.0)
+                                
+                                transform: Rotation {
+                                    origin.x: tiltLine.width / 2
+                                    origin.y: tiltLine.height / 2
+                                    angle: setpointAngle
+                                }
+                                
+                                Behavior on color {
+                                    ColorAnimation {
+                                        duration: 200
+                                    }
+                                }
+                            }
+                            
+                            // Center dot
+                            Rectangle {
+                                anchors.centerIn: parent
+                                width: 8
+                                height: 8
+                                radius: 4
+                                color: Utility.getAppHexColor("lightText")
+                            }
+                            
+                            // Angle markers (every 5 degrees)
+                            Repeater {
+                                model: 37 // -90 to +90 degrees, every 5 degrees
+                                
+                                Rectangle {
+                                    property real markerAngle: (index - 18) * 5 // -90 to +90
+                                    property real markerLength: Math.abs(markerAngle) < 10 ? 20 : 15
+                                    property real markerWidth: Math.abs(markerAngle) < 10 ? 2 : 1
+                                    
+                                    x: parent.width / 2 - markerWidth / 2
+                                    y: parent.height / 2 - markerLength / 2
+                                    width: markerWidth
+                                    height: markerLength
+                                    color: Utility.getAppHexColor("lightText")
+                                    opacity: Math.abs(markerAngle) % 10 === 0 ? 0.8 : 0.4
+                                    
+                                    transform: Rotation {
+                                        origin.x: markerWidth / 2
+                                        origin.y: markerLength / 2
+                                        angle: markerAngle
+                                    }
+                                }
+                            }
+                            
+                            // Angle value display
+                            Text {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                anchors.top: parent.top
+                                anchors.topMargin: 20
+                                color: Utility.getAppHexColor("lightText")
+                                text: setpointAngle.toFixed(2) + "°"
+                                font.pixelSize: 32
+                                font.weight: Font.Black
+                            }
+                            
+                            // Direction label
+                            Text {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                anchors.bottom: parent.bottom
+                                anchors.bottomMargin: 20
+                                color: Utility.getAppHexColor("lightText")
+                                text: setpointAngle > 0 ? "Upward" : setpointAngle < 0 ? "Downward" : "Level"
+                                font.pixelSize: 18
+                                font.weight: Font.Bold
+                            }
+                        }
+                        
+                        // Spacer
                         Item {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
