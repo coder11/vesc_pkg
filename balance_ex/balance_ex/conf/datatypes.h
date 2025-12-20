@@ -103,6 +103,7 @@ typedef struct {
 
 	float setpoint_spring_k;
 	float setpoint_spring_c;
+	float setpoint_spring_deadzone;
 } balance_config;
 
 // DATATYPES_H_

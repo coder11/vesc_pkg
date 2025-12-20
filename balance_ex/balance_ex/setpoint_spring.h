@@ -14,7 +14,7 @@ typedef struct {
 
 void setpoint_spring_reset(SetpointSpring *m);
 
-void setpoint_spring_configure(SetpointSpring *m, float k, float c, float dt);
+void setpoint_spring_configure(SetpointSpring *data, float k, float c, float f_deadzone, float dt);
 
 void setpoint_spring_update(SetpointSpring *m);
 

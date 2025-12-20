@@ -184,13 +184,11 @@ void setpoint_spring_reset(SetpointSpring *data) {
 	data->f_user = 0.0;
 }
 
-void setpoint_spring_configure(SetpointSpring *data, float k, float c, float dt) {
+void setpoint_spring_configure(SetpointSpring *data, float k, float c, float f_deadzone, float dt) {
 	data->k = k;
 	data->c = c;
 	data->dt = dt;
-
-	// zero for now
-	data->f_deadzone = 0.0;
+	data->f_deadzone = f_deadzone;
 }
 
 void setpoint_spring_update(SetpointSpring *data) {

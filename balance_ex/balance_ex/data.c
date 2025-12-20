@@ -102,5 +102,6 @@ void configure(data *d) {
 	setpoint_spring_configure(&d->setpoint_spring, 
 		d->balance_conf.setpoint_spring_k, 
 		d->balance_conf.setpoint_spring_c,
+		d->balance_conf.setpoint_spring_deadzone,
 		d->loop_time_seconds);
 }
