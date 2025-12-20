@@ -1004,19 +1004,19 @@ Item {
                         
                         // Setpoint tilt indicator
                         Rectangle {
-                            Layout.fillWidth: true
+                            Layout.preferredWidth: 300
                             Layout.preferredHeight: 300
                             Layout.alignment: Qt.AlignHCenter
                             color: Utility.getAppHexColor("darkBackground")
                             border.color: Utility.getAppHexColor("lightText")
                             border.width: 2
-                            radius: 10
+                            radius: width / 2
                             
                             // Horizontal reference line (zero position)
                             Rectangle {
                                 id: zeroLine
                                 anchors.centerIn: parent
-                                width: parent.width - 40
+                                width: parent.width * 0.85
                                 height: 2
                                 color: Utility.getAppHexColor("lightText")
                                 opacity: 0.5
@@ -1027,7 +1027,7 @@ Item {
                                 id: tiltLine
                                 x: parent.width / 2 - width / 2
                                 y: parent.height / 2 - height / 2
-                                width: parent.width - 40
+                                width: parent.width * 0.85
                                 height: 3
                                 color: setpointAngle > 0 ? Qt.rgba(0.0, 0.8, 0.0, 1.0) : Qt.rgba(0.8, 0.0, 0.0, 1.0)
                                 
@@ -1094,7 +1094,7 @@ Item {
                                 anchors.bottom: parent.bottom
                                 anchors.bottomMargin: 20
                                 color: Utility.getAppHexColor("lightText")
-                                text: setpointAngle > 0 ? "Upward" : setpointAngle < 0 ? "Downward" : "Level"
+                                text: setpointAngle > 0 ? "Upward" : setpointAngle < 0 ? "Downward" : ""
                                 font.pixelSize: 18
                                 font.weight: Font.Bold
                             }
