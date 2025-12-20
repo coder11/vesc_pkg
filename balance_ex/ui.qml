@@ -1012,53 +1012,50 @@ Item {
                         }
                         
                         // Force adjustment controls
-                        ColumnLayout {
+                        RowLayout {
                             Layout.fillWidth: true
                             spacing: 10
                             
-                            // Force value input
-                            RowLayout {
-                                Layout.fillWidth: true
-                                spacing: 10
-                                
-                                Text {
-                                    color: Utility.getAppHexColor("lightText")
-                                    text: "Force Value:"
-                                    Layout.preferredWidth: 120
-                                }
-                                
-                                TextField {
-                                    id: forceValueInput
-                                    Layout.fillWidth: true
-                                    placeholderText: "10000"
-                                    text: "10000"
-                                    validator: DoubleValidator {
-                                        bottom: -10000.0
-                                        top: 10000.0
-                                    }
-                                }
+                            Text {
+                                color: Utility.getAppHexColor("lightText")
+                                text: "Force: "
                             }
                             
-                            // Toggle button for applying/releasing force
-                            Button {
-                                id: forceToggleButton
+                            TextField {
+                                id: forceValueInput
                                 Layout.fillWidth: true
-                                checkable: true
-                                text: checked ? "release" : "apply"
-                                
-                                background: Rectangle {
-                                    color: forceToggleButton.checked ? Qt.rgba(0.8, 0.0, 0.0, 1.0) : "transparent"
-                                    border.color: forceToggleButton.checked ? Qt.rgba(0.9, 0.0, 0.0, 1.0) : Utility.getAppHexColor("lightText")
-                                    border.width: 1
-                                    radius: 4
+                                placeholderText: "10000"
+                                text: "10000"
+                                validator: DoubleValidator {
+                                    bottom: -10000.0
+                                    top: 10000.0
                                 }
+                                Layout.preferredWidth: 80
+                            }
+                            
+                            // Apply button
+                            Button {
+                                text: "Apply"
                                 
-                                onToggled: {
-                                    var forceValue = checked ? (parseFloat(forceValueInput.text) || 0.0) : 0.0
+                                onClicked: {
+                                    var forceValue = parseFloat(forceValueInput.text) || 0.0
                                     var buffer = new ArrayBuffer(5) // 1 byte command + 4 bytes float32
                                     var dv = new DataView(buffer)
                                     dv.setUint8(0, balanceCommandAdjustFUser)
                                     dv.setFloat32(1, forceValue, false) // littleEndian = false (big-endian)
+                                    mCommands.sendCustomAppData(buffer)
+                                }
+                            }
+                            
+                            // Release button
+                            Button {
+                                text: "Release"
+                                
+                                onClicked: {
+                                    var buffer = new ArrayBuffer(5) // 1 byte command + 4 bytes float32
+                                    var dv = new DataView(buffer)
+                                    dv.setUint8(0, balanceCommandAdjustFUser)
+                                    dv.setFloat32(1, 0.0, false) // littleEndian = false (big-endian)
                                     mCommands.sendCustomAppData(buffer)
                                 }
                             }
