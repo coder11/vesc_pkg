@@ -86,6 +86,7 @@ typedef struct {
 	// Runtime values read from elsewhere
 	float pitch_angle, last_pitch_angle, roll_angle, abs_roll_angle, abs_roll_angle_sin, last_gyro_y;
 	float gyro[3];
+	float accelerometer[3];
 	float duty_cycle, abs_duty_cycle;
 	float erpm, abs_erpm, last_erpm;
 	float motor_current;

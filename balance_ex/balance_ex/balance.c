@@ -186,6 +186,7 @@ void balance_loop_tick(data *d) {
     d->abs_roll_angle = fabsf(d->roll_angle);
     d->abs_roll_angle_sin = sinf(DEG2RAD_f(d->abs_roll_angle));
     VESC_IF->imu_get_gyro(d->gyro);
+	VESC_IF->imu_get_accel(d->accelerometer);
     d->duty_cycle = VESC_IF->mc_get_duty_cycle_now();
     d->abs_duty_cycle = fabsf(d->duty_cycle);
     d->erpm = VESC_IF->mc_get_rpm();
@@ -240,7 +241,15 @@ void balance_loop_tick(data *d) {
 			apply_speed_tilt(d);
 			apply_accel_tilt(d);
 			apply_accel2_tilt(d);
-            apply_torquetilt(d);
+			
+			// new spring-based mechanic for setpoint
+			apply_spring_impact(d);
+			setpoint_spring_update(&d->setpoint_spring);
+			clampf(&d->setpoint_spring.x, d->balance_conf.setpoint_min, d->balance_conf.setpoint_max);		
+			d->setpoint += d->setpoint_spring.x;
+            // end 
+			
+			apply_torquetilt(d);
             apply_turntilt(d);
 			clampf(&d->setpoint, d->balance_conf.setpoint_min, d->balance_conf.setpoint_max);
 
@@ -274,10 +283,6 @@ void balance_loop_tick(data *d) {
             break;
         }
     }
-
-	// do it outside the loop for debugging purposes
-	setpoint_spring_update(&d->setpoint_spring);
-	clampf(&d->setpoint_spring.x, d->balance_conf.setpoint_min, d->balance_conf.setpoint_max);
 
     // Delay between loops
     VESC_IF->sleep_us((uint32_t)((d->loop_time_seconds - roundf(d->filtered_loop_overshoot)) * 1000000.0));

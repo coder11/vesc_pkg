@@ -209,3 +209,11 @@ void setpoint_spring_update(SetpointSpring *data) {
     // Semi-implicit position update
     data->x += data->dt * data->v;
 }
+
+void apply_spring_impact(data *d){
+	float rpm_accel = d->balance_conf.setpoint_rpm_accel_impact * d->motor_data.accel;
+	float rpm_accel2 = d->balance_conf.setpoint_rpm_accel2_impact * d->motor_data.accel2;
+	float accel = d->balance_conf.setpoint_accel_impact * d->accelerometer[0]; // accelerometer x
+	
+	d->setpoint_spring.f_external = rpm_accel + rpm_accel2 + accel;
+}
