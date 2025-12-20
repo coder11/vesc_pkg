@@ -206,4 +206,6 @@ void setpoint_spring_update(SetpointSpring *data) {
 	// treat dt as 1 (the same way as in the balance loop)
 	data->v += data->a;
 	data->x += data->v;
+
+	clampf(&data->x, -50, 50);
 }

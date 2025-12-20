@@ -1007,33 +1007,54 @@ Item {
                             text: "Setpoint things"
                         }
                         
-                        // Force adjustment buttons
-                        RowLayout {
+                        // Force adjustment controls
+                        ColumnLayout {
                             Layout.fillWidth: true
                             spacing: 10
                             
-                            Button {
+                            // Force value input
+                            RowLayout {
                                 Layout.fillWidth: true
-                                text: "<< force"
+                                spacing: 10
                                 
-                                onClicked: {
-                                    var buffer = new ArrayBuffer(5) // 1 byte command + 4 bytes float32
-                                    var dv = new DataView(buffer)
-                                    dv.setUint8(0, balanceCommandAdjustFUser)
-                                    dv.setFloat32(1, -0.001, false) // littleEndian = false (big-endian), negative value
-                                    mCommands.sendCustomAppData(buffer)
+                                Text {
+                                    color: Utility.getAppHexColor("lightText")
+                                    text: "Force Value:"
+                                    Layout.preferredWidth: 120
+                                }
+                                
+                                TextField {
+                                    id: forceValueInput
+                                    Layout.fillWidth: true
+                                    placeholderText: "0.001"
+                                    text: "0.001"
+                                    validator: DoubleValidator {
+                                        bottom: -1000.0
+                                        top: 1000.0
+                                    }
                                 }
                             }
                             
+                            // Toggle button for applying/releasing force
                             Button {
+                                id: forceToggleButton
                                 Layout.fillWidth: true
-                                text: "force >>"
+                                checkable: true
+                                text: checked ? "release" : "apply"
                                 
-                                onClicked: {
+                                background: Rectangle {
+                                    color: forceToggleButton.checked ? Qt.rgba(0.8, 0.0, 0.0, 1.0) : "transparent"
+                                    border.color: forceToggleButton.checked ? Qt.rgba(0.9, 0.0, 0.0, 1.0) : Utility.getAppHexColor("lightText")
+                                    border.width: 1
+                                    radius: 4
+                                }
+                                
+                                onToggled: {
+                                    var forceValue = checked ? (parseFloat(forceValueInput.text) || 0.0) : 0.0
                                     var buffer = new ArrayBuffer(5) // 1 byte command + 4 bytes float32
                                     var dv = new DataView(buffer)
                                     dv.setUint8(0, balanceCommandAdjustFUser)
-                                    dv.setFloat32(1, 0.001, false) // littleEndian = false (big-endian), positive value
+                                    dv.setFloat32(1, forceValue, false) // littleEndian = false (big-endian)
                                     mCommands.sendCustomAppData(buffer)
                                 }
                             }
