@@ -1029,7 +1029,7 @@ Item {
                                 y: parent.height / 2 - height / 2
                                 width: parent.width * 0.85
                                 height: 3
-                                color: setpointAngle > 0 ? Qt.rgba(0.0, 0.8, 0.0, 1.0) : Qt.rgba(0.8, 0.0, 0.0, 1.0)
+                                color: setpointAngle > 0 ? Qt.rgba(0.8, 0.0, 0.0, 1.0) : Qt.rgba(0.0, 0.8, 0.0, 1.0)
                                 
                                 transform: Rotation {
                                     origin.x: tiltLine.width / 2
