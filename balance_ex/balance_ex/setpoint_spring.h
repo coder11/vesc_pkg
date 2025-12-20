@@ -5,7 +5,6 @@ typedef struct {
 	// state
     float x, v, a;    // spring end coordinate, speed, acceleration
     float f_user;     // "force" applied to stream
-    float f_user_sign, f_user_abs;
     
     // config
     float k, c;       // spring stiffness and damping

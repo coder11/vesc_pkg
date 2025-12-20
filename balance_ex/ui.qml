@@ -41,6 +41,7 @@ Item {
     
     readonly property int balanceCommandGetRealtimeData: 0x01
     readonly property int balanceCommandTriggerKillspin: 0x02
+    readonly property int balanceCommandAdjustFUser: 0x03
     
     // Gauge values
     property real dutyCycle: 0.0
@@ -1004,6 +1005,38 @@ Item {
                             horizontalAlignment: Text.AlignHCenter
                             font.pointSize: 20
                             text: "Setpoint things"
+                        }
+                        
+                        // Force adjustment buttons
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 10
+                            
+                            Button {
+                                Layout.fillWidth: true
+                                text: "<< force"
+                                
+                                onClicked: {
+                                    var buffer = new ArrayBuffer(5) // 1 byte command + 4 bytes float32
+                                    var dv = new DataView(buffer)
+                                    dv.setUint8(0, balanceCommandAdjustFUser)
+                                    dv.setFloat32(1, -0.001, false) // littleEndian = false (big-endian), negative value
+                                    mCommands.sendCustomAppData(buffer)
+                                }
+                            }
+                            
+                            Button {
+                                Layout.fillWidth: true
+                                text: "force >>"
+                                
+                                onClicked: {
+                                    var buffer = new ArrayBuffer(5) // 1 byte command + 4 bytes float32
+                                    var dv = new DataView(buffer)
+                                    dv.setUint8(0, balanceCommandAdjustFUser)
+                                    dv.setFloat32(1, 0.001, false) // littleEndian = false (big-endian), positive value
+                                    mCommands.sendCustomAppData(buffer)
+                                }
+                            }
                         }
                         
                         // Setpoint tilt indicator

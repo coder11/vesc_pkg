@@ -3,6 +3,7 @@
 #include "balance.h"
 #include "fault.h"
 #include "conf/buffer.h"
+#include "setpoint_spring.h"
 
 bool is_killspin_engaged(data *d) {
 	return d->state == KILLSPIN;
@@ -50,6 +51,12 @@ void on_command_recieved(data* d, unsigned char *buffer, unsigned int len) {
 			send_realtime_data(d);
 		} else if(command == BALANCE_COMMAND_TRIGGER_KILLSPIN) {
 			trigger_killspin(d);
+		} else if(command == BALANCE_COMMAND_ADJUST_F_USER) {
+			if(len >= 5) { // 1 byte command + 4 bytes float32
+				int32_t ind = 1; // Skip command byte
+				float value = buffer_get_float32_auto(buffer, &ind);
+				d->setpoint_spring.f_user += value;
+			}
 		} else {
 			VESC_IF->printf("Unknown command received %d", command);
 		}

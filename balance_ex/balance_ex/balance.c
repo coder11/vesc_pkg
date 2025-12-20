@@ -200,6 +200,9 @@ void balance_loop_tick(data *d) {
         d->adc2 = 0.0;
     }
 
+	// do it outside the loop for debugging purposes
+	setpoint_spring_update(&d->setpoint_spring);
+
     if(d->balance_conf.balance_enabled) {
         // Control Loop State Logic
         switch(d->state) {
