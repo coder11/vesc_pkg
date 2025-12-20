@@ -1012,51 +1012,56 @@ Item {
                         }
                         
                         // Force adjustment controls
-                        RowLayout {
+                        ColumnLayout {
                             Layout.fillWidth: true
                             spacing: 10
                             
-                            Text {
-                                color: Utility.getAppHexColor("lightText")
-                                text: "Force: "
-                            }
-                            
-                            TextField {
-                                id: forceValueInput
+                            RowLayout {
                                 Layout.fillWidth: true
-                                placeholderText: "10000"
-                                text: "10000"
-                                validator: DoubleValidator {
-                                    bottom: -10000.0
-                                    top: 10000.0
-                                }
-                                Layout.preferredWidth: 80
-                            }
-                            
-                            // Apply button
-                            Button {
-                                text: "Apply"
+                                spacing: 10
                                 
-                                onClicked: {
-                                    var forceValue = parseFloat(forceValueInput.text) || 0.0
-                                    var buffer = new ArrayBuffer(5) // 1 byte command + 4 bytes float32
-                                    var dv = new DataView(buffer)
-                                    dv.setUint8(0, balanceCommandAdjustFUser)
-                                    dv.setFloat32(1, forceValue, false) // littleEndian = false (big-endian)
-                                    mCommands.sendCustomAppData(buffer)
+                                Text {
+                                    color: Utility.getAppHexColor("lightText")
+                                    text: "Force: "
                                 }
-                            }
-                            
-                            // Release button
-                            Button {
-                                text: "Release"
                                 
-                                onClicked: {
-                                    var buffer = new ArrayBuffer(5) // 1 byte command + 4 bytes float32
-                                    var dv = new DataView(buffer)
-                                    dv.setUint8(0, balanceCommandAdjustFUser)
-                                    dv.setFloat32(1, 0.0, false) // littleEndian = false (big-endian)
-                                    mCommands.sendCustomAppData(buffer)
+                                TextField {
+                                    id: forceValueInput
+                                    Layout.fillWidth: true
+                                    placeholderText: "10000"
+                                    text: "10000"
+                                    validator: DoubleValidator {
+                                        bottom: -10000.0
+                                        top: 10000.0
+                                    }
+                                    Layout.preferredWidth: 80
+                                }
+                                
+                                // Apply button
+                                Button {
+                                    text: "Apply"
+                                    
+                                    onClicked: {
+                                        var forceValue = parseFloat(forceValueInput.text) || 0.0
+                                        var buffer = new ArrayBuffer(5) // 1 byte command + 4 bytes float32
+                                        var dv = new DataView(buffer)
+                                        dv.setUint8(0, balanceCommandAdjustFUser)
+                                        dv.setFloat32(1, forceValue, false) // littleEndian = false (big-endian)
+                                        mCommands.sendCustomAppData(buffer)
+                                    }
+                                }
+                                
+                                // Release button
+                                Button {
+                                    text: "Release"
+                                    
+                                    onClicked: {
+                                        var buffer = new ArrayBuffer(5) // 1 byte command + 4 bytes float32
+                                        var dv = new DataView(buffer)
+                                        dv.setUint8(0, balanceCommandAdjustFUser)
+                                        dv.setFloat32(1, 0.0, false) // littleEndian = false (big-endian)
+                                        mCommands.sendCustomAppData(buffer)
+                                    }
                                 }
                             }
                             
