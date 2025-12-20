@@ -202,6 +202,7 @@ void balance_loop_tick(data *d) {
 
 	// do it outside the loop for debugging purposes
 	setpoint_spring_update(&d->setpoint_spring);
+	clampf(&d->setpoint_spring.x, d->balance_conf.setpoint_min, d->balance_conf.setpoint_max);
 
     if(d->balance_conf.balance_enabled) {
         // Control Loop State Logic

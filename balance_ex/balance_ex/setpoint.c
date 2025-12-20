@@ -199,7 +199,8 @@ void setpoint_spring_update(SetpointSpring *data) {
 	float f_user_abs = fabsf(data->f_user);
 	float f_user_sign = SIGN(data->f_user);
 
-	float f_eff = f_user_sign * max(f_user_abs - data->f_deadzone, 0);
+	// negate the value because we want "positive force" to tilt setpoint downards
+	float f_eff = -f_user_sign * max(f_user_abs - data->f_deadzone, 0);
 	float f_spring = data->k * data->x;
 
     // Implicit damping velocity update to prevent high damping pushing in reverse.

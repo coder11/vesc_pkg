@@ -1030,11 +1030,11 @@ Item {
                                 TextField {
                                     id: forceValueInput
                                     Layout.fillWidth: true
-                                    placeholderText: "0.001"
-                                    text: "0.001"
+                                    placeholderText: "10000"
+                                    text: "10000"
                                     validator: DoubleValidator {
-                                        bottom: -1000.0
-                                        top: 1000.0
+                                        bottom: -10000.0
+                                        top: 10000.0
                                     }
                                 }
                             }
