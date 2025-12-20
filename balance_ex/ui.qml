@@ -51,6 +51,7 @@ Item {
     property real tempFet: 0.0
     property real tempMotor: 0.0
     property real setpointAngle: 0.0
+    property real setpointSpringX: 0.0
 
     // Gauge color utility: below safety margin = green,
     // above margin transitions green -> yellow -> red linearly
@@ -147,6 +148,7 @@ Item {
             var motor_current = dv.getFloat32(ind); ind += 4;
             var state = dv.getInt16(ind); ind += 2;
             var setpoint = dv.getFloat32(ind); ind += 4;
+            var setpoint_spring_x = dv.getFloat32(ind); ind += 4;
             var motor_load = dv.getFloat32(ind); ind += 4;
             var motor_accel_load = dv.getFloat32(ind); ind += 4;
             var killSwitchTriggered = dv.getInt16(ind); ind += 2;
@@ -175,6 +177,8 @@ Item {
             
             // Update setpoint angle
             setpointAngle = setpoint
+            // Update setpoint spring x value
+            setpointSpringX = setpoint_spring_x
             
             var stateString
             if (state == 0) {
@@ -1022,19 +1026,19 @@ Item {
                                 opacity: 0.5
                             }
                             
-                            // Tilt indicator line (rotates based on setpoint angle)
+                            // Tilt indicator line (rotates based on setpoint spring x value)
                             Rectangle {
                                 id: tiltLine
                                 x: parent.width / 2 - width / 2
                                 y: parent.height / 2 - height / 2
                                 width: parent.width * 0.85
                                 height: 3
-                                color: setpointAngle > 0 ? Qt.rgba(0.8, 0.0, 0.0, 1.0) : Qt.rgba(0.0, 0.8, 0.0, 1.0)
+                                color: setpointSpringX > 0 ? Qt.rgba(0.8, 0.0, 0.0, 1.0) : Qt.rgba(0.0, 0.8, 0.0, 1.0)
                                 
                                 transform: Rotation {
                                     origin.x: tiltLine.width / 2
                                     origin.y: tiltLine.height / 2
-                                    angle: setpointAngle
+                                    angle: setpointSpringX
                                 }
                                 
                                 Behavior on color {
@@ -1083,7 +1087,7 @@ Item {
                                 anchors.top: parent.top
                                 anchors.topMargin: 20
                                 color: Utility.getAppHexColor("lightText")
-                                text: setpointAngle.toFixed(2) + "°"
+                                text: setpointSpringX.toFixed(2) + "°"
                                 font.pixelSize: 32
                                 font.weight: Font.Black
                             }
@@ -1094,7 +1098,7 @@ Item {
                                 anchors.bottom: parent.bottom
                                 anchors.bottomMargin: 20
                                 color: Utility.getAppHexColor("lightText")
-                                text: setpointAngle > 0 ? "Upward" : setpointAngle < 0 ? "Downward" : ""
+                                text: setpointSpringX > 0 ? "Upward" : setpointSpringX < 0 ? "Downward" : ""
                                 font.pixelSize: 18
                                 font.weight: Font.Bold
                             }

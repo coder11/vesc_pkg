@@ -26,6 +26,7 @@ void send_realtime_data(data *d) {
 	buffer_append_float32_auto(send_buffer, d->motor_current, &ind);
 	buffer_append_uint16(send_buffer, d->state, &ind);
 	buffer_append_float32_auto(send_buffer, d->setpoint, &ind);
+	buffer_append_float32_auto(send_buffer, d->setpoint_spring.x, &ind);
 	buffer_append_float32_auto(send_buffer, d->ui_data.motor_load_lowpass_state, &ind);
 	buffer_append_float32_auto(send_buffer, d->ui_data.motor_accel_load_lowpass_state, &ind);
 	buffer_append_uint16(send_buffer, is_killspin_engaged(d), &ind);
