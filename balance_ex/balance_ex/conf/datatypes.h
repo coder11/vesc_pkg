@@ -104,6 +104,10 @@ typedef struct {
 	float setpoint_spring_k;
 	float setpoint_spring_c;
 	float setpoint_spring_deadzone;
+
+	float setpoint_accel_impact;
+	float setpoint_rpm_accel_impact;
+	float setpoint_rpm_accel2_impact;
 } balance_config;
 
 // DATATYPES_H_

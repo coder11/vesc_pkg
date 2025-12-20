@@ -182,6 +182,7 @@ void setpoint_spring_reset(SetpointSpring *data) {
 	data->x = 0.0;
 	data->v = 0.0;
 	data->f_user = 0.0;
+	data->f_external = 0.0;
 }
 
 void setpoint_spring_configure(SetpointSpring *data, float k, float c, float f_deadzone, float dt) {
@@ -192,20 +193,19 @@ void setpoint_spring_configure(SetpointSpring *data, float k, float c, float f_d
 }
 
 void setpoint_spring_update(SetpointSpring *data) {
-	const float dt = data->dt;
-
-	float f_user_abs = fabsf(data->f_user);
-	float f_user_sign = SIGN(data->f_user);
+	float f = data->f_user + data->f_external;
+	float f_abs = fabsf(f);
+	float f_sign = SIGN(f);
 
 	// negate the value because we want "positive force" to tilt setpoint downards
-	float f_eff = -f_user_sign * max(f_user_abs - data->f_deadzone, 0);
+	float f_eff = -f_sign * max(f_abs - data->f_deadzone, 0);
 	float f_spring = data->k * data->x;
 
     // Implicit damping velocity update to prevent high damping pushing in reverse.
     // derived from:
 	// v_{n+1} = v_n + dt(f_eff - f_spring - v_{n+1} * c)
-    data->v = (data->v + dt * (f_eff - f_spring)) / (1.0f + dt * data->c);
+    data->v = (data->v + data->dt * (f_eff - f_spring)) / (1.0f + data->dt * data->c);
 
     // Semi-implicit position update
-    data->x += dt * data->v;
+    data->x += data->dt * data->v;
 }

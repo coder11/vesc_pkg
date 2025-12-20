@@ -4,7 +4,8 @@
 typedef struct {
 	// state
     float x, v;       // spring end coordinate, speed
-    float f_user;     // external "force" applied to string
+    float f_external; // external "force" applied to string
+    float f_user;     // "debug" force to test tilt from ui
     
     // config
     float dt;         // time constant between loop ticks

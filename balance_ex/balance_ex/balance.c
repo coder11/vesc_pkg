@@ -200,10 +200,6 @@ void balance_loop_tick(data *d) {
         d->adc2 = 0.0;
     }
 
-	// do it outside the loop for debugging purposes
-	setpoint_spring_update(&d->setpoint_spring);
-	clampf(&d->setpoint_spring.x, d->balance_conf.setpoint_min, d->balance_conf.setpoint_max);
-
     if(d->balance_conf.balance_enabled) {
         // Control Loop State Logic
         switch(d->state) {
@@ -278,6 +274,10 @@ void balance_loop_tick(data *d) {
             break;
         }
     }
+
+	// do it outside the loop for debugging purposes
+	setpoint_spring_update(&d->setpoint_spring);
+	clampf(&d->setpoint_spring.x, d->balance_conf.setpoint_min, d->balance_conf.setpoint_max);
 
     // Delay between loops
     VESC_IF->sleep_us((uint32_t)((d->loop_time_seconds - roundf(d->filtered_loop_overshoot)) * 1000000.0));
