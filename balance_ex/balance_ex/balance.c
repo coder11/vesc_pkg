@@ -239,11 +239,11 @@ void balance_loop_tick(data *d) {
 			// apply various setpoint adjustments
 			d->setpoint = d->center_target;
 			apply_speed_tilt(d);
-			apply_accel_tilt(d);
-			apply_accel2_tilt(d);
 			
 			// new spring-based mechanic for setpoint
-			apply_spring_impact(d);
+			d->setpoint_spring.f_external = 0;
+			apply_accel_tilt(d);
+			apply_accel2_tilt(d);
 			setpoint_spring_update(&d->setpoint_spring);
 			clampf(&d->setpoint_spring.x, d->balance_conf.setpoint_min, d->balance_conf.setpoint_max);		
 			d->setpoint += d->setpoint_spring.x;

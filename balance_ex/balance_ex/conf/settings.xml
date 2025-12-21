@@ -1376,13 +1376,13 @@ p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Roboto'; ; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;TODO&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
             <cDefine>APPCONF_SETPOINT_ACCEL_BASED_FWD</cDefine>
-            <editorDecimalsDouble>2</editorDecimalsDouble>
+            <editorDecimalsDouble>0</editorDecimalsDouble>
             <editorScale>1</editorScale>
             <editAsPercentage>0</editAsPercentage>
-            <maxDouble>100</maxDouble>
+            <maxDouble>1e+10</maxDouble>
             <minDouble>0</minDouble>
             <showDisplay>0</showDisplay>
-            <stepDouble>0.01</stepDouble>
+            <stepDouble>1</stepDouble>
             <valDouble>0</valDouble>
             <vTxDoubleScale>1</vTxDoubleScale>
             <suffix></suffix>
@@ -1398,13 +1398,13 @@ p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Roboto'; ; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;TODO&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
             <cDefine>APPCONF_SETPOINT_ACCEL_BASED_BWD</cDefine>
-            <editorDecimalsDouble>2</editorDecimalsDouble>
+            <editorDecimalsDouble>0</editorDecimalsDouble>
             <editorScale>1</editorScale>
             <editAsPercentage>0</editAsPercentage>
-            <maxDouble>100</maxDouble>
+            <maxDouble>1e+10</maxDouble>
             <minDouble>0</minDouble>
             <showDisplay>0</showDisplay>
-            <stepDouble>0.01</stepDouble>
+            <stepDouble>1</stepDouble>
             <valDouble>0</valDouble>
             <vTxDoubleScale>1</vTxDoubleScale>
             <suffix></suffix>
@@ -1423,7 +1423,7 @@ p, li { white-space: pre-wrap; }
             <editorDecimalsDouble>2</editorDecimalsDouble>
             <editorScale>1</editorScale>
             <editAsPercentage>0</editAsPercentage>
-            <maxDouble>100</maxDouble>
+            <maxDouble>1e+10</maxDouble>
             <minDouble>0</minDouble>
             <showDisplay>0</showDisplay>
             <stepDouble>0.01</stepDouble>
@@ -1442,16 +1442,16 @@ p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Roboto'; ; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;TODO&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
             <cDefine>APPCONF_SETPOINT_ACCEL2_BASED_FWD</cDefine>
-            <editorDecimalsDouble>2</editorDecimalsDouble>
+            <editorDecimalsDouble>0</editorDecimalsDouble>
             <editorScale>1</editorScale>
             <editAsPercentage>0</editAsPercentage>
-            <maxDouble>100</maxDouble>
+            <maxDouble>1e+10</maxDouble>
             <minDouble>0</minDouble>
             <showDisplay>0</showDisplay>
-            <stepDouble>0.01</stepDouble>
+            <stepDouble>1</stepDouble>
             <valDouble>0</valDouble>
             <vTxDoubleScale>1</vTxDoubleScale>
-            <suffix> °/s^2/1000 ERPM</suffix>
+            <suffix></suffix>
             <vTx>9</vTx>
         </setpoint_accel2_based_fwd>
         <setpoint_accel2_based_bwd>
@@ -1464,16 +1464,16 @@ p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Roboto'; ; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;TODO&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
             <cDefine>APPCONF_SETPOINT_ACCEL2_BASED_BWD</cDefine>
-            <editorDecimalsDouble>2</editorDecimalsDouble>
+            <editorDecimalsDouble>0</editorDecimalsDouble>
             <editorScale>1</editorScale>
             <editAsPercentage>0</editAsPercentage>
-            <maxDouble>100</maxDouble>
+            <maxDouble>1e+10</maxDouble>
             <minDouble>0</minDouble>
             <showDisplay>0</showDisplay>
-            <stepDouble>0.01</stepDouble>
+            <stepDouble>1</stepDouble>
             <valDouble>0</valDouble>
             <vTxDoubleScale>1</vTxDoubleScale>
-            <suffix> °/s^2/1000 ERPM</suffix>
+            <suffix></suffix>
             <vTx>9</vTx>
         </setpoint_accel2_based_bwd>
         <setpoint_accel2_based_deadzone>
@@ -1489,13 +1489,13 @@ p, li { white-space: pre-wrap; }
             <editorDecimalsDouble>2</editorDecimalsDouble>
             <editorScale>1</editorScale>
             <editAsPercentage>0</editAsPercentage>
-            <maxDouble>100</maxDouble>
+            <maxDouble>1e+10</maxDouble>
             <minDouble>0</minDouble>
             <showDisplay>0</showDisplay>
             <stepDouble>0.01</stepDouble>
             <valDouble>0</valDouble>
             <vTxDoubleScale>1</vTxDoubleScale>
-            <suffix> °/s^2/1000 ERPM</suffix>
+            <suffix></suffix>
             <vTx>9</vTx>
         </setpoint_accel2_based_deadzone>
         <erpm_sma_size>
@@ -1795,9 +1795,12 @@ p, li { white-space: pre-wrap; }
                     <param>setpoint_spring_deadzone</param>
                     <param>::sep::Impact</param>
                     <param>erpm_pt1_lowpass_frequency</param>
-                    <param>setpoint_accel_impact</param>
-                    <param>setpoint_rpm_accel_impact</param>
-                    <param>setpoint_rpm_accel2_impact</param>
+                    <param>setpoint_accel_based_fwd</param>
+                    <param>setpoint_accel_based_bwd</param>
+                    <param>setpoint_accel_based_deadzone</param>
+                    <param>setpoint_accel2_based_fwd</param>
+                    <param>setpoint_accel2_based_bwd</param>
+                    <param>setpoint_accel2_based_deadzone</param>
                 </subgroupParams>
             </subgroup>
             <subgroup>

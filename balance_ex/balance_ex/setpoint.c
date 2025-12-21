@@ -89,9 +89,8 @@ void apply_accel_tilt(data *d){
 		? d->balance_conf.setpoint_accel_based_fwd
 		: d->balance_conf.setpoint_accel_based_bwd;
 
-	float apply_accel_tilt_target = k * effective_accel * d->motor_data.accel_sign;
-	advance_interpolation(&d->setpoint_accel_based_interpolated, apply_accel_tilt_target, d->setpoint_accel_based_step_size);
-	d->setpoint += d->setpoint_accel_based_interpolated;
+	float force = k * effective_accel * d->motor_data.accel_sign;
+	d->setpoint_spring.f_external += force;
 }
 
 void apply_accel2_tilt(data *d){
@@ -102,9 +101,8 @@ void apply_accel2_tilt(data *d){
 		? d->balance_conf.setpoint_accel2_based_fwd
 		: d->balance_conf.setpoint_accel2_based_bwd;
 
-	float apply_accel2_tilt_target = k * effective_accel2 * d->motor_data.accel2_sign;
-	advance_interpolation(&d->setpoint_accel2_based_interpolated, apply_accel2_tilt_target, d->setpoint_accel2_based_step_size);
-	d->setpoint += d->setpoint_accel2_based_interpolated;
+	float force = k * effective_accel2 * d->motor_data.accel2_sign;
+	d->setpoint_spring.f_external += force;
 }
 
 // candidate for removal. Don't touch it for now
@@ -208,12 +206,4 @@ void setpoint_spring_update(SetpointSpring *data) {
 
     // Semi-implicit position update
     data->x += data->dt * data->v;
-}
-
-void apply_spring_impact(data *d){
-	float rpm_accel = d->balance_conf.setpoint_rpm_accel_impact * d->motor_data.accel;
-	float rpm_accel2 = d->balance_conf.setpoint_rpm_accel2_impact * d->motor_data.accel2;
-	float accel = d->balance_conf.setpoint_accel_impact * d->accelerometer[0]; // accelerometer x
-	
-	d->setpoint_spring.f_external = rpm_accel + rpm_accel2 + accel;
 }
