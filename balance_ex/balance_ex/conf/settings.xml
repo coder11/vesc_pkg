@@ -1670,8 +1670,8 @@ p, li { white-space: pre-wrap; }
             <suffix></suffix>
             <vTx>9</vTx>
         </setpoint_rpm_accel2_impact>
-        <disable_real_impact>
-            <longName>Disable real impact</longName>
+        <enable_real_impact>
+            <longName>Enable real impact</longName>
             <type>5</type>
             <transmittable>1</transmittable>
             <description>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -1679,9 +1679,9 @@ p, li { white-space: pre-wrap; }
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Roboto'; ; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;TODO&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
-            <cDefine>APPCONF_SETPOINT_DISABLE_REAL_IMPACT</cDefine>
-            <valInt>1</valInt>
-        </disable_real_impact>
+            <cDefine>APPCONF_SETPOINT_ENABLE_REAL_IMPACT</cDefine>
+            <valInt>0</valInt>
+        </enable_real_impact>
     </Params>
     <SerOrder>
         <ser>balance_enabled</ser>
@@ -1760,7 +1760,7 @@ p, li { white-space: pre-wrap; }
         <ser>setpoint_accel_impact</ser>
         <ser>setpoint_rpm_accel_impact</ser>
         <ser>setpoint_rpm_accel2_impact</ser>
-        <ser>disable_real_impact</ser>
+        <ser>enable_real_impact</ser>
     </SerOrder>
     <Grouping>
         <group>
@@ -1806,7 +1806,7 @@ p, li { white-space: pre-wrap; }
                     <param>setpoint_spring_k</param>
                     <param>setpoint_spring_c</param>
                     <param>setpoint_spring_deadzone</param>
-                    <param>disable_real_impact</param>
+                    <param>enable_real_impact</param>
                     <param>::sep::Impact</param>
                     <param>erpm_pt1_lowpass_frequency</param>
                     <param>setpoint_accel_based_fwd</param>

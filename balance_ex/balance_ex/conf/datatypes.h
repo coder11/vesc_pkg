@@ -109,7 +109,7 @@ typedef struct {
 	float setpoint_accel_impact;
 	float setpoint_rpm_accel_impact;
 	float setpoint_rpm_accel2_impact;
-	bool disable_real_impact;
+	bool enable_real_impact;
 } balance_config;
 
 // DATATYPES_H_
