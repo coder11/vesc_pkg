@@ -1,6 +1,7 @@
 #include "data_motor.h"
 #include "util.h"
 #include "vesc_c_if.h"
+#include "pt1.h"
 #include <math.h>
 #include <string.h>
 
@@ -10,11 +11,9 @@ void data_motor_reset(DataMotor *m) {
     m->erpm_sign = 0;
     m->erpm_last = 0;
 
-    m->erpm_sma_size = 0;
-    m->erpm_sma_buffer_ix = 0;
-    m->erpm_sma = 0;
-    m->erpm_sma_last = 0;
-    memset(m->erpm_sma_buffer, 0, sizeof(m->erpm_sma_buffer));
+    m->erpm_pt1_state = 0;
+    m->erpm_pt1 = 0;
+    m->erpm_pt1_last = 0;
 
     m->accel = 0;
     m->accel_abs = 0;
@@ -25,17 +24,17 @@ void data_motor_reset(DataMotor *m) {
     m->accel2_sign = 0;
 }
 
-void data_motor_configure(DataMotor *m, int erpm_sma_size) {
-    m->erpm_sma_size = erpm_sma_size;
-    m->erpm_sma_buffer_ix = 0;
-    m->erpm_sma = 0;
-    m->erpm_sma_last = 0;
+void data_motor_configure(DataMotor *m, float accel_pt1_k) {
+    m->erpm_pt1_state = 0;
+    m->erpm_pt1 = 0;
+    m->erpm_pt1_last = 0;
+    m->erpm_pt1_k = accel_pt1_k;
 }
 
 void data_motor_update(DataMotor *m) {
     // update all `last` values 
     m->erpm_last = m->erpm;
-    m->erpm_sma_last = m->erpm_sma;
+    m->erpm_pt1_last = m->erpm_pt1;
     m->accel_last = m->accel;
 
     // get current data from VESC
@@ -44,22 +43,15 @@ void data_motor_update(DataMotor *m) {
     m->erpm_abs = fabsf(m->erpm);
     m->erpm_sign = SIGN(m->erpm);
 
-    // Inefficient and lacks edge case handling but should work
-    // A tiny lag in erpm values shouldn't be noticable at the very start
-    m->erpm_sma_buffer[m->erpm_sma_buffer_ix] = m->erpm;
-    float sum = 0;
-    for (int i = 0; i < m->erpm_sma_size; i++) {
-        sum += m->erpm_sma_buffer[i];
-    }
-    m->erpm_sma = sum / m->erpm_sma_size;
-    m->erpm_sma_buffer_ix = (m->erpm_sma_buffer_ix + 1) % m->erpm_sma_size;
+    m->erpm_pt1 = pt1_process_lowpass(&m->erpm_pt1_state, m->erpm_pt1_k, m->erpm);
 
-    m->erpm_sma_abs = fabsf(m->erpm_sma);
-    m->erpm_sma_sign = SIGN(m->erpm_sma);
+    m->erpm_pt1_abs = fabsf(m->erpm_pt1);
+    m->erpm_pt1_sign = SIGN(m->erpm_pt1);
 
-    m->accel = m->erpm_sma - m->erpm_sma_last;
+    m->accel = m->erpm_pt1 - m->erpm_pt1_last;
     m->accel_abs = fabsf(m->accel);
     m->accel_sign = SIGN(m->accel);
+    
     m->accel2 = m->accel - m->accel_last;
     m->accel2_abs = fabsf(m->accel2);
     m->accel2_sign = SIGN(m->accel2);
