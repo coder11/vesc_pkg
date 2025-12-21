@@ -44,7 +44,6 @@ void data_motor_update(DataMotor *m) {
     m->erpm_sign = SIGN(m->erpm);
 
     m->erpm_pt1 = pt1_process_lowpass(&m->erpm_pt1_state, m->erpm_pt1_k, m->erpm);
-
     m->erpm_pt1_abs = fabsf(m->erpm_pt1);
     m->erpm_pt1_sign = SIGN(m->erpm_pt1);
 

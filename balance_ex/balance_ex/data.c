@@ -96,7 +96,9 @@ void configure(data *d) {
 
 	ui_data_configure(d);
 	
-	data_motor_configure(&d->motor_data, pt1_calculate_k(100, d->balance_conf.hertz));
+	int erpm_pt1_freq = d->balance_conf.erpm_pt1_lowpass_frequency > 0 ? 
+		d->balance_conf.erpm_pt1_lowpass_frequency : 5000;
+	data_motor_configure(&d->motor_data, pt1_calculate_k(erpm_pt1_freq, d->balance_conf.hertz));
 
 	setpoint_spring_configure(&d->setpoint_spring, 
 		d->balance_conf.setpoint_spring_k, 
