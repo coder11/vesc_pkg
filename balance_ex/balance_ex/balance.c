@@ -246,7 +246,9 @@ void balance_loop_tick(data *d) {
 			apply_accel2_tilt(d);
 			setpoint_spring_update(&d->setpoint_spring);
 			clampf(&d->setpoint_spring.x, d->balance_conf.setpoint_min, d->balance_conf.setpoint_max);		
-			d->setpoint += d->setpoint_spring.x;
+			if(d->balance_conf.disable_real_impact) {
+				d->setpoint += d->setpoint_spring.x;
+			}
             // end 
 			
 			apply_torquetilt(d);
