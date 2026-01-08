@@ -60,13 +60,14 @@ def main() -> int:
 
     from settings_gen.model import (  # noqa: E402
         BoolParam,
-        ConfigParams,
         Description,
         DoubleParam,
         EnumParam,
         Group,
         InfoParam,
         IntParam,
+        Param,
+        GroupItem,
         Ref,
         Sep,
         StringParam,
@@ -83,24 +84,32 @@ def main() -> int:
     if params_el is None:
         raise SystemExit("Invalid XML: missing <Params>")
 
-    params = []
+    params: list[Param] = []
     for p_el in list(params_el):
         pid = p_el.tag
         long_name = _get_text(p_el, "longName", "")
         typ = _get_int(p_el, "type")
         trans = _get_int(p_el, "transmittable", 0) != 0
-        desc = Description(_get_text(p_el, "description", ""), format="qrich")
+        desc = Description(text=_get_text(p_el, "description", ""), format="qrich")
         c_define = _get_text(p_el, "cDefine", "")
 
         if typ == 0:
-            params.append(InfoParam(pid, long_name, trans, desc, c_define=c_define))
+            params.append(
+                InfoParam(
+                    id=pid,
+                    long_name=long_name,
+                    transmittable=trans,
+                    description=desc,
+                    c_define=c_define,
+                )
+            )
         elif typ == 1:
             params.append(
                 DoubleParam(
-                    pid,
-                    long_name,
-                    trans,
-                    desc,
+                    id=pid,
+                    long_name=long_name,
+                    transmittable=trans,
+                    description=desc,
                     c_define=c_define,
                     editor_decimals=_get_int(p_el, "editorDecimalsDouble", 1),
                     editor_scale=_get_float(p_el, "editorScale", 1.0),
@@ -118,10 +127,10 @@ def main() -> int:
         elif typ == 2:
             params.append(
                 IntParam(
-                    pid,
-                    long_name,
-                    trans,
-                    desc,
+                    id=pid,
+                    long_name=long_name,
+                    transmittable=trans,
+                    description=desc,
                     c_define=c_define,
                     editor_scale=_get_int(p_el, "editorScale", 1),
                     edit_as_percentage=_get_int(p_el, "editAsPercentage", 0) != 0,
@@ -137,23 +146,23 @@ def main() -> int:
         elif typ == 3:
             params.append(
                 StringParam(
-                    pid,
-                    long_name,
-                    trans,
-                    desc,
+                    id=pid,
+                    long_name=long_name,
+                    transmittable=trans,
+                    description=desc,
                     c_define=c_define,
                     value=_get_text(p_el, "valString", ""),
                     max_len=_get_int(p_el, "maxLen", 0),
                 )
             )
         elif typ == 4:
-            enum_names = [e.text or "" for e in p_el.findall("enumNames")]
+            enum_names: list[str] = [e.text or "" for e in p_el.findall("enumNames")]
             params.append(
                 EnumParam(
-                    pid,
-                    long_name,
-                    trans,
-                    desc,
+                    id=pid,
+                    long_name=long_name,
+                    transmittable=trans,
+                    description=desc,
                     c_define=c_define,
                     value=_get_int(p_el, "valInt"),
                     enum_names=enum_names,
@@ -162,10 +171,10 @@ def main() -> int:
         elif typ == 5:
             params.append(
                 BoolParam(
-                    pid,
-                    long_name,
-                    trans,
-                    desc,
+                    id=pid,
+                    long_name=long_name,
+                    transmittable=trans,
+                    description=desc,
                     c_define=c_define,
                     value=_get_int(p_el, "valInt", 0) != 0,
                 )
@@ -185,18 +194,16 @@ def main() -> int:
             for sg_el in g_el.findall("subgroup"):
                 sg_name = _get_text(sg_el, "subgroupName", "")
                 sg_params_el = sg_el.find("subgroupParams")
-                items = []
+                items: list[GroupItem] = []
                 if sg_params_el is not None:
                     for p in sg_params_el.findall("param"):
                         txt = (p.text or "").strip()
                         if txt.startswith("::sep::"):
-                            items.append(Sep(txt[len("::sep::") :]))
+                            items.append(Sep(title=txt[len("::sep::") :]))
                         elif txt:
-                            items.append(Ref(txt))
+                            items.append(Ref(param_id=txt))
                 subgroups.append(SubGroup(name=sg_name, items=items))
             groups.append(Group(name=g_name, subgroups=subgroups))
-
-    cfg = ConfigParams(params=params, ser_order=ser_order, grouping=groups)
 
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     with open(out_path, "w", encoding="utf-8") as f:

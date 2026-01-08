@@ -39,7 +39,7 @@ def plain_to_qrich(text: str) -> str:
     if not t.strip():
         return _QTEXT_PREFIX + _empty_p() + _QTEXT_SUFFIX
 
-    paragraphs = []
+    paragraphs: list[str] = []
     for para in t.split("\n\n"):
         lines = para.splitlines()
         safe = "<br />".join(html_escape(line, quote=False) for line in lines)

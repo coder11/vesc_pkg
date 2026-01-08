@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
+from typing import Any, cast
 
 from .model import (
     BoolParam,
     ConfigParams,
-    DoubleParam,
     EnumParam,
     InfoParam,
     IntParam,
-    Ref,
     Sep,
     StringParam,
 )
@@ -74,7 +73,7 @@ def build_tree(cfg: ConfigParams) -> ET.ElementTree:
             _t(p_el, "valInt", str(p.value))
             _t(p_el, "suffix", p.suffix)
             _t(p_el, "vTx", str(p.vtx))
-        elif isinstance(p, DoubleParam):
+        else:
             _t(p_el, "editorDecimalsDouble", str(p.editor_decimals))
             _t(p_el, "editorScale", _fmt_float(p.editor_scale))
             _t(p_el, "editAsPercentage", "1" if p.edit_as_percentage else "0")
@@ -86,8 +85,6 @@ def build_tree(cfg: ConfigParams) -> ET.ElementTree:
             _t(p_el, "vTxDoubleScale", str(p.vtx_double_scale))
             _t(p_el, "suffix", p.suffix)
             _t(p_el, "vTx", str(p.vtx))
-        else:  # pragma: no cover
-            raise TypeError(f"Unhandled param type: {type(p).__name__}")
 
     ser = ET.SubElement(root, "SerOrder")
     for pid in cfg.ser_order:
@@ -104,10 +101,8 @@ def build_tree(cfg: ConfigParams) -> ET.ElementTree:
             for item in sg.items:
                 if isinstance(item, Sep):
                     _t(sg_params, "param", f"::sep::{item.title}")
-                elif isinstance(item, Ref):
+                else:
                     _t(sg_params, "param", item.param_id)
-                else:  # pragma: no cover
-                    raise TypeError(f"Unhandled GroupItem: {type(item).__name__}")
 
     _indent(root)
     return ET.ElementTree(root)
@@ -115,8 +110,11 @@ def build_tree(cfg: ConfigParams) -> ET.ElementTree:
 
 def to_bytes(cfg: ConfigParams) -> bytes:
     root = build_tree(cfg).getroot()
-    body = ET.tostring(
-        root,
+    if root is None:  # pragma: no cover
+        raise RuntimeError("ElementTree.getroot() returned None")
+    root_any = cast(ET.Element[Any], root)
+    body: bytes = ET.tostring(
+        root_any,
         encoding="utf-8",
         xml_declaration=False,
         short_empty_elements=False,

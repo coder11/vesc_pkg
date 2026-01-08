@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal, Sequence, Union
+from typing import Any, Literal, Sequence, Union
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -134,7 +134,7 @@ class DoubleParam(ParamBase):
         mode="before",
     )
     @classmethod
-    def _allow_ints_for_floats(cls, v):
+    def _allow_ints_for_floats(cls, v: Any) -> Any:
         if isinstance(v, bool):
             raise TypeError("bool is not allowed where float is required")
         if isinstance(v, int):
@@ -143,7 +143,7 @@ class DoubleParam(ParamBase):
 
     @field_validator("editor_decimals", "vtx_double_scale", "vtx", mode="before")
     @classmethod
-    def _no_bool_for_int_fields(cls, v):
+    def _no_bool_for_int_fields(cls, v: Any) -> Any:
         if isinstance(v, bool):
             raise TypeError("bool is not allowed where int is required")
         return v
@@ -174,7 +174,7 @@ class EnumParam(ParamBase):
 
     @field_validator("value", mode="before")
     @classmethod
-    def _no_bool_for_value(cls, v):
+    def _no_bool_for_value(cls, v: Any) -> Any:
         if isinstance(v, bool):
             raise TypeError("bool is not allowed where int is required")
         return v
