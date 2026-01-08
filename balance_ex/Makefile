@@ -36,8 +36,12 @@ versioned-pkg: $(BUILD_DIR)/balance_ex.vescpkg version .FORCE
 balance_ex:
 	$(MAKE) -C $@ BUILD_DIR=../$(BUILD_DIR)/balance_ex
 
+python:
+	pyright ./tools
+	python3 ./tools/generate_settings_xml.py
+
 clean:
 	rm -rf $(BUILD_DIR)
 	$(MAKE) -C balance_ex clean BUILD_DIR=../$(BUILD_DIR)/balance_ex
 
-.PHONY: all clean balance_ex versioned-pkg .FORCE
+.PHONY: all clean balance_ex versioned-pkg python .FORCE
