@@ -11,3 +11,7 @@ confxml.h
 *.cproject
 *.project
 *.settings
+
+# Python
+__pycache__/
+*.py[cod]

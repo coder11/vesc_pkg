@@ -1,0 +1,8 @@
+{
+  "include": ["settings_gen", "../balance_ex/conf/settings_src", "generate_settings_xml.py", "convert_settings_xml_to_py.py"],
+  "typeCheckingMode": "strict",
+  "reportMissingTypeStubs": "none",
+  "pythonVersion": "3.11"
+}
+
+
