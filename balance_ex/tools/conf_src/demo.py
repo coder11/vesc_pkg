@@ -25,7 +25,7 @@ from settings_gen.model import (
 
 
 def D(text: str) -> Description:
-    return Description(text, format="plain")
+    return Description(text=text, format="plain")
 
 
 VTX_DOUBLE_MILLI = 1000

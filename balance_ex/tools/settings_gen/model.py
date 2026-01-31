@@ -194,9 +194,15 @@ Param = Union[InfoParam, StringParam, BoolParam, IntParam, DoubleParam, EnumPara
 class Sep(_FrozenModel):
     title: str
 
+    def __init__(self, title: str) -> None:
+        super().__init__(title=title)
+
 
 class Ref(_FrozenModel):
     param_id: str
+
+    def __init__(self, param_id: str) -> None:
+        super().__init__(param_id=param_id)
 
 
 GroupItem = Union[Sep, Ref]
