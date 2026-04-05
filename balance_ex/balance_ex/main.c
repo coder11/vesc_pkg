@@ -30,8 +30,32 @@
 
 HEADER
 
+// Beeper on servo/PPM pin (active buzzer). Same IO path as float package beeper.
+// Passive-buzzer PWM is not exposed via vesc_c_if; use GPIO only here.
+static const VESC_PIN buzzer_pin = VESC_PIN_PPM;
+
+static void buzzer_on(void) {
+	VESC_IF->io_set_mode(buzzer_pin, VESC_PIN_MODE_OUTPUT);
+	VESC_IF->io_write(buzzer_pin, 1);
+}
+
+static void buzzer_off(void) {
+	VESC_IF->io_write(buzzer_pin, 0);
+}
+
+static void beep_ms(int duration_ms) {
+	buzzer_on();
+	VESC_IF->sleep_ms(duration_ms);
+	buzzer_off();
+}
+
+
 static void balance_thd(void *arg) {
 	data *d = (data*)arg;
+
+	beep_ms(100);
+	VESC_IF->sleep_ms(50);
+	beep_ms(100);
 	
 	while (!VESC_IF->should_terminate()) {
 		balance_loop_tick(d);
