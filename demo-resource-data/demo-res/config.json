@@ -1,0 +1,16 @@
+{
+    "appName": "VESC Resource Demo",
+    "version": "1.0.0",
+    "features": [
+        { "name": "SVG Icons",    "description": "Vector icons loaded from embedded resources" },
+        { "name": "Text File",    "description": "Plain text read at runtime via Qt.resolvedUrl" },
+        { "name": "JSON Data",    "description": "Structured data parsed from an embedded JSON file" },
+        { "name": "Image",        "description": "Raster image displayed from the resource bundle" }
+    ],
+    "parameters": {
+        "motorKv": 190,
+        "batteryVoltage": 48.0,
+        "maxCurrent": 60,
+        "unit": "metric"
+    }
+}

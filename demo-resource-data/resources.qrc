@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>demo-res/icon_battery.svg</file>
+        <file>demo-res/icon_motor.svg</file>
+        <file>demo-res/icon_settings.svg</file>
+        <file>demo-res/icon_warning.svg</file>
+        <file>demo-res/logo_vesc.svg</file>
+        <file>demo-res/sample_image.png</file>
+        <file>demo-res/strings.txt</file>
+        <file>demo-res/config.json</file>
+    </qresource>
+</RCC>

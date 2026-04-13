@@ -1,0 +1,4 @@
+VESC Resource Demo
+This text was loaded from an embedded Qt resource file (.rcc).
+Resources are compiled into a binary blob and embedded in the .vescpkg.
+They are mounted at qrc:/vesc_pkg/ and accessible from QML at runtime.
