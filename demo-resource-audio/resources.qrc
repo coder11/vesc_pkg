@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>audio-res/beep.wav</file>
+        <file>audio-res/alert.ogg</file>
+        <file>audio-res/chime.flac</file>
+        <file>audio-res/warning.wav</file>
+        <file>audio-res/click.ogg</file>
+    </qresource>
+</RCC>
