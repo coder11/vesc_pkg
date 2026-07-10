@@ -8,7 +8,12 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from generate_settings import OUTPUT_PATH
-from settings_data import XML, general, pid
+from settings_data import (
+    XML,
+    general_balance_enabled,
+    general_error_linear_limit,
+    pid_mode,
+)
 from settings_schema import (
     Group,
     IntParameter,
@@ -36,8 +41,8 @@ class SettingsGeneratorTests(unittest.TestCase):
         self.assertEqual(settings_name.long_name, XML.settings_name)
 
     def test_parameters_and_serialization_follow_group_order(self) -> None:
-        self.assertIs(XML.parameters[2], general.balance_enabled)
-        self.assertIs(XML.parameters[5], pid.pid_mode)
+        self.assertIs(XML.parameters[2], general_balance_enabled)
+        self.assertIs(XML.parameters[5], pid_mode)
         expected = tuple(parameter.name for parameter in XML.parameters[2:])
         self.assertEqual(XML.serialization_order, expected)
 
@@ -47,12 +52,12 @@ class SettingsGeneratorTests(unittest.TestCase):
         assert params is not None
         balance_description = params.findtext("balance_enabled/description") or ""
         error_description = params.findtext("error_linear_limit/description") or ""
-        self.assertIsInstance(general.balance_enabled.description, TextDescription)
-        self.assertIsInstance(general.error_linear_limit.description, RawDescription)
+        self.assertIsInstance(general_balance_enabled.description, TextDescription)
+        self.assertIsInstance(general_error_linear_limit.description, RawDescription)
         self.assertIn("<html>", balance_description)
         self.assertIn("Enable/disable balancing.", balance_description)
         self.assertEqual(
-            error_description, general.error_linear_limit.description.content
+            error_description, general_error_linear_limit.description.content
         )
 
     def test_checked_in_xml_matches_rendered_data(self) -> None:
