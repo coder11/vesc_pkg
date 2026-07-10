@@ -1,33 +1,30 @@
-"""Deterministic VESC Tool settings.xml rendering and safe file replacement."""
+"""VESC Tool settings.xml rendering and safe file replacement."""
 
 from __future__ import annotations
 
+import io
 import os
 import tempfile
 import xml.etree.ElementTree as ET
 from html import escape as escape_html
 from pathlib import Path
 from typing import Iterable, Union
-from xml.sax.saxutils import escape
 
 from settings_schema import (
     BitfieldParameter,
     BoolParameter,
     DoubleParameter,
     EnumParameter,
-    Group,
     IntParameter,
     Parameter,
     RawDescription,
     Separator,
     SettingsXml,
     StringParameter,
-    Subgroup,
     TextDescription,
     UndefinedParameter,
     validate_settings,
 )
-
 
 Scalar = Union[str, int, float, bool]
 
@@ -35,8 +32,8 @@ _HTML_HEADER = (
     '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" '
     '"http://www.w3.org/TR/REC-html40/strict.dtd">\n'
     '<html><head><meta name="qrichtext" content="1" /><style type="text/css">\n'
-    'p, li { white-space: pre-wrap; }\n'
-    '</style></head><body style=" font-family:\'Roboto\'; ; font-weight:400; '
+    "p, li { white-space: pre-wrap; }\n"
+    "</style></head><body style=\" font-family:'Roboto'; ; font-weight:400; "
     'font-style:normal;">\n'
 )
 _PARAGRAPH_STYLE = (
@@ -53,21 +50,16 @@ def _format_scalar(value: Scalar) -> str:
     return str(value)
 
 
-def _text(value: Scalar) -> str:
-    return escape(_format_scalar(value), {'"': "&quot;"})
-
-
-def _element(lines: list[str], level: int, name: str, value: Scalar) -> None:
-    indent = "    " * level
-    lines.append(f"{indent}<{name}>{_text(value)}</{name}>")
+def _add_text_element(parent: ET.Element, name: str, value: Scalar) -> ET.Element:
+    element = ET.SubElement(parent, name)
+    element.text = _format_scalar(value)
+    return element
 
 
 def _render_text_description(description: TextDescription) -> str:
     normalized = description.text.replace("\r\n", "\n").replace("\r", "\n")
     if not normalized:
-        paragraph = (
-            f'<p style="-qt-paragraph-type:empty;{_PARAGRAPH_STYLE}"><br /></p>'
-        )
+        paragraph = f'<p style="-qt-paragraph-type:empty;{_PARAGRAPH_STYLE}"><br /></p>'
         return f"{_HTML_HEADER}{paragraph}</body></html>"
 
     paragraphs: list[str] = []
@@ -133,50 +125,48 @@ def _parameter_fields(parameter: Parameter) -> Iterable[tuple[str, Scalar]]:
         raise AssertionError(f"unhandled parameter type: {type(parameter)!r}")
 
 
-def _render_subgroup(lines: list[str], subgroup: Subgroup) -> None:
-    lines.append("            <subgroup>")
-    _element(lines, 4, "subgroupName", subgroup.name)
-    lines.append("                <subgroupParams>")
-    for item in subgroup.items:
-        if isinstance(item, Separator):
-            value = f"::sep::{item.title}"
-        else:
-            value = item.name
-        _element(lines, 5, "param", value)
-    lines.append("                </subgroupParams>")
-    lines.append("            </subgroup>")
+def _build_tree(settings: SettingsXml) -> ET.ElementTree:
+    root = ET.Element("ConfigParams")
+    params_element = ET.SubElement(root, "Params")
+    for parameter in settings.parameters:
+        parameter_element = ET.SubElement(params_element, parameter.name)
+        for field_name, value in _parameter_fields(parameter):
+            _add_text_element(parameter_element, field_name, value)
 
+    order_element = ET.SubElement(root, "SerOrder")
+    for name in settings.serialization_order:
+        _add_text_element(order_element, "ser", name)
 
-def _render_group(lines: list[str], group: Group) -> None:
-    lines.append("        <group>")
-    _element(lines, 3, "groupName", group.name)
-    for subgroup in group.subgroups:
-        _render_subgroup(lines, subgroup)
-    lines.append("        </group>")
+    grouping_element = ET.SubElement(root, "Grouping")
+    for group in settings.groups:
+        group_element = ET.SubElement(grouping_element, "group")
+        _add_text_element(group_element, "groupName", group.name)
+        for subgroup in group.subgroups:
+            subgroup_element = ET.SubElement(group_element, "subgroup")
+            _add_text_element(subgroup_element, "subgroupName", subgroup.name)
+            subgroup_params = ET.SubElement(subgroup_element, "subgroupParams")
+            for item in subgroup.items:
+                value = (
+                    f"::sep::{item.title}" if isinstance(item, Separator) else item.name
+                )
+                _add_text_element(subgroup_params, "param", value)
+
+    return ET.ElementTree(root)
 
 
 def render_settings(settings: SettingsXml) -> str:
-    """Validate and render settings in VESC Tool's canonical element order."""
+    """Validate and render settings using Python's standard XML library."""
     validate_settings(settings)
-    lines = ['<?xml version="1.0" encoding="UTF-8"?>', "<ConfigParams>", "    <Params>"]
-
-    for parameter in settings.parameters:
-        lines.append(f"        <{parameter.name}>")
-        for field_name, value in _parameter_fields(parameter):
-            _element(lines, 3, field_name, value)
-        lines.append(f"        </{parameter.name}>")
-
-    lines.append("    </Params>")
-    lines.append("    <SerOrder>")
-    for name in settings.serialization_order:
-        _element(lines, 2, "ser", name)
-    lines.append("    </SerOrder>")
-    lines.append("    <Grouping>")
-    for group in settings.groups:
-        _render_group(lines, group)
-    lines.append("    </Grouping>")
-    lines.append("</ConfigParams>")
-    return "\n".join(lines) + "\n"
+    tree = _build_tree(settings)
+    ET.indent(tree, space="    ")
+    output = io.BytesIO()
+    tree.write(
+        output,
+        encoding="UTF-8",
+        xml_declaration=True,
+        short_empty_elements=True,
+    )
+    return output.getvalue().decode("UTF-8") + "\n"
 
 
 def _validate_rendered_xml(xml_text: str, settings: SettingsXml) -> None:
@@ -195,7 +185,9 @@ def _validate_rendered_xml(xml_text: str, settings: SettingsXml) -> None:
 
     order_element = root.find("SerOrder")
     assert order_element is not None
-    rendered_order = tuple(element.text or "" for element in order_element.findall("ser"))
+    rendered_order = tuple(
+        element.text or "" for element in order_element.findall("ser")
+    )
     if rendered_order != settings.serialization_order:
         raise ValueError("rendered XML serialization order changed")
 
@@ -210,7 +202,7 @@ def write_settings(settings: SettingsXml, destination: Path) -> None:
     try:
         with tempfile.NamedTemporaryFile(
             mode="w",
-            encoding="utf-8",
+            encoding="UTF-8",
             newline="\n",
             prefix=f".{destination.name}.",
             suffix=".tmp",

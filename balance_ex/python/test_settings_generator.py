@@ -13,10 +13,12 @@ from settings_schema import (
     Group,
     IntParameter,
     RawDescription,
+    Separator,
     SettingsXml,
     Subgroup,
     TextDescription,
     ValidationError,
+    collect_validation_issues,
     validate_settings,
 )
 from settings_xml import render_settings, write_settings
@@ -49,7 +51,9 @@ class SettingsGeneratorTests(unittest.TestCase):
         self.assertIsInstance(general.error_linear_limit.description, RawDescription)
         self.assertIn("<html>", balance_description)
         self.assertIn("Enable/disable balancing.", balance_description)
-        self.assertEqual(error_description, general.error_linear_limit.description.content)
+        self.assertEqual(
+            error_description, general.error_linear_limit.description.content
+        )
 
     def test_checked_in_xml_matches_rendered_data(self) -> None:
         expected = OUTPUT_PATH.read_text(encoding="utf-8")
@@ -83,9 +87,54 @@ class SettingsGeneratorTests(unittest.TestCase):
             destination.write_text("leave me intact\n", encoding="utf-8")
             with self.assertRaises(ValidationError):
                 write_settings(invalid, destination)
-            self.assertEqual(destination.read_text(encoding="utf-8"), "leave me intact\n")
+            self.assertEqual(
+                destination.read_text(encoding="utf-8"), "leave me intact\n"
+            )
+
+    def test_validation_aggregates_issues_from_model_classes(self) -> None:
+        invalid = SettingsXml(
+            config_name="not a C identifier",
+            settings_name="",
+            groups=(
+                Group(
+                    name="",
+                    subgroups=(
+                        Subgroup(
+                            name="",
+                            items=(
+                                IntParameter(
+                                    name="bad-name",
+                                    long_name="",
+                                    default=-1,
+                                    minimum=100,
+                                    maximum=70000,
+                                    step=0,
+                                    editor_scale=0.0,
+                                ),
+                                Separator(""),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        issues = collect_validation_issues(invalid)
+        codes = {issue.code for issue in issues}
+        self.assertGreaterEqual(len(issues), 10)
+        self.assertIn("c_identifier", codes)
+        self.assertIn("default_out_of_range", codes)
+        self.assertIn("transport_range", codes)
+        self.assertIn("positive_integer", codes)
+
+        with self.assertRaises(ValidationError) as caught:
+            invalid.validate()
+        self.assertEqual(caught.exception.issues, issues)
+        self.assertEqual(
+            caught.exception.errors(), [issue.as_dict() for issue in issues]
+        )
+        self.assertIn("validation errors for SettingsXml", str(caught.exception))
 
 
 if __name__ == "__main__":
     unittest.main()
-
