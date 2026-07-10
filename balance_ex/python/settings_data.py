@@ -18,7 +18,6 @@ from settings_schema import (
     TxType,
 )
 
-
 general_balance_enabled: Final[BoolParameter] = BoolParameter(
     name="balance_enabled",
     long_name="Balancing enabled",
@@ -252,9 +251,7 @@ filters_ki_limit: Final[DoubleParameter] = DoubleParameter(
 filters_kd_pt1_lowpass_frequency: Final[IntParameter] = IntParameter(
     name="kd_pt1_lowpass_frequency",
     long_name="D term PT1 Low Pass Filter",
-    description=TextDescription(
-        "D term filter above this frequency. 0 = Disabled."
-    ),
+    description=TextDescription("D term filter above this frequency. 0 = Disabled."),
     maximum=4000,
     step=10,
     suffix=" Hz",
@@ -276,9 +273,7 @@ filters_kd2_pt1_lowpass_frequency: Final[IntParameter] = IntParameter(
 filters_kd_pt1_highpass_frequency: Final[IntParameter] = IntParameter(
     name="kd_pt1_highpass_frequency",
     long_name="D term PT1 High Pass Filter",
-    description=TextDescription(
-        "D term filter below this frequency. 0 = Disabled."
-    ),
+    description=TextDescription("D term filter below this frequency. 0 = Disabled."),
     maximum=4000,
     step=10,
     suffix=" Hz",
@@ -434,7 +429,6 @@ torque_tilt_angle_limit: Final[DoubleParameter] = DoubleParameter(
     decimals=1,
     suffix=" °",
 )
-
 
 torque_tilt_on_speed: Final[DoubleParameter] = DoubleParameter(
     name="torquetilt_on_speed",
@@ -651,9 +645,7 @@ startup_roll_tolerance: Final[DoubleParameter] = DoubleParameter(
 startup_speed: Final[DoubleParameter] = DoubleParameter(
     name="startup_speed",
     long_name="Startup Centering Speed",
-    description=TextDescription(
-        "Speed at which wheel will center itself on startup."
-    ),
+    description=TextDescription("Speed at which wheel will center itself on startup."),
     default=30.0,
     maximum=100.0,
     step=0.1,

@@ -10,6 +10,14 @@ from typing import Final, Union
 
 
 class ParameterType(IntEnum):
+    """Numeric values used by VESC Tool's ``ConfigParam::type`` XML field.
+
+    Each member selects the value storage and editor used for a parameter:
+    ``UNDEFINED`` carries metadata only, while the remaining members represent
+    floating-point, integer, UTF-8 string, indexed choice, boolean, and
+    one-byte bit-mask values respectively.
+    """
+
     UNDEFINED = 0
     DOUBLE = 1
     INT = 2
@@ -20,6 +28,14 @@ class ParameterType(IntEnum):
 
 
 class TxType(IntEnum):
+    """Wire encodings understood by VESC Tool for transmittable parameters.
+
+    The integer members select signedness and width. ``DOUBLE16`` and
+    ``DOUBLE32`` encode a floating-point value as a scaled 16- or 32-bit
+    integer, and ``DOUBLE32_AUTO`` uses VESC's self-scaling 32-bit float
+    encoding. ``UNDEFINED`` means that no wire encoding has been selected.
+    """
+
     UNDEFINED = 0
     UINT8 = 1
     INT8 = 2
@@ -38,9 +54,16 @@ Location = tuple[LocationPart, ...]
 
 @dataclass(frozen=True, slots=True)
 class ValidationIssue:
+    """One problem found while validating a settings model."""
+
     location: Location
+    """Path to the invalid field, using names and sequence indices."""
+
     message: str
+    """Human-readable explanation of the problem."""
+
     code: str
+    """Stable, machine-readable category for the problem."""
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -52,7 +75,10 @@ class ValidationIssue:
 
 @dataclass(slots=True)
 class ValidationContext:
+    """Mutable accumulator used to report all validation problems in one pass."""
+
     issues: list[ValidationIssue] = field(default_factory=list)
+    """Problems collected so far, in validation order."""
 
     def add(self, location: Location, message: str, code: str) -> None:
         self.issues.append(ValidationIssue(location, message, code))
@@ -69,7 +95,12 @@ class ValidationContext:
 
 
 class ValidationError(ValueError):
-    """One exception containing every issue found in the settings model."""
+    """Exception containing every issue found in a settings model.
+
+    Attributes:
+        model_name: Name of the model that failed validation.
+        issues: Immutable sequence of all problems found in that model.
+    """
 
     def __init__(self, model_name: str, issues: tuple[ValidationIssue, ...]) -> None:
         self.model_name = model_name
@@ -123,9 +154,10 @@ def _is_int(value: object) -> bool:
 
 @dataclass(frozen=True, slots=True)
 class RawDescription:
-    """Description already encoded as content understood by Qt rich-text widgets."""
+    """Parameter help text already formatted for VESC Tool's Qt widgets."""
 
     content: str
+    """Rich-text/HTML written verbatim to the XML ``description`` element."""
 
     def validate_into(self, context: ValidationContext, location: Location) -> None:
         if not isinstance(self.content, str):
@@ -141,9 +173,10 @@ class RawDescription:
 
 @dataclass(frozen=True, slots=True)
 class TextDescription:
-    """Human-readable text converted to Qt-compatible HTML during rendering."""
+    """Plain parameter help text to be made safe for VESC Tool's Qt widgets."""
 
     text: str
+    """Text escaped and converted to Qt-compatible HTML during rendering."""
 
     def validate_into(self, context: ValidationContext, location: Location) -> None:
         if not isinstance(self.text, str):
@@ -159,10 +192,19 @@ Description = Union[RawDescription, TextDescription]
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class ParameterBase:
+    """Fields shared by every entry in the XML ``Params`` section."""
+
     name: str
+    """XML element, configuration-field, and programmatic parameter name."""
+
     long_name: str
+    """Label shown in editors and comment used above generated C defines."""
+
     description: Description = TextDescription("")
+    """Help content displayed by VESC Tool's parameter help dialog."""
+
     transmittable: bool = True
+    """Whether the value belongs to the serialized device configuration."""
 
     def validate_into(self, context: ValidationContext, location: Location) -> None:
         if not isinstance(self.name, str):
@@ -212,7 +254,14 @@ class ParameterBase:
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class UndefinedParameter(ParameterBase):
+    """Metadata-only VESC Tool parameter with no editable or serialized value.
+
+    Undefined parameters are used for synthetic metadata such as ``hw_name``;
+    they must not be placed in UI groups or transmitted.
+    """
+
     type: Final[ParameterType] = ParameterType.UNDEFINED
+    """Constant ``UNDEFINED`` discriminator written to XML."""
 
     def validate_into(self, context: ValidationContext, location: Location) -> None:
         ParameterBase.validate_into(self, context, location)
@@ -226,18 +275,70 @@ class UndefinedParameter(ParameterBase):
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class DoubleParameter(ParameterBase):
+    """Floating-point setting and its VESC Tool editor/transport metadata."""
+
     default: float = 0.0
+    """Initial value stored in the XML ``valDouble`` element."""
+
     minimum: float = 0.0
+    """Lowest accepted stored value and editor bound."""
+
     maximum: float = 99.0
+    """Highest accepted stored value and editor bound."""
+
     step: float = 1.0
+    """Single-step increment used by the numeric editor."""
+
     decimals: int = 2
+    """Number of fractional digits shown by the editor."""
+
     tx_type: TxType = TxType.DOUBLE32_AUTO
+    """Floating-point encoding used in the serialized configuration.
+
+    ``DOUBLE16`` and ``DOUBLE32`` send a big-endian signed 16- or 32-bit
+    integer produced from ``value * tx_scale``. ``DOUBLE32_AUTO`` sends VESC's
+    four-byte sign/exponent/significand representation, preserving a wide
+    dynamic range without a configured scale and ignoring ``tx_scale``.
+    """
+
     tx_scale: float = 1.0
+    """Fixed-point multiplier for ``DOUBLE16`` and ``DOUBLE32`` transport.
+
+    VESC serializes ``value`` as the signed integer ``value * tx_scale`` (with
+    any fractional part truncated toward zero) and reconstructs it by dividing
+    that integer by ``tx_scale``. A larger scale improves resolution (one wire
+    count equals ``1 / tx_scale``) but reduces the representable range before
+    the selected integer width overflows. This field has no effect when
+    ``tx_type`` is ``DOUBLE32_AUTO``.
+    """
+
     editor_scale: float = 1.0
+    """Multiplier between the stored value and VESC Tool's numeric editor.
+
+    The editor displays ``stored_value * editor_scale`` and scales its minimum
+    and maximum the same way. Values entered by the user are divided by
+    ``editor_scale`` before being stored. This is a UI-only unit conversion: it
+    does not alter the XML value, validation range, or wire representation.
+    """
+
     edit_as_percentage: bool = False
+    """Whether VESC Tool replaces the numeric editor with a percent control.
+
+    The 100-percent reference is ``max(abs(minimum), abs(maximum))``. Moving
+    the control stores ``percentage / 100 * reference``; its lower and upper
+    limits are derived from ``minimum`` and ``maximum`` relative to that same
+    reference. ``editor_scale`` does not participate in this conversion,
+    though it still scales the value shown by the graphical display.
+    """
+
     show_display: bool = False
+    """Whether to show the adjacent graphical level display."""
+
     suffix: str = ""
+    """Unit or other suffix appended to displayed values."""
+
     type: Final[ParameterType] = ParameterType.DOUBLE
+    """Constant ``DOUBLE`` discriminator written to XML."""
 
     def validate_into(self, context: ValidationContext, location: Location) -> None:
         ParameterBase.validate_into(self, context, location)
@@ -336,16 +437,56 @@ class DoubleParameter(ParameterBase):
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class IntParameter(ParameterBase):
+    """Integer setting and its VESC Tool editor/transport metadata."""
+
     default: int = 0
+    """Initial value stored in the XML ``valInt`` element."""
+
     minimum: int = 0
+    """Lowest accepted stored value and editor bound."""
+
     maximum: int = 99
+    """Highest accepted stored value and editor bound."""
+
     step: int = 1
+    """Single-step increment used by the integer editor."""
+
     tx_type: TxType = TxType.UINT16
+    """Integer encoding used in the serialized configuration.
+
+    Selects an unsigned or two's-complement signed, big-endian value of 8, 16,
+    or 32 bits. The parameter's complete ``minimum`` through ``maximum`` range
+    must fit the selected encoding; unlike floating-point transport, integer
+    values are transmitted directly and have no transport scale.
+    """
+
     editor_scale: float = 1.0
+    """Multiplier between the stored integer and VESC Tool's numeric editor.
+
+    The editor displays ``stored_value * editor_scale`` and scales its minimum
+    and maximum the same way. Edited values are divided by ``editor_scale``
+    and converted back to an integer, truncating any fractional part. This is
+    a UI-only unit conversion and does not affect serialization.
+    """
+
     edit_as_percentage: bool = False
+    """Whether VESC Tool replaces the integer editor with a percent control.
+
+    The 100-percent reference is ``max(abs(minimum), abs(maximum))``. Moving
+    the control calculates ``percentage * reference / 100`` using integer
+    arithmetic, so fractional results are truncated. The percentage limits
+    likewise reflect ``minimum`` and ``maximum`` relative to the reference.
+    ``editor_scale`` affects only the accompanying displayed value.
+    """
+
     show_display: bool = False
+    """Whether to show the adjacent graphical level display."""
+
     suffix: str = ""
+    """Unit or other suffix appended to displayed values."""
+
     type: Final[ParameterType] = ParameterType.INT
+    """Constant ``INT`` discriminator written to XML."""
 
     def validate_into(self, context: ValidationContext, location: Location) -> None:
         ParameterBase.validate_into(self, context, location)
@@ -424,9 +565,16 @@ class IntParameter(ParameterBase):
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class StringParameter(ParameterBase):
+    """UTF-8 string setting represented by VESC Tool's ``CFG_T_QSTRING``."""
+
     default: str = ""
+    """Initial string stored in the XML ``valString`` element."""
+
     max_length: int = 0
+    """Maximum serialized UTF-8 bytes and VESC Tool editor character limit."""
+
     type: Final[ParameterType] = ParameterType.STRING
+    """Constant ``STRING`` discriminator written to XML."""
 
     def validate_into(self, context: ValidationContext, location: Location) -> None:
         ParameterBase.validate_into(self, context, location)
@@ -465,9 +613,16 @@ class StringParameter(ParameterBase):
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class EnumParameter(ParameterBase):
+    """One-byte setting selected from an ordered list of display labels."""
+
     choices: tuple[str, ...]
+    """Ordered labels whose tuple indices are stored and transmitted values."""
+
     default: int = 0
+    """Zero-based index of the initially selected choice."""
+
     type: Final[ParameterType] = ParameterType.ENUM
+    """Constant ``ENUM`` discriminator written to XML."""
 
     def validate_into(self, context: ValidationContext, location: Location) -> None:
         ParameterBase.validate_into(self, context, location)
@@ -526,8 +681,13 @@ class EnumParameter(ParameterBase):
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class BoolParameter(ParameterBase):
+    """Boolean setting edited as a two-state control and encoded as one byte."""
+
     default: bool = False
+    """Initial off/on state stored as ``valInt`` in the XML."""
+
     type: Final[ParameterType] = ParameterType.BOOL
+    """Constant ``BOOL`` discriminator written to XML."""
 
     def validate_into(self, context: ValidationContext, location: Location) -> None:
         ParameterBase.validate_into(self, context, location)
@@ -541,9 +701,16 @@ class BoolParameter(ParameterBase):
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class BitfieldParameter(ParameterBase):
+    """One-byte mask edited as independently named bits in VESC Tool."""
+
     bit_names: tuple[str, ...]
+    """Labels for bits 0 through 7, in least-significant-bit-first order."""
+
     default: int = 0
+    """Initial bit mask, in the range 0 through 255."""
+
     type: Final[ParameterType] = ParameterType.BITFIELD
+    """Constant ``BITFIELD`` discriminator written to XML."""
 
     def validate_into(self, context: ValidationContext, location: Location) -> None:
         ParameterBase.validate_into(self, context, location)
@@ -599,7 +766,10 @@ Parameter = Union[
 
 @dataclass(frozen=True, slots=True)
 class Separator:
+    """Visual heading inserted among the parameters of a UI subgroup."""
+
     title: str
+    """Heading text, written with VESC Tool's reserved ``::sep::`` prefix."""
 
     def validate_into(self, context: ValidationContext, location: Location) -> None:
         if not isinstance(self.title, str):
@@ -624,8 +794,13 @@ GroupItem = Union[Parameter, Separator]
 
 @dataclass(frozen=True, slots=True)
 class Subgroup:
+    """Ordered parameter list presented as one VESC Tool configuration page."""
+
     name: str
+    """Human-readable subgroup/page label written as ``subgroupName``."""
+
     items: tuple[GroupItem, ...]
+    """Parameters and visual separators in their UI display order."""
 
     def validate_into(self, context: ValidationContext, location: Location) -> None:
         if not isinstance(self.name, str):
@@ -666,8 +841,13 @@ class Subgroup:
 
 @dataclass(frozen=True, slots=True)
 class Group:
+    """Top-level UI category containing related configuration pages."""
+
     name: str
+    """Human-readable category label written as ``groupName``."""
+
     subgroups: tuple[Subgroup, ...]
+    """Pages belonging to this category, in display order."""
 
     def validate_into(self, context: ValidationContext, location: Location) -> None:
         if not isinstance(self.name, str):
@@ -727,10 +907,19 @@ def iter_group_parameters(groups: tuple[Group, ...]) -> tuple[Parameter, ...]:
 
 @dataclass(frozen=True, slots=True)
 class SettingsXml:
+    """Complete declarative model of a VESC Tool ``settings.xml`` document."""
+
     config_name: str
+    """Identifier exposed through the synthetic ``config_name`` parameter."""
+
     settings_name: str
+    """Custom-page label exposed through the synthetic ``hw_name`` parameter."""
+
     c_define_prefix: str
+    """Prefix used to form each transmittable parameter's ``cDefine`` name."""
+
     groups: tuple[Group, ...]
+    """UI grouping tree whose parameter order defines serialization order."""
 
     @property
     def parameters(self) -> tuple[Parameter, ...]:
