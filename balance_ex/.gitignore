@@ -2,3 +2,5 @@
 *.vescpkg
 build/
 
+# inherited rules.mk build output
+c_libs/
