@@ -162,7 +162,6 @@ class ParameterBase:
     name: str
     long_name: str
     description: Description = TextDescription("")
-    c_define: str = ""
     transmittable: bool = True
 
     def validate_into(self, context: ValidationContext, location: Location) -> None:
@@ -203,17 +202,6 @@ class ParameterBase:
                 "description_type",
             )
 
-        if not isinstance(self.c_define, str):
-            context.add(
-                location + ("c_define",), "c_define must be a string", "string_type"
-            )
-        else:
-            context.require(
-                "\x00" not in self.c_define,
-                location + ("c_define",),
-                "c_define contains NUL",
-                "nul_character",
-            )
         context.require(
             type(self.transmittable) is bool,
             location + ("transmittable",),
@@ -741,6 +729,7 @@ def iter_group_parameters(groups: tuple[Group, ...]) -> tuple[Parameter, ...]:
 class SettingsXml:
     config_name: str
     settings_name: str
+    c_define_prefix: str
     groups: tuple[Group, ...]
 
     @property
@@ -770,6 +759,12 @@ class SettingsXml:
             if parameter.transmittable is True and isinstance(parameter.name, str)
         )
 
+    def c_define_for(self, parameter: Parameter) -> str:
+        """Return the generated C define for a transmittable parameter."""
+        if parameter.transmittable is not True:
+            return ""
+        return f"{self.c_define_prefix}_{parameter.name.upper()}"
+
     def validate_into(
         self, context: ValidationContext, location: Location = ()
     ) -> None:
@@ -798,6 +793,20 @@ class SettingsXml:
                 location + ("settings_name",),
                 "settings_name must not be empty",
                 "empty_string",
+            )
+
+        if not isinstance(self.c_define_prefix, str):
+            context.add(
+                location + ("c_define_prefix",),
+                "c_define_prefix must be a string",
+                "string_type",
+            )
+        else:
+            context.require(
+                bool(_C_NAME.fullmatch(self.c_define_prefix)),
+                location + ("c_define_prefix",),
+                "c_define_prefix must be a non-empty C identifier",
+                "c_identifier",
             )
 
         if not isinstance(self.groups, tuple):

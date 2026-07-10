@@ -28,7 +28,6 @@ general_balance_enabled: Final[BoolParameter] = BoolParameter(
             "balance interfering."
         )
     ),
-    c_define="APPCONF_BALANCE_ENABLED",
 )
 
 
@@ -71,7 +70,6 @@ general_error_linear_limit: Final[DoubleParameter] = DoubleParameter(
             'font-weight:600;">d</span></p></body></html>'
         )
     ),
-    c_define="APPCONF_ERROR_LINEAR_LIMIT",
     default=90.0,
     maximum=90.0,
     step=0.1,
@@ -118,7 +116,6 @@ general_error_ln_slope: Final[DoubleParameter] = DoubleParameter(
             'font-weight:600;">k</span></p></body></html>'
         )
     ),
-    c_define="APPCONF_ERROR_LN_SLOPE",
     default=0.1,
     minimum=0.1,
     maximum=50.0,
@@ -131,7 +128,6 @@ pid_mode: Final[EnumParameter] = EnumParameter(
     name="pid_mode",
     long_name="PID Mode",
     description=TextDescription("PID loop mode, Angle or Cascadeing Angle Rate."),
-    c_define="APPCONF_BALANCE_PID_MODE",
     choices=("BALANCE_PID_MODE_ANGLE", "BALANCE_PID_MODE_ANGLE_RATE_CASCADE"),
 )
 
@@ -140,7 +136,6 @@ pid_kp: Final[DoubleParameter] = DoubleParameter(
     name="kp",
     long_name="Angle P",
     description=TextDescription("P value for the PID balance loop."),
-    c_define="APPCONF_BALANCE_KP",
     maximum=100000.0,
     step=0.1,
     decimals=4,
@@ -158,7 +153,6 @@ pid_kexp: Final[DoubleParameter] = DoubleParameter(
             'This parameter controls the "steepness" of the exponent, k'
         )
     ),
-    c_define="APPCONF_BALANCE_KEXP",
     maximum=20.0,
     step=0.1,
 )
@@ -168,7 +162,6 @@ pid_ki: Final[DoubleParameter] = DoubleParameter(
     name="ki",
     long_name="Angle I",
     description=TextDescription("I value for the PID balance loop."),
-    c_define="APPCONF_BALANCE_KI",
     maximum=100000.0,
     step=0.1,
     decimals=4,
@@ -180,7 +173,6 @@ pid_kd: Final[DoubleParameter] = DoubleParameter(
     name="kd",
     long_name="Angle D",
     description=TextDescription("D value for the PID balance loop."),
-    c_define="APPCONF_BALANCE_KD",
     maximum=100000.0,
     step=0.1,
     decimals=4,
@@ -192,7 +184,6 @@ pid_kp2: Final[DoubleParameter] = DoubleParameter(
     name="kp2",
     long_name="Rate P",
     description=TextDescription("P value for the PID balance loop."),
-    c_define="APPCONF_BALANCE_KP2",
     maximum=100000.0,
     step=0.1,
     decimals=4,
@@ -204,7 +195,6 @@ pid_ki2: Final[DoubleParameter] = DoubleParameter(
     name="ki2",
     long_name="Rate I",
     description=TextDescription("I value for the PID balance loop."),
-    c_define="APPCONF_BALANCE_KI2",
     maximum=100000.0,
     step=0.1,
     decimals=4,
@@ -216,7 +206,6 @@ pid_kd2: Final[DoubleParameter] = DoubleParameter(
     name="kd2",
     long_name="Rate D",
     description=TextDescription("D value for the PID balance loop."),
-    c_define="APPCONF_BALANCE_KD2",
     maximum=100000.0,
     step=0.1,
     decimals=4,
@@ -228,7 +217,6 @@ main_loop_hertz: Final[IntParameter] = IntParameter(
     name="hertz",
     long_name="Loop Hertz",
     description=TextDescription("Loop Hertz."),
-    c_define="APPCONF_BALANCE_HERTZ",
     default=1000,
     minimum=50,
     maximum=4000,
@@ -241,7 +229,6 @@ main_loop_time_filter: Final[IntParameter] = IntParameter(
     name="loop_time_filter",
     long_name="Loop Time Correction Filter",
     description=TextDescription("Filter overshoot and correct for it."),
-    c_define="APPCONF_BALANCE_LOOP_TIME_FILTER",
     maximum=1000,
     step=10,
     suffix=" Hz",
@@ -254,7 +241,6 @@ filters_ki_limit: Final[DoubleParameter] = DoubleParameter(
     description=TextDescription(
         "I term limiter, used to prevent windup. 0 = disabled."
     ),
-    c_define="APPCONF_BALANCE_KI_LIMIT",
     maximum=500.0,
     step=2.0,
     decimals=1,
@@ -269,7 +255,6 @@ filters_kd_pt1_lowpass_frequency: Final[IntParameter] = IntParameter(
     description=TextDescription(
         "D term filter above this frequency. 0 = Disabled."
     ),
-    c_define="APPCONF_BALANCE_KD_PT1_LOWPASS_FREQUENCY",
     maximum=4000,
     step=10,
     suffix=" Hz",
@@ -282,7 +267,6 @@ filters_kd2_pt1_lowpass_frequency: Final[IntParameter] = IntParameter(
     description=TextDescription(
         "Rate D term filter above this frequency. 0 = Disabled."
     ),
-    c_define="APPCONF_BALANCE_KD2_PT1_LOWPASS_FREQUENCY",
     maximum=4000,
     step=10,
     suffix=" Hz",
@@ -295,7 +279,6 @@ filters_kd_pt1_highpass_frequency: Final[IntParameter] = IntParameter(
     description=TextDescription(
         "D term filter below this frequency. 0 = Disabled."
     ),
-    c_define="APPCONF_BALANCE_KD_PT1_HIGHPASS_FREQUENCY",
     maximum=4000,
     step=10,
     suffix=" Hz",
@@ -308,7 +291,6 @@ setpoint_min: Final[DoubleParameter] = DoubleParameter(
     description=TextDescription(
         "Absolute minimum value allowed for the setpoint. Any setpoint change will stop at this point."
     ),
-    c_define="APPCONF_SETPOINT_MIN",
     minimum=-90.0,
     maximum=0.0,
     decimals=1,
@@ -322,7 +304,6 @@ setpoint_max: Final[DoubleParameter] = DoubleParameter(
     description=TextDescription(
         "Absolute maximum value allowed for the setpoint. Any setpoint change will stop at this point."
     ),
-    c_define="APPCONF_SETPOINT_MAX",
     maximum=90.0,
     decimals=1,
     tx_type=TxType.DOUBLE16,
@@ -341,7 +322,6 @@ setpoint_constant: Final[DoubleParameter] = DoubleParameter(
             "All setpoint adjustments do not go below Setpoint min or above Setpoint max values."
         )
     ),
-    c_define="APPCONF_SETPOINT_CONSTANT",
     minimum=-10.0,
     maximum=10.0,
     decimals=1,
@@ -361,7 +341,6 @@ setpoint_speed_based: Final[DoubleParameter] = DoubleParameter(
             "All setpoint adjustments do not go below Setpoint min or above Setpoint max values."
         )
     ),
-    c_define="APPCONF_SETPOINT_SPEED_BASED",
     minimum=-1.0,
     maximum=1.0,
     step=0.01,
@@ -375,7 +354,6 @@ setpoint_change_speed: Final[DoubleParameter] = DoubleParameter(
     description=TextDescription(
         "Speed at which setpoint changes will go towards chaning target"
     ),
-    c_define="APPCONF_SETPOINT_CHANGE_SPEED",
     default=5.0,
     maximum=100.0,
     step=0.5,
@@ -392,7 +370,6 @@ booster_angle: Final[DoubleParameter] = DoubleParameter(
     description=TextDescription(
         "Angle at which booster is applied (actually measued as absolute deviation from setpoint)."
     ),
-    c_define="APPCONF_BALANCE_BOOSTER_ANGLE",
     default=8.0,
     maximum=80.0,
     step=0.5,
@@ -410,7 +387,6 @@ booster_ramp: Final[DoubleParameter] = DoubleParameter(
             "Angle."
         )
     ),
-    c_define="APPCONF_BALANCE_BOOSTER_RAMP",
     default=1.0,
     minimum=1.0,
     maximum=80.0,
@@ -426,7 +402,6 @@ booster_current: Final[DoubleParameter] = DoubleParameter(
     description=TextDescription(
         "Extra current to be applied when booster angle is reached."
     ),
-    c_define="APPCONF_BALANCE_BOOSTER_CURRENT",
     maximum=100.0,
     decimals=1,
     tx_scale=1000.0,
@@ -440,7 +415,6 @@ torque_tilt_start_current: Final[DoubleParameter] = DoubleParameter(
     description=TextDescription(
         "Minimum output current threshold for torque tiltback to start applying."
     ),
-    c_define="APPCONF_BALANCE_TORQUETILT_START_CURRENT",
     default=10.0,
     maximum=100.0,
     step=2.0,
@@ -454,7 +428,6 @@ torque_tilt_angle_limit: Final[DoubleParameter] = DoubleParameter(
     name="torquetilt_angle_limit",
     long_name="Tilitback Angle Limit",
     description=TextDescription("Max angle to which torque tiltback will tilt."),
-    c_define="APPCONF_BALANCE_TORQUETILT_ANGLE_LIMIT",
     default=5.0,
     maximum=80.0,
     step=0.5,
@@ -472,7 +445,6 @@ torque_tilt_on_speed: Final[DoubleParameter] = DoubleParameter(
             "current increases slowly)."
         )
     ),
-    c_define="APPCONF_BALANCE_TORQUETILT_ON_SPEED",
     default=5.0,
     maximum=100.0,
     step=0.5,
@@ -491,7 +463,6 @@ torque_tilt_off_speed: Final[DoubleParameter] = DoubleParameter(
             "slower if current decreases slowly)."
         )
     ),
-    c_define="APPCONF_BALANCE_TORQUETILT_OFF_SPEED",
     default=3.0,
     maximum=100.0,
     step=0.5,
@@ -507,7 +478,6 @@ torque_tilt_strength: Final[DoubleParameter] = DoubleParameter(
     description=TextDescription(
         "How much tiltback should be applied based on output current."
     ),
-    c_define="APPCONF_BALANCE_TORQUETILT_STRENGTH",
     maximum=1.0,
     step=0.05,
     tx_scale=1000.0,
@@ -524,7 +494,6 @@ torque_tilt_filter: Final[DoubleParameter] = DoubleParameter(
             "spikes in the current, and prevents torquetilt from being twitchy."
         )
     ),
-    c_define="APPCONF_BALANCE_TORQUETILT_FILTER",
     default=2.0,
     maximum=500.0,
     step=0.5,
@@ -543,7 +512,6 @@ turn_tilt_strength: Final[DoubleParameter] = DoubleParameter(
             "N will give N degrees of tiltback when the vehicle is rolled to 90 degrees."
         )
     ),
-    c_define="APPCONF_BALANCE_TURNTILT_STRENGTH",
     maximum=90.0,
     step=0.5,
     decimals=1,
@@ -561,7 +529,6 @@ turn_tilt_angle_limit: Final[DoubleParameter] = DoubleParameter(
             "at the limit."
         )
     ),
-    c_define="APPCONF_BALANCE_TURNTILT_ANGLE_LIMIT",
     default=5.0,
     maximum=30.0,
     step=0.5,
@@ -580,7 +547,6 @@ turn_tilt_start_angle: Final[DoubleParameter] = DoubleParameter(
             "angle, it will apply as if it started from 0."
         )
     ),
-    c_define="APPCONF_BALANCE_TURNTILT_START_ANGLE",
     default=1.0,
     maximum=45.0,
     step=0.5,
@@ -593,7 +559,6 @@ turn_tilt_start_erpm: Final[IntParameter] = IntParameter(
     name="turntilt_start_erpm",
     long_name="ERPM Threshold",
     description=TextDescription("ERPM threshold to apply turntilt."),
-    c_define="APPCONF_BALANCE_TURNTILT_START_ERPM",
     default=100,
     minimum=100,
     maximum=65535,
@@ -611,7 +576,6 @@ turn_tilt_speed: Final[DoubleParameter] = DoubleParameter(
             "angle increases slowly)."
         )
     ),
-    c_define="APPCONF_BALANCE_TURNTILT_SPEED",
     default=5.0,
     maximum=100.0,
     step=0.5,
@@ -630,7 +594,6 @@ turn_tilt_erpm_boost: Final[IntParameter] = IntParameter(
             "to max erpm (Full configured boost % is applied)."
         )
     ),
-    c_define="APPCONF_BALANCE_TURNTILT_ERPM_BOOST",
     default=20,
     maximum=10000,
     step=5,
@@ -647,7 +610,6 @@ turn_tilt_erpm_boost_end: Final[IntParameter] = IntParameter(
             "constant boost % (at your configured boost %)."
         )
     ),
-    c_define="APPCONF_BALANCE_TURNTILT_ERPM_BOOST_END",
     default=20000,
     minimum=100,
     maximum=65535,
@@ -662,7 +624,6 @@ startup_pitch_tolerance: Final[DoubleParameter] = DoubleParameter(
     description=TextDescription(
         "Angle at which balancing will start (on the main axis). Measured in degrees from upright (0)."
     ),
-    c_define="APPCONF_BALANCE_STARTUP_PITCH_TOLERANCE",
     default=20.0,
     maximum=80.0,
     step=0.1,
@@ -678,7 +639,6 @@ startup_roll_tolerance: Final[DoubleParameter] = DoubleParameter(
     description=TextDescription(
         "Angle at which balancing will start (on the cross axis). Measured in degrees from upright (0)."
     ),
-    c_define="APPCONF_BALANCE_STARTUP_ROLL_TOLERANCE",
     default=8.0,
     maximum=80.0,
     step=0.1,
@@ -694,7 +654,6 @@ startup_speed: Final[DoubleParameter] = DoubleParameter(
     description=TextDescription(
         "Speed at which wheel will center itself on startup."
     ),
-    c_define="APPCONF_BALANCE_STARTUP_SPEED",
     default=30.0,
     maximum=100.0,
     step=0.1,
@@ -710,7 +669,6 @@ startup_brake_current: Final[DoubleParameter] = DoubleParameter(
     description=TextDescription(
         "Breaking current to be applied when balance app is not actively balancing."
     ),
-    c_define="APPCONF_BALANCE_BRAKE_CURRENT",
     maximum=100.0,
     step=2.0,
     tx_scale=1000.0,
@@ -727,7 +685,6 @@ startup_brake_timeout: Final[IntParameter] = IntParameter(
             "moves. 0 = Disabled."
         )
     ),
-    c_define="APPCONF_BALANCE_BRAKE_TIMEOUT",
     default=10,
     maximum=10000,
     step=5,
@@ -744,7 +701,6 @@ tiltback_enabled: Final[BoolParameter] = BoolParameter(
             "in the implementation - omits the whole function call which does tiltbacks processing."
         )
     ),
-    c_define="APPCONF_TILTBACK_ENABLED",
 )
 
 
@@ -757,7 +713,6 @@ tiltback_return_speed: Final[DoubleParameter] = DoubleParameter(
             "cleared (should be equal to or slower than slowest tiltback speed)."
         )
     ),
-    c_define="APPCONF_BALANCE_TILTBACK_RETURN_SPEED",
     default=1.0,
     maximum=100.0,
     step=0.5,
@@ -772,7 +727,6 @@ tiltback_duty_angle: Final[DoubleParameter] = DoubleParameter(
     name="tiltback_duty_angle",
     long_name="Angle",
     description=TextDescription("Angle of rise for duty cycle tiltback."),
-    c_define="APPCONF_BALANCE_TILTBACK_DUTY_ANGLE",
     default=10.0,
     maximum=45.0,
     decimals=1,
@@ -791,7 +745,6 @@ tiltback_duty_speed: Final[DoubleParameter] = DoubleParameter(
             "can be dangerous!)."
         )
     ),
-    c_define="APPCONF_BALANCE_TILTBACK_DUTY_SPEED",
     default=3.0,
     maximum=100.0,
     step=0.5,
@@ -811,7 +764,6 @@ tiltback_duty: Final[DoubleParameter] = DoubleParameter(
             "informing you to slow down)."
         )
     ),
-    c_define="APPCONF_BALANCE_TILTBACK_DUTY",
     default=0.75,
     maximum=1.0,
     step=0.01,
@@ -824,7 +776,6 @@ tiltback_hv_angle: Final[DoubleParameter] = DoubleParameter(
     name="tiltback_hv_angle",
     long_name="Angle",
     description=TextDescription("Angle of rise for high voltage tiltback."),
-    c_define="APPCONF_BALANCE_TILTBACK_HV_ANGLE",
     default=10.0,
     maximum=45.0,
     decimals=1,
@@ -843,7 +794,6 @@ tiltback_hv_speed: Final[DoubleParameter] = DoubleParameter(
             "can be dangerous!)."
         )
     ),
-    c_define="APPCONF_BALANCE_TILTBACK_HV_SPEED",
     default=3.0,
     maximum=100.0,
     step=0.5,
@@ -864,7 +814,6 @@ tiltback_hv: Final[DoubleParameter] = DoubleParameter(
             "downhill on a full battery, sometimes resulting in a tail drag on board shaped vehicles."
         )
     ),
-    c_define="APPCONF_BALANCE_TILTBACK_HV",
     default=100.0,
     maximum=700.0,
     step=0.1,
@@ -877,7 +826,6 @@ tiltback_lv_angle: Final[DoubleParameter] = DoubleParameter(
     name="tiltback_lv_angle",
     long_name="Angle",
     description=TextDescription("Angle of rise for low voltage tiltback."),
-    c_define="APPCONF_BALANCE_TILTBACK_LV_ANGLE",
     default=10.0,
     maximum=45.0,
     decimals=1,
@@ -896,7 +844,6 @@ tiltback_lv_speed: Final[DoubleParameter] = DoubleParameter(
             "can be dangerous and further contribute to voltage sag!)."
         )
     ),
-    c_define="APPCONF_BALANCE_TILTBACK_LV_SPEED",
     default=3.0,
     maximum=100.0,
     step=0.5,
@@ -916,7 +863,6 @@ tiltback_lv: Final[DoubleParameter] = DoubleParameter(
             "informing you to slow down)."
         )
     ),
-    c_define="APPCONF_BALANCE_TILTBACK_LV",
     maximum=700.0,
     step=0.1,
     tx_scale=1000.0,
@@ -928,7 +874,6 @@ fault_pitch: Final[DoubleParameter] = DoubleParameter(
     name="fault_pitch",
     long_name="Pitch Axis Fault Cutoff",
     description=TextDescription("Angle to turn off driving (on the pitch axis)."),
-    c_define="APPCONF_BALANCE_FAULT_PITCH",
     default=30.0,
     minimum=-180.0,
     maximum=180.0,
@@ -942,7 +887,6 @@ fault_roll: Final[DoubleParameter] = DoubleParameter(
     name="fault_roll",
     long_name="Roll Axis Fault Cutoff",
     description=TextDescription("Angle to turn off driving (on the roll axis)."),
-    c_define="APPCONF_BALANCE_FAULT_ROLL",
     default=45.0,
     minimum=-180.0,
     maximum=180.0,
@@ -961,7 +905,6 @@ fault_duty: Final[DoubleParameter] = DoubleParameter(
             "another fault occurs)."
         )
     ),
-    c_define="APPCONF_BALANCE_FAULT_DUTY",
     default=0.95,
     maximum=1.0,
     step=0.01,
@@ -973,7 +916,6 @@ fault_delay_pitch: Final[IntParameter] = IntParameter(
     name="fault_delay_pitch",
     long_name="Pitch Fault Delay",
     description=TextDescription("Pitch fault cutoff time delay in ms."),
-    c_define="APPCONF_BALANCE_FAULT_DELAY_PITCH",
     default=500,
     maximum=10000,
     step=10,
@@ -985,7 +927,6 @@ fault_delay_roll: Final[IntParameter] = IntParameter(
     name="fault_delay_roll",
     long_name="Roll Fault Delay",
     description=TextDescription("Roll fault cutoff time delay in ms."),
-    c_define="APPCONF_BALANCE_FAULT_DELAY_ROLL",
     maximum=10000,
     step=10,
     suffix=" ms",
@@ -996,7 +937,6 @@ fault_delay_duty: Final[IntParameter] = IntParameter(
     name="fault_delay_duty",
     long_name="Duty Fault Delay",
     description=TextDescription("Duty cycle cutoff time delay in ms."),
-    c_define="APPCONF_BALANCE_FAULT_DELAY_DUTY",
     default=1000,
     maximum=10000,
     step=10,
@@ -1124,5 +1064,6 @@ GROUPS: Final[tuple[Group, ...]] = (
 XML: Final[SettingsXml] = SettingsXml(
     config_name="balance_config",
     settings_name="Balance ex Settings",
+    c_define_prefix="APPCONF_BALANCE",
     groups=GROUPS,
 )

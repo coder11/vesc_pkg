@@ -6,6 +6,7 @@ import io
 import os
 import tempfile
 import xml.etree.ElementTree as ET
+from functools import singledispatch
 from html import escape as escape_html
 from pathlib import Path
 from typing import Iterable, Union
@@ -79,50 +80,80 @@ def _render_description(parameter: Parameter) -> str:
     raise AssertionError(f"unhandled description type: {type(description)!r}")
 
 
-def _parameter_fields(parameter: Parameter) -> Iterable[tuple[str, Scalar]]:
+def _parameter_fields(
+    settings: SettingsXml, parameter: Parameter
+) -> Iterable[tuple[str, Scalar]]:
     yield "longName", parameter.long_name
     yield "type", int(parameter.type)
     yield "transmittable", parameter.transmittable
     yield "description", _render_description(parameter)
-    yield "cDefine", parameter.c_define
+    yield "cDefine", settings.c_define_for(parameter)
+    yield from _parameter_value_fields(parameter)
 
-    if isinstance(parameter, DoubleParameter):
-        yield "editorDecimalsDouble", parameter.decimals
-        yield "editorScale", parameter.editor_scale
-        yield "editAsPercentage", parameter.edit_as_percentage
-        yield "maxDouble", parameter.maximum
-        yield "minDouble", parameter.minimum
-        yield "showDisplay", parameter.show_display
-        yield "stepDouble", parameter.step
-        yield "valDouble", parameter.default
-        yield "vTxDoubleScale", parameter.tx_scale
-        yield "suffix", parameter.suffix
-        yield "vTx", int(parameter.tx_type)
-    elif isinstance(parameter, IntParameter):
-        yield "editorScale", parameter.editor_scale
-        yield "editAsPercentage", parameter.edit_as_percentage
-        yield "maxInt", parameter.maximum
-        yield "minInt", parameter.minimum
-        yield "showDisplay", parameter.show_display
-        yield "stepInt", parameter.step
-        yield "valInt", parameter.default
-        yield "suffix", parameter.suffix
-        yield "vTx", int(parameter.tx_type)
-    elif isinstance(parameter, StringParameter):
-        yield "valString", parameter.default
-        yield "maxLen", parameter.max_length
-    elif isinstance(parameter, EnumParameter):
-        yield "valInt", parameter.default
-        for choice in parameter.choices:
-            yield "enumNames", choice
-    elif isinstance(parameter, BoolParameter):
-        yield "valInt", parameter.default
-    elif isinstance(parameter, BitfieldParameter):
-        yield "valInt", parameter.default
-        for bit_name in parameter.bit_names:
-            yield "enumNames", bit_name
-    elif not isinstance(parameter, UndefinedParameter):
-        raise AssertionError(f"unhandled parameter type: {type(parameter)!r}")
+
+@singledispatch
+def _parameter_value_fields(
+    parameter: object,
+) -> Iterable[tuple[str, Scalar]]:
+    raise AssertionError(f"unhandled parameter type: {type(parameter)!r}")
+
+
+@_parameter_value_fields.register
+def _(parameter: DoubleParameter) -> Iterable[tuple[str, Scalar]]:
+    yield "editorDecimalsDouble", parameter.decimals
+    yield "editorScale", parameter.editor_scale
+    yield "editAsPercentage", parameter.edit_as_percentage
+    yield "maxDouble", parameter.maximum
+    yield "minDouble", parameter.minimum
+    yield "showDisplay", parameter.show_display
+    yield "stepDouble", parameter.step
+    yield "valDouble", parameter.default
+    yield "vTxDoubleScale", parameter.tx_scale
+    yield "suffix", parameter.suffix
+    yield "vTx", int(parameter.tx_type)
+
+
+@_parameter_value_fields.register
+def _(parameter: IntParameter) -> Iterable[tuple[str, Scalar]]:
+    yield "editorScale", parameter.editor_scale
+    yield "editAsPercentage", parameter.edit_as_percentage
+    yield "maxInt", parameter.maximum
+    yield "minInt", parameter.minimum
+    yield "showDisplay", parameter.show_display
+    yield "stepInt", parameter.step
+    yield "valInt", parameter.default
+    yield "suffix", parameter.suffix
+    yield "vTx", int(parameter.tx_type)
+
+
+@_parameter_value_fields.register
+def _(parameter: StringParameter) -> Iterable[tuple[str, Scalar]]:
+    yield "valString", parameter.default
+    yield "maxLen", parameter.max_length
+
+
+@_parameter_value_fields.register
+def _(parameter: EnumParameter) -> Iterable[tuple[str, Scalar]]:
+    yield "valInt", parameter.default
+    for choice in parameter.choices:
+        yield "enumNames", choice
+
+
+@_parameter_value_fields.register
+def _(parameter: BoolParameter) -> Iterable[tuple[str, Scalar]]:
+    yield "valInt", parameter.default
+
+
+@_parameter_value_fields.register
+def _(parameter: BitfieldParameter) -> Iterable[tuple[str, Scalar]]:
+    yield "valInt", parameter.default
+    for bit_name in parameter.bit_names:
+        yield "enumNames", bit_name
+
+
+@_parameter_value_fields.register
+def _(parameter: UndefinedParameter) -> Iterable[tuple[str, Scalar]]:
+    return ()
 
 
 def _build_tree(settings: SettingsXml) -> ET.ElementTree:
@@ -130,7 +161,7 @@ def _build_tree(settings: SettingsXml) -> ET.ElementTree:
     params_element = ET.SubElement(root, "Params")
     for parameter in settings.parameters:
         parameter_element = ET.SubElement(params_element, parameter.name)
-        for field_name, value in _parameter_fields(parameter):
+        for field_name, value in _parameter_fields(settings, parameter):
             _add_text_element(parameter_element, field_name, value)
 
     order_element = ET.SubElement(root, "SerOrder")

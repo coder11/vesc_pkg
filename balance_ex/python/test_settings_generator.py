@@ -5,6 +5,7 @@ from __future__ import annotations
 import tempfile
 import unittest
 import xml.etree.ElementTree as ET
+from dataclasses import replace
 from pathlib import Path
 
 from generate_settings import OUTPUT_PATH
@@ -40,6 +41,18 @@ class SettingsGeneratorTests(unittest.TestCase):
         self.assertEqual(settings_name.name, "hw_name")
         self.assertEqual(settings_name.long_name, XML.settings_name)
 
+    def test_c_defines_are_derived_from_root_prefix_and_parameter_name(self) -> None:
+        custom_prefix = replace(XML, c_define_prefix="CUSTOM_PREFIX")
+        self.assertEqual(
+            XML.c_define_for(general_error_linear_limit),
+            "APPCONF_BALANCE_ERROR_LINEAR_LIMIT",
+        )
+        self.assertEqual(
+            custom_prefix.c_define_for(general_error_linear_limit),
+            "CUSTOM_PREFIX_ERROR_LINEAR_LIMIT",
+        )
+        self.assertEqual(XML.c_define_for(XML.parameters[0]), "")
+
     def test_parameters_and_serialization_follow_group_order(self) -> None:
         self.assertIs(XML.parameters[2], general_balance_enabled)
         self.assertIs(XML.parameters[5], pid_mode)
@@ -68,6 +81,7 @@ class SettingsGeneratorTests(unittest.TestCase):
         invalid = SettingsXml(
             config_name="test_config",
             settings_name="Test Settings",
+            c_define_prefix="TEST_CONFIG",
             groups=(
                 Group(
                     name="Test",
@@ -100,6 +114,7 @@ class SettingsGeneratorTests(unittest.TestCase):
         invalid = SettingsXml(
             config_name="not a C identifier",
             settings_name="",
+            c_define_prefix="not a C identifier either",
             groups=(
                 Group(
                     name="",
