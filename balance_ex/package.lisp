@@ -2,9 +2,6 @@
 
 (load-native-lib balancelib)
 
-; Set to 1 to monitor some debug variables using the extension ext-euc-dbg
-(define debug 1)
-
 ; config
 (def can-id 2)
 
@@ -18,15 +15,6 @@
 (def live-logging-time 0)
 
 @const-start
-
-(defun debug-loop ()
-    (loopwhile t
-        (progn
-            (define setpoint (ext-balance-dbg 2))
-            (define tt-filtered-current (ext-balance-dbg 3))
-            (define integral (ext-balance-dbg 14))
-            (sleep 0.1)
-)))
 
 ; Local data to log
 ;
@@ -46,7 +34,7 @@
         ("Duty"                         (get-duty))
         ("ERPM"                         (get-rpm))
         ("RPM"                          (ext-balance-get-rpm))
-        
+
         ("Temp Fet" "degC" 1            (get-temp-fet))
         ("roll"                         (ix (get-imu-rpy) 0))
         ("pitch"                        (ix (get-imu-rpy) 1))
@@ -134,7 +122,7 @@
 
 (defun start-log (append-gnss rate)
     (progn
-        (if log-running 
+        (if log-running
             (stop-log)
             nil)
 
@@ -198,7 +186,7 @@
         (sleep delta)
     })
 })
-        
+
 
 (defun start-live-logging (hertz display-pid2) {
     ; Initialize plotting
@@ -227,5 +215,3 @@
 
 
 @const-end
-
-(debug-loop)

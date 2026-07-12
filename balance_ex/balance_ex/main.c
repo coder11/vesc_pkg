@@ -56,7 +56,7 @@ static void balance_thd(void *arg) {
 	beep_ms(100);
 	VESC_IF->sleep_ms(50);
 	beep_ms(100);
-	
+
 	while (!VESC_IF->should_terminate()) {
 		balance_loop_tick(d);
 	}
@@ -248,12 +248,12 @@ INIT_FUN(lib_info *info) {
 	INIT_START
 
 	data *d = VESC_IF->malloc(sizeof(data));
-	memset(d, 0, sizeof(data));
-	
 	if (!d) {
 		VESC_IF->printf("Out of memory!");
 		return false;
 	}
+
+	memset(d, 0, sizeof(data));
 
 	// Read config from EEPROM if signature is correct
 	eeprom_var v;
@@ -271,18 +271,18 @@ INIT_FUN(lib_info *info) {
 	} else {
 		read_ok = false;
 	}
-	
+
 	if (read_ok) {
 		memcpy(&(d->balance_conf), buffer, sizeof(balance_config));
 	} else {
 		confparser_set_defaults_balance_config(&(d->balance_conf));
 	}
-	
+
 	VESC_IF->free(buffer);
 
-	info->stop_fun = stop;	
+	info->stop_fun = stop;
 	info->arg = d;
-	
+
 	VESC_IF->conf_custom_add_config(get_cfg, set_cfg, get_cfg_xml);
 
 	configure(d);
@@ -309,4 +309,3 @@ INIT_FUN(lib_info *info) {
 
 	return true;
 }
-
