@@ -32,6 +32,9 @@ void brake(data *d) {
 }
 
 void set_current(data *d) {
+    // while the vesc is sitting on the bale with wires exposed dont do anything :)
+    return;
+
 	// Limit current output to configured max output
 	if (d->output_current > 0 && d->output_current > VESC_IF->get_cfg_float(CFG_PARAM_l_current_max)) {
 		d->output_current = VESC_IF->get_cfg_float(CFG_PARAM_l_current_max);
@@ -118,7 +121,7 @@ void calculate_balance_current(data *d) {
 }
 
 bool is_valid_startup_position(data *d, bool ignore_pitch) {
-	bool is_pitch_good = ignore_pitch 
+	bool is_pitch_good = ignore_pitch
 		|| fabsf(d->pitch_angle) < d->balance_conf.startup_pitch_tolerance;
 
 	bool is_roll_good = fabsf(d->roll_angle) < d->balance_conf.startup_roll_tolerance;
@@ -144,7 +147,7 @@ void balance_loop_tick(data *d) {
     // Set "last" values to previous loops values
     d->last_pitch_angle = d->pitch_angle;
     d->last_gyro_y = d->gyro[1];
-	
+
     // Get the values we want
     d->motor_current = VESC_IF->mc_get_tot_current_directional_filtered();
     d->pitch_angle = RAD2DEG_f(VESC_IF->imu_get_pitch());
@@ -211,7 +214,7 @@ void balance_loop_tick(data *d) {
 				// allow tiltback to work outside of clamp
 				apply_tiltback(d);
 			}
-			
+
 			calculate_balance_current(d);
 			set_current(d);
             break;
