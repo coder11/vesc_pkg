@@ -8,8 +8,9 @@ import xml.etree.ElementTree as ET
 from dataclasses import replace
 from pathlib import Path
 
-from generate_settings import OUTPUT_PATH
+from generate_settings import DATATYPES_OUTPUT_PATH, OUTPUT_PATH
 from settings_data import (
+    DATATYPES_LICENSE,
     XML,
     general_balance_enabled,
     general_error_linear_limit,
@@ -28,6 +29,7 @@ from settings_schema import (
     validate_settings,
 )
 from settings_xml import render_settings, write_settings
+from settings_c import CHeaderLicense, render_datatypes, write_datatypes
 
 
 class SettingsGeneratorTests(unittest.TestCase):
@@ -37,7 +39,7 @@ class SettingsGeneratorTests(unittest.TestCase):
     def test_magic_parameters_are_derived_from_root_properties(self) -> None:
         config_name, settings_name = XML.parameters[:2]
         self.assertEqual(config_name.name, "config_name")
-        self.assertEqual(config_name.default, XML.config_name)
+        self.assertEqual(config_name.default, XML.config_structure_name)
         self.assertEqual(settings_name.name, "hw_name")
         self.assertEqual(settings_name.long_name, XML.settings_name)
 
@@ -77,9 +79,48 @@ class SettingsGeneratorTests(unittest.TestCase):
         expected = OUTPUT_PATH.read_text(encoding="utf-8")
         self.assertEqual(render_settings(XML), expected)
 
+    def test_checked_in_datatypes_matches_rendered_data(self) -> None:
+        expected = DATATYPES_OUTPUT_PATH.read_text(encoding="utf-8")
+        self.assertEqual(
+            render_datatypes(XML, license=DATATYPES_LICENSE),
+            expected,
+        )
+
+    def test_datatypes_license_is_configurable(self) -> None:
+        rendered = render_datatypes(
+            XML,
+            license=CHeaderLicense(
+                author="Example Author",
+                author_email="author@example.com",
+                year=2024,
+                text="Example license text.",
+            ),
+        )
+        self.assertTrue(
+            rendered.startswith(
+                "/*\n"
+                "\tCopyright 2024 Example Author\tauthor@example.com\n\n"
+                "Example license text.\n"
+                " */\n"
+            )
+        )
+
+    def test_datatypes_follow_group_parameter_order_and_types(self) -> None:
+        rendered = render_datatypes(XML)
+        declarations = [
+            line.strip()
+            for line in rendered.splitlines()
+            if line.startswith("\t") and line.strip().endswith(";")
+        ]
+        self.assertEqual(declarations[0], "bool balance_enabled;")
+        self.assertEqual(declarations[1], "float error_ln_slope;")
+        self.assertEqual(declarations[2], "float error_linear_limit;")
+        self.assertEqual(declarations[3], "BALANCE_PID_MODE pid_mode;")
+        self.assertIn("uint16_t hertz;", declarations)
+
     def test_invalid_data_does_not_replace_destination(self) -> None:
         invalid = SettingsXml(
-            config_name="test_config",
+            config_structure_name="test_config",
             settings_name="Test Settings",
             c_define_prefix="TEST_CONFIG",
             groups=(
@@ -103,16 +144,24 @@ class SettingsGeneratorTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as directory:
             destination = Path(directory) / "settings.xml"
+            datatypes_destination = Path(directory) / "datatypes.h"
             destination.write_text("leave me intact\n", encoding="utf-8")
+            datatypes_destination.write_text("leave me intact\n", encoding="utf-8")
             with self.assertRaises(ValidationError):
                 write_settings(invalid, destination)
+            with self.assertRaises(ValidationError):
+                write_datatypes(invalid, datatypes_destination)
             self.assertEqual(
                 destination.read_text(encoding="utf-8"), "leave me intact\n"
+            )
+            self.assertEqual(
+                datatypes_destination.read_text(encoding="utf-8"),
+                "leave me intact\n",
             )
 
     def test_validation_aggregates_issues_from_model_classes(self) -> None:
         invalid = SettingsXml(
-            config_name="not a C identifier",
+            config_structure_name="not a C identifier",
             settings_name="",
             c_define_prefix="not a C identifier either",
             groups=(

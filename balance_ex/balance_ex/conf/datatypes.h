@@ -1,5 +1,5 @@
 /*
-	Copyright 2022 Benjamin Vedder	benjamin@vedder.se
+	Copyright 2026 Benjamin Vedder	benjamin@vedder.se
 
 	This file is part of the VESC firmware.
 
@@ -25,14 +25,14 @@
 
 typedef enum {
 	BALANCE_PID_MODE_ANGLE = 0,
-	BALANCE_PID_MODE_ANGLE_RATE_CASCADE
+	BALANCE_PID_MODE_ANGLE_RATE_CASCADE = 1
 } BALANCE_PID_MODE;
 
 typedef struct {
-	BALANCE_PID_MODE pid_mode;
 	bool balance_enabled;
-	float error_linear_limit;
 	float error_ln_slope;
+	float error_linear_limit;
+	BALANCE_PID_MODE pid_mode;
 	float kp;
 	float kexp;
 	float ki;
@@ -42,40 +42,23 @@ typedef struct {
 	float kd2;
 	uint16_t hertz;
 	uint16_t loop_time_filter;
-	float fault_pitch;
-	float fault_roll;
-	float fault_duty;
-	uint16_t fault_delay_pitch;
-	uint16_t fault_delay_roll;
-	uint16_t fault_delay_duty;
-	bool tiltback_enabled;
-	float tiltback_return_speed;
-	float tiltback_duty_angle;
-	float tiltback_duty_speed;
-	float tiltback_duty;
-	float tiltback_hv_angle;
-	float tiltback_hv_speed;
-	float tiltback_hv;
-	float tiltback_lv_angle;
-	float tiltback_lv_speed;
-	float tiltback_lv;
-	float startup_pitch_tolerance;
-	float startup_roll_tolerance;
-	float startup_speed;
-	float brake_current;
-	uint16_t brake_timeout;
 	float ki_limit;
 	uint16_t kd_pt1_lowpass_frequency;
 	uint16_t kd2_pt1_lowpass_frequency;
 	uint16_t kd_pt1_highpass_frequency;
+	float setpoint_max;
+	float setpoint_min;
+	float setpoint_constant;
+	float setpoint_speed_based;
+	float setpoint_change_speed;
 	float booster_angle;
 	float booster_ramp;
 	float booster_current;
+	float torquetilt_strength;
 	float torquetilt_start_current;
 	float torquetilt_angle_limit;
 	float torquetilt_on_speed;
 	float torquetilt_off_speed;
-	float torquetilt_strength;
 	float torquetilt_filter;
 	float turntilt_strength;
 	float turntilt_angle_limit;
@@ -84,12 +67,28 @@ typedef struct {
 	float turntilt_speed;
 	uint16_t turntilt_erpm_boost;
 	uint16_t turntilt_erpm_boost_end;
-
-	float setpoint_min;
-	float setpoint_max;
-	float setpoint_constant;
-	float setpoint_speed_based;
-	float setpoint_change_speed;
+	float startup_pitch_tolerance;
+	float startup_roll_tolerance;
+	float startup_speed;
+	float brake_current;
+	uint16_t brake_timeout;
+	bool tiltback_enabled;
+	float tiltback_return_speed;
+	float tiltback_duty;
+	float tiltback_duty_angle;
+	float tiltback_duty_speed;
+	float tiltback_hv;
+	float tiltback_hv_angle;
+	float tiltback_hv_speed;
+	float tiltback_lv;
+	float tiltback_lv_angle;
+	float tiltback_lv_speed;
+	float fault_pitch;
+	uint16_t fault_delay_pitch;
+	float fault_roll;
+	uint16_t fault_delay_roll;
+	float fault_duty;
+	uint16_t fault_delay_duty;
 } balance_config;
 
 // DATATYPES_H_

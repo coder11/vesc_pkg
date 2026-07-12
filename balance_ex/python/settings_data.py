@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Final
 
+from settings_c import CHeaderLicense
 from settings_schema import (
     BoolParameter,
     DoubleParameter,
@@ -127,6 +128,7 @@ pid_mode: Final[EnumParameter] = EnumParameter(
     name="pid_mode",
     long_name="PID Mode",
     description=TextDescription("PID loop mode, Angle or Cascadeing Angle Rate."),
+    c_type_name="BALANCE_PID_MODE",
     choices=("BALANCE_PID_MODE_ANGLE", "BALANCE_PID_MODE_ANGLE_RATE_CASCADE"),
 )
 
@@ -1054,8 +1056,10 @@ GROUPS: Final[tuple[Group, ...]] = (
 
 
 XML: Final[SettingsXml] = SettingsXml(
-    config_name="balance_config",
+    config_structure_name="balance_config",
     settings_name="Balance ex Settings",
     c_define_prefix="APPCONF_BALANCE",
     groups=GROUPS,
 )
+
+DATATYPES_LICENSE: Final[CHeaderLicense] = CHeaderLicense()

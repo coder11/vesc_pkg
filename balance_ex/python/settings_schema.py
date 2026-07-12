@@ -615,6 +615,9 @@ class StringParameter(ParameterBase):
 class EnumParameter(ParameterBase):
     """One-byte setting selected from an ordered list of display labels."""
 
+    c_type_name: str
+    """C typedef name used for this enum in the generated configuration struct."""
+
     choices: tuple[str, ...]
     """Ordered labels whose tuple indices are stored and transmitted values."""
 
@@ -626,6 +629,19 @@ class EnumParameter(ParameterBase):
 
     def validate_into(self, context: ValidationContext, location: Location) -> None:
         ParameterBase.validate_into(self, context, location)
+        if not isinstance(self.c_type_name, str):
+            context.add(
+                location + ("c_type_name",),
+                "c_type_name must be a string",
+                "string_type",
+            )
+        else:
+            context.require(
+                bool(_C_NAME.fullmatch(self.c_type_name)),
+                location + ("c_type_name",),
+                "c_type_name must be a non-empty C identifier",
+                "c_identifier",
+            )
         choices_valid = isinstance(self.choices, tuple)
         if not choices_valid:
             context.add(
@@ -909,8 +925,8 @@ def iter_group_parameters(groups: tuple[Group, ...]) -> tuple[Parameter, ...]:
 class SettingsXml:
     """Complete declarative model of a VESC Tool ``settings.xml`` document."""
 
-    config_name: str
-    """Identifier exposed through the synthetic ``config_name`` parameter."""
+    config_structure_name: str
+    """C struct typedef exposed through the synthetic ``config_name`` parameter."""
 
     settings_name: str
     """Custom-page label exposed through the synthetic ``hw_name`` parameter."""
@@ -928,7 +944,7 @@ class SettingsXml:
             StringParameter(
                 name="config_name",
                 long_name="none",
-                default=self.config_name,
+                default=self.config_structure_name,
                 transmittable=False,
             ),
             UndefinedParameter(
@@ -957,17 +973,17 @@ class SettingsXml:
     def validate_into(
         self, context: ValidationContext, location: Location = ()
     ) -> None:
-        if not isinstance(self.config_name, str):
+        if not isinstance(self.config_structure_name, str):
             context.add(
-                location + ("config_name",),
-                "config_name must be a string",
+                location + ("config_structure_name",),
+                "config_structure_name must be a string",
                 "string_type",
             )
         else:
             context.require(
-                bool(_C_NAME.fullmatch(self.config_name)),
-                location + ("config_name",),
-                "config_name must be a non-empty C identifier",
+                bool(_C_NAME.fullmatch(self.config_structure_name)),
+                location + ("config_structure_name",),
+                "config_structure_name must be a non-empty C identifier",
                 "c_identifier",
             )
         if not isinstance(self.settings_name, str):
