@@ -16,7 +16,6 @@ Item {
     BalanceUiRef {
         anchors.fill: parent
         appVersion: "{{VERSION}}"
-        gitHash: "{{GIT_HASH}}"
         mCommands: VescIf.commands()
         mMcConf: VescIf.mcConfig()
         mCustomConf: VescIf.customConfig(0)

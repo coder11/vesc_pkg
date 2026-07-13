@@ -36,7 +36,6 @@ Item {
     required property var mCustomConf
     required property var mUtility
     required property string appVersion
-    required property string gitHash
 
     component GaugeRef: Components.Gauge {}
     component CustomTextRef: Components.CustomText {}
@@ -367,9 +366,8 @@ Item {
                             Layout.margins: 0
                             Layout.leftMargin: 0
                             Layout.fillWidth: true
-                            text: qsTr("Balance App v%1-%2\nRT Data")
+                            text: qsTr("Balance App v%1\nRT Data")
                                   .arg(appVersion)
-                                  .arg(gitHash)
                             font.underline: true
                             font.weight: Font.Black
                         }

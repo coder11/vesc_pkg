@@ -1,4 +1,4 @@
-# BALANCE EX v{{VERSION}}-{{GIT_HASH}}
+# BALANCE EX v{{VERSION}}
 
 This one can be used for some basics tests already. Logging works, balance disabling works.
 
@@ -10,20 +10,32 @@ Balance package. This is a first attempt based on the balance app just to get st
 
 Most things should be similar to the regular balance app, except some of the time measurements as they are mostly based on seconds now. If there are problems when testing I would check the time measurements first.
 
-## Standalone UI
+## Development UI
 
 The UI can be run with simulated VESC data, without VESC Tool or hardware:
 
 ```sh
 cd balance_ex
-make test-ui
+make dev-ui
 ```
 
-`gui/ui.test.qml` injects mock command, configuration, and color implementations
+`gui/ui.dev.qml` injects mock command, configuration, and color implementations
 into `gui/components/BalanceUi.qml`. The production `gui/ui.qml` injects the
 VESC Tool implementations. Both entry points use aliased directory imports and
 empty inline component references.
 
-The package build runs `python/bundle_qml.py`, which recursively expands those
-references and merges their Qt/VESC imports into the single QML document
-required by the VESC package format.
+Run `make generate-qml-bundle` after changing the UI. It recursively expands
+those references, merges their Qt/VESC imports, and writes the checked-in
+`gui/ui.bundle.qml` required by the VESC package format. The regular package
+build copies that bundle and substitutes its `{{VERSION}}` placeholder without
+regenerating it.
+
+## Generated settings
+
+The typed settings model in `python/settings_data.py` generates
+`balance_ex/conf/settings.xml` and `balance_ex/conf/datatypes.h`. Regenerate
+both files after changing the model:
+
+```sh
+make generate-settings
+```

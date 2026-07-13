@@ -62,6 +62,7 @@ Text {
 
         result = bundle_qml(entrypoint)
 
+        self.assertTrue(result.startswith("// This file is auto-generated"))
         self.assertIn("import QtQuick 2.15", result)
         self.assertNotIn("import QtQuick 2.12", result)
         self.assertIn("import QtQuick.Controls 2.12", result)
@@ -78,15 +79,15 @@ Text {
         self.assertNotIn("Components.Panel", result)
         self.assertNotIn("Nested.Label", result)
 
-    def test_replaces_build_definitions(self) -> None:
+    def test_preserves_build_placeholders(self) -> None:
         entrypoint = self.write(
             "ui.qml",
             '''import QtQuick 2.12
 Item { property string version: "{{VERSION}}" }
 ''',
         )
-        result = bundle_qml(entrypoint, {"VERSION": "1.2.3"})
-        self.assertIn('property string version: "1.2.3"', result)
+        result = bundle_qml(entrypoint)
+        self.assertIn('property string version: "{{VERSION}}"', result)
 
     def test_shared_transitive_dependency_is_emitted_once(self) -> None:
         entrypoint = self.write(

@@ -27,7 +27,6 @@ ApplicationWindow {
         BalanceUiRef {
             anchors.fill: parent
             appVersion: "dev"
-            gitHash: "mock"
             mCommands: MockCommandsRef {}
             mMcConf: MockConfigRef {}
             mCustomConf: MockConfigRef {}
