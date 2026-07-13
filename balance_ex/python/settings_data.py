@@ -670,8 +670,8 @@ startup_brake_current: Final[DoubleParameter] = DoubleParameter(
 )
 
 
-startup_brake_timeout: Final[IntParameter] = IntParameter(
-    name="brake_timeout",
+startup_brake_timeout_s: Final[IntParameter] = IntParameter(
+    name="brake_timeout_s",
     long_name="Brake Timeout",
     description=TextDescription(
         (
@@ -906,8 +906,8 @@ fault_duty: Final[DoubleParameter] = DoubleParameter(
 )
 
 
-fault_delay_pitch: Final[IntParameter] = IntParameter(
-    name="fault_delay_pitch",
+fault_delay_pitch_ms: Final[IntParameter] = IntParameter(
+    name="fault_delay_pitch_ms",
     long_name="Pitch Fault Delay",
     description=TextDescription("Pitch fault cutoff time delay in ms."),
     default=500,
@@ -917,8 +917,8 @@ fault_delay_pitch: Final[IntParameter] = IntParameter(
 )
 
 
-fault_delay_roll: Final[IntParameter] = IntParameter(
-    name="fault_delay_roll",
+fault_delay_roll_ms: Final[IntParameter] = IntParameter(
+    name="fault_delay_roll_ms",
     long_name="Roll Fault Delay",
     description=TextDescription("Roll fault cutoff time delay in ms."),
     maximum=10000,
@@ -927,8 +927,8 @@ fault_delay_roll: Final[IntParameter] = IntParameter(
 )
 
 
-fault_delay_duty: Final[IntParameter] = IntParameter(
-    name="fault_delay_duty",
+fault_delay_duty_ms: Final[IntParameter] = IntParameter(
+    name="fault_delay_duty_ms",
     long_name="Duty Fault Delay",
     description=TextDescription("Duty cycle cutoff time delay in ms."),
     default=1000,
@@ -1014,7 +1014,7 @@ GROUPS: Final[tuple[Group, ...]] = (
                     startup_speed,
                     Separator("Holding"),
                     startup_brake_current,
-                    startup_brake_timeout,
+                    startup_brake_timeout_s,
                 ),
             ),
             Subgroup(
@@ -1042,12 +1042,12 @@ GROUPS: Final[tuple[Group, ...]] = (
                 items=(
                     Separator("Angle Faults"),
                     fault_pitch,
-                    fault_delay_pitch,
+                    fault_delay_pitch_ms,
                     fault_roll,
-                    fault_delay_roll,
+                    fault_delay_roll_ms,
                     Separator("Speed Faults"),
                     fault_duty,
-                    fault_delay_duty,
+                    fault_delay_duty_ms,
                 ),
             ),
         ),

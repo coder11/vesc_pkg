@@ -3,7 +3,10 @@
 #include "math.h"
 #include "pt1.h"
 
-void reset_vars(data *d) {
+void reset_vars(BalanceApp *app) {
+	BalanceState *d = &app->state;
+	BalanceInput *input = &app->input;
+
 	// Clear accumulated values.
 	d->integral = 0;
 	d->last_error = 0;
@@ -17,7 +20,7 @@ void reset_vars(data *d) {
 	// Begin the process starting from the current pitch angle up to d->balance_conf.pitch_adjustment
 	// TOOD:: consider moving this part into a more appropriate place
 	d->state = CENTERING;
-	d->setpoint = d->pitch_angle;
+	d->setpoint = input->pitch_angle;
 	
 	d->tiltback_type = TITLBACK_NONE;
 	d->tiltback_target_interpolated = 0;
@@ -30,20 +33,21 @@ void reset_vars(data *d) {
 	biquad_reset(&d->torquetilt_current_biquad);
 	d->turntilt_target = 0;
 	d->turntilt_interpolated = 0;
-	d->current_time = 0;
-	d->last_time = 0;
-	d->diff_time = 0;
-	d->brake_timeout = 0;
-	d->last_erpm = d->erpm;
+	d->last_time_s = 0;
+	d->diff_time_s = 0;
+	d->brake_timeout_s = 0;
+	d->last_erpm = input->erpm;
 
-	ui_data_reset(d);
+	ui_data_reset(app);
 }
 
-void configure(data *d) {
-	// Set calculated values from config
-	d->loop_time_seconds = 1.0 / d->balance_conf.hertz;
+void configure(BalanceApp *app) {
+	BalanceState *d = &app->state;
 
-	d->motor_timeout_seconds = d->loop_time_seconds * 20; // Times 20 for a nice long grace period
+	// Set calculated values from config
+	d->loop_time_s = 1.0 / d->balance_conf.hertz;
+
+	d->motor_timeout_s = d->loop_time_s * 20; // Times 20 for a nice long grace period
 
 	d->center_target = d->balance_conf.setpoint_constant;
 	d->centering_step_size = d->balance_conf.startup_speed / d->balance_conf.hertz;
@@ -84,8 +88,8 @@ void configure(data *d) {
 	d->setpoint_speed_based = d->balance_conf.setpoint_speed_based / 1000;
 
 	// Reset loop time variables
-	d->last_time = 0.0;
-	d->filtered_loop_overshoot = 0.0;
+	d->last_time_s = 0.0;
+	d->filtered_loop_overshoot_s = 0.0;
 
-	ui_data_configure(d);
+	ui_data_configure(app);
 }

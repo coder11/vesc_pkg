@@ -14,46 +14,42 @@
 #include "data.h"
 
 // Disable output and break according to configuration
-void brake(data *d) {
+void brake(BalanceApp *app) {
+	BalanceState *d = &app->state;
+	BalanceInput *input = &app->input;
+
 	// Brake timeout logic
-	if (d->balance_conf.brake_timeout > 0 && (d->abs_erpm > 1 || d->brake_timeout == 0)) {
-		d->brake_timeout = d->current_time + d->balance_conf.brake_timeout;
+	if (d->balance_conf.brake_timeout_s > 0 && (d->abs_erpm > 1 || d->brake_timeout_s == 0)) {
+		d->brake_timeout_s = input->current_time_s + d->balance_conf.brake_timeout_s;
 	}
 
-	if (d->brake_timeout != 0 && d->current_time > d->brake_timeout) {
+	if (d->brake_timeout_s != 0 && input->current_time_s > d->brake_timeout_s) {
 		return;
 	}
 
-	// Reset the timeout
-	VESC_IF->timeout_reset();
-
-	// Set current
-	VESC_IF->mc_set_brake_current(d->balance_conf.brake_current);
+	app->output = BALANCE_OUTPUT_BRAKE;
 }
 
-void set_current(data *d) {
-    // while the vesc is sitting on the bale with wires exposed dont do anything :)
-    return;
+void set_current(BalanceApp *app) {
+	BalanceState *d = &app->state;
+	BalanceInput *input = &app->input;
 
 	// Limit current output to configured max output
-	if (d->output_current > 0 && d->output_current > VESC_IF->get_cfg_float(CFG_PARAM_l_current_max)) {
-		d->output_current = VESC_IF->get_cfg_float(CFG_PARAM_l_current_max);
-	} else if(d->output_current < 0 && d->output_current < VESC_IF->get_cfg_float(CFG_PARAM_l_current_min)) {
-		d->output_current = VESC_IF->get_cfg_float(CFG_PARAM_l_current_min);
+	if (d->output_current > 0 && d->output_current > input->current_max) {
+		d->output_current = input->current_max;
+	} else if(d->output_current < 0 && d->output_current < input->current_min) {
+		d->output_current = input->current_min;
 	}
 
-	// Reset the timeout
-	VESC_IF->timeout_reset();
-
-	// Set the current delay
-	VESC_IF->mc_set_current_off_delay(d->motor_timeout_seconds);
-	// Set Current
-	VESC_IF->mc_set_current(d->output_current);
+	app->output = BALANCE_OUTPUT_CURRENT;
 }
 
-void calculate_balance_current(data *d) {
+void calculate_balance_current(BalanceApp *app) {
+	BalanceState *d = &app->state;
+	BalanceInput *input = &app->input;
+
 	// Calcualte error
-	d->error = d->setpoint - d->pitch_angle;
+	d->error = d->setpoint - input->pitch_angle;
 	d->abs_error = fabsf(d->error);
 	d->sign_error = SIGN(d->error);
 	float kk = d->balance_conf.error_ln_slope;
@@ -88,9 +84,9 @@ void calculate_balance_current(data *d) {
 	d->output_current = d->pid_value;
 
 	if (d->balance_conf.pid_mode == BALANCE_PID_MODE_ANGLE_RATE_CASCADE) {
-		d->proportional2 = d->pid_value - d->gyro[1];
+		d->proportional2 = d->pid_value - input->gyro[1];
 		d->integral2 = d->integral2 + d->proportional2;
-		d->derivative2 = d->last_gyro_y - d->gyro[1];
+		d->derivative2 = d->last_gyro_y - input->gyro[1];
 
 		// Apply D term filter
 		if (d->balance_conf.kd2_pt1_lowpass_frequency > 0) {
@@ -120,65 +116,56 @@ void calculate_balance_current(data *d) {
 	d->last_error = d->error;
 }
 
-bool is_valid_startup_position(data *d, bool ignore_pitch) {
-	bool is_pitch_good = ignore_pitch
-		|| fabsf(d->pitch_angle) < d->balance_conf.startup_pitch_tolerance;
+bool is_valid_startup_position(BalanceApp *app, bool ignore_pitch) {
+	BalanceState *d = &app->state;
+	BalanceInput *input = &app->input;
 
-	bool is_roll_good = fabsf(d->roll_angle) < d->balance_conf.startup_roll_tolerance;
+	bool is_pitch_good = ignore_pitch
+		|| fabsf(input->pitch_angle) < d->balance_conf.startup_pitch_tolerance;
+
+	bool is_roll_good = fabsf(input->roll_angle) < d->balance_conf.startup_roll_tolerance;
 	return is_pitch_good && is_roll_good;
 }
 
-void balance_loop_tick(data *d) {
+void balance_loop_tick(BalanceApp *app) {
+	BalanceState *d = &app->state;
+	BalanceInput *input = &app->input;
+
+	app->output = BALANCE_OUTPUT_NONE;
+
     // Update times
-    d->current_time = VESC_IF->system_time();
-    if (d->last_time == 0) {
-        d->last_time = d->current_time;
+	if (d->last_time_s == 0) {
+		d->last_time_s = input->current_time_s;
     }
 
-    d->diff_time = d->current_time - d->last_time;
-    d->filtered_diff_time = 0.03 * d->diff_time + 0.97 * d->filtered_diff_time; // Purely a metric
-    d->last_time = d->current_time;
+	d->diff_time_s = input->current_time_s - d->last_time_s;
+	d->filtered_diff_time_s = 0.03 * d->diff_time_s + 0.97 * d->filtered_diff_time_s; // Purely a metric
+	d->last_time_s = input->current_time_s;
 
-    if (d->balance_conf.loop_time_filter > 0) {
-        d->loop_overshoot = d->diff_time - (d->loop_time_seconds - roundf(d->filtered_loop_overshoot));
-        d->filtered_loop_overshoot = d->loop_overshoot_alpha * d->loop_overshoot + (1.0 - d->loop_overshoot_alpha) * d->filtered_loop_overshoot;
+	if (d->balance_conf.loop_time_filter > 0) {
+		d->loop_overshoot_s = d->diff_time_s - (d->loop_time_s - roundf(d->filtered_loop_overshoot_s));
+		d->filtered_loop_overshoot_s = d->loop_overshoot_alpha * d->loop_overshoot_s + (1.0 - d->loop_overshoot_alpha) * d->filtered_loop_overshoot_s;
     }
 
-    // Set "last" values to previous loops values
-    d->last_pitch_angle = d->pitch_angle;
-    d->last_gyro_y = d->gyro[1];
-
-    // Get the values we want
-    d->motor_current = VESC_IF->mc_get_tot_current_directional_filtered();
-    d->pitch_angle = RAD2DEG_f(VESC_IF->imu_get_pitch());
-    d->roll_angle = RAD2DEG_f(VESC_IF->imu_get_roll());
-    d->abs_roll_angle = fabsf(d->roll_angle);
+	// Update values derived from the current input snapshot.
+	d->abs_roll_angle = fabsf(input->roll_angle);
     d->abs_roll_angle_sin = sinf(DEG2RAD_f(d->abs_roll_angle));
-    VESC_IF->imu_get_gyro(d->gyro);
-    d->duty_cycle = VESC_IF->mc_get_duty_cycle_now();
-    d->abs_duty_cycle = fabsf(d->duty_cycle);
-    d->erpm = VESC_IF->mc_get_rpm();
-    d->abs_erpm = fabsf(d->erpm);
-	ui_data_update(d);
-    d->last_erpm = d->erpm;
-
-    d->adc1 = VESC_IF->io_read_analog(VESC_PIN_ADC1);
-    d->adc2 = VESC_IF->io_read_analog(VESC_PIN_ADC2); // Returns -1.0 if the pin is missing on the hardware
-    if (d->adc2 < 0.0) {
-        d->adc2 = 0.0;
-    }
+	d->abs_duty_cycle = fabsf(input->duty_cycle);
+	d->abs_erpm = fabsf(input->erpm);
+	ui_data_update(app);
+	d->last_erpm = input->erpm;
 
     if(d->balance_conf.balance_enabled) {
         // Control Loop State Logic
         switch(d->state) {
         case (KILLSPIN):
-            brake(d);
+            brake(app);
             break;
 
         case (STARTUP):
-			brake(d);
-			if (VESC_IF->imu_startup_done()) {
-				engage_ready(d);
+			brake(app);
+			if (input->imu_startup_done) {
+				engage_ready(app);
 			}
 			break;
 
@@ -186,61 +173,63 @@ void balance_loop_tick(data *d) {
 		// Centering logic in future. E.g smooth out, use different PIDs or whatever
 		case (CENTERING):
 			// Check for faults in case we roll the wheel while its centering
-			if (check_faults(d, false)) {
+			if (check_faults(app, false)) {
 				break;
 			}
 
 			if(advance_interpolation(&d->setpoint, d->center_target, d->centering_step_size)) {
 				d->state = RUNNING;
 			}
-			calculate_balance_current(d);
-			set_current(d);
+			calculate_balance_current(app);
+			set_current(app);
 			break;
 
         case (RUNNING):
             // Check for faults
-            if (check_faults(d, false)) {
+            if (check_faults(app, false)) {
                 break;
             }
 
 			// apply various setpoint adjustments
 			d->setpoint = d->center_target;
-			apply_speed_tilt(d);
-            apply_torquetilt(d);
-            apply_turntilt(d);
+			apply_speed_tilt(app);
+            apply_torquetilt(app);
+            apply_turntilt(app);
 			clampf(&d->setpoint, d->balance_conf.setpoint_min, d->balance_conf.setpoint_max);
 
 			if(d->balance_conf.tiltback_enabled) {
 				// allow tiltback to work outside of clamp
-				apply_tiltback(d);
+				apply_tiltback(app);
 			}
 
-			calculate_balance_current(d);
-			set_current(d);
+			calculate_balance_current(app);
+			set_current(app);
             break;
 
         case (FAULT_ANGLE_PITCH):
         case (FAULT_ANGLE_ROLL):
         case (READY):
-            if (is_valid_startup_position(d, false)) {
-				engage_centering(d);
+            if (is_valid_startup_position(app, false)) {
+				engage_centering(app);
                 break;
             }
 
-            brake(d);
+            brake(app);
             break;
 
         case (FAULT_DUTY):
             // We need another fault to clear duty fault.
             // Otherwise duty fault will clear itself as soon as motor pauses, then motor will spool up again.
             // Rendering this fault useless.
-            check_faults(d, true);
+            check_faults(app, true);
 
-            brake(d);
+            brake(app);
             break;
         }
     }
 
-    // Delay between loops
-    VESC_IF->sleep_us((uint32_t)((d->loop_time_seconds - roundf(d->filtered_loop_overshoot)) * 1000000.0));
+	d->last_pitch_angle = input->pitch_angle;
+	d->last_gyro_y = input->gyro[1];
+	app->requested_sleep_us = (uint32_t)((d->loop_time_s -
+			roundf(d->filtered_loop_overshoot_s)) * 1000000.0f);
 }

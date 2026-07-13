@@ -3,17 +3,16 @@
 
 #include "data.h"
 
-void engage_centering(data *d);
+void engage_centering(BalanceApp *app);
 
-void engage_ready(data *d);
+void engage_ready(BalanceApp *app);
 
-void engage_killspin(data *d);
+void engage_killspin(BalanceApp *app);
 
-void disengage_killspin(data *d);
+void disengage_killspin(BalanceApp *app);
 
 // Fault checking order does not really matter. From a UX perspective, switch should be before angle.
-bool check_faults(data *d, bool ignoreTimers);
+bool check_faults(BalanceApp *app, bool ignoreTimers);
 
 #endif // FAULT_H
-
 

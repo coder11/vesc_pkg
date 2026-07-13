@@ -3,10 +3,9 @@
 
 #include "data.h"
 
-void apply_tiltback(data *d);
-void apply_speed_tilt(data *d);
-void apply_torquetilt(data *d);
-void apply_turntilt(data *d);
+void apply_tiltback(BalanceApp *app);
+void apply_speed_tilt(BalanceApp *app);
+void apply_torquetilt(BalanceApp *app);
+void apply_turntilt(BalanceApp *app);
 
 #endif // SETPOINT_H
-

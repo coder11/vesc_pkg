@@ -1,12 +1,10 @@
 #include "setpoint.h"
 #include "util.h"
 #include "biquad.h"
-#include "vesc_c_if.h"
-
 #include <math.h>
 #include <stdbool.h>
 
-float get_setpoint_adjustment_step_size(data *d) {
+float get_setpoint_adjustment_step_size(BalanceState *d) {
 	switch(d->tiltback_type){
 		case (TILTBACK_DUTY):
 			return d->tiltback_duty_step_size;
@@ -22,24 +20,27 @@ float get_setpoint_adjustment_step_size(data *d) {
 	return 0;
 }
 
-void apply_tiltback(data *d) {
+void apply_tiltback(BalanceApp *app) {
+	BalanceState *d = &app->state;
+	BalanceInput *input = &app->input;
+
 	if (d->abs_duty_cycle > d->balance_conf.tiltback_duty) {
-		if (d->erpm > 0) {
+		if (input->erpm > 0) {
 			d->tiltback_target = d->balance_conf.tiltback_duty_angle;
 		} else {
 			d->tiltback_target = -d->balance_conf.tiltback_duty_angle;
 		}
 		d->tiltback_type = TILTBACK_DUTY;
-	} else if (d->abs_duty_cycle > 0.05 && VESC_IF->mc_get_input_voltage_filtered() > d->balance_conf.tiltback_hv) {
-		if (d->erpm > 0){
+	} else if (d->abs_duty_cycle > 0.05 && input->input_voltage > d->balance_conf.tiltback_hv) {
+		if (input->erpm > 0){
 			d->tiltback_target = d->balance_conf.tiltback_hv_angle;
 		} else {
 			d->tiltback_target = -d->balance_conf.tiltback_hv_angle;
 		}
 
 		d->tiltback_type = TILTBACK_HV;
-	} else if (d->abs_duty_cycle > 0.05 && VESC_IF->mc_get_input_voltage_filtered() < d->balance_conf.tiltback_lv) {
-		if (d->erpm > 0) {
+	} else if (d->abs_duty_cycle > 0.05 && input->input_voltage < d->balance_conf.tiltback_lv) {
+		if (input->erpm > 0) {
 			d->tiltback_target = d->balance_conf.tiltback_lv_angle;
 		} else {
 			d->tiltback_target = -d->balance_conf.tiltback_lv_angle;
@@ -68,19 +69,22 @@ void apply_tiltback(data *d) {
 	}
 }
 
-void apply_speed_tilt(data *d){
-	float apply_speed_tilt_target = d->setpoint_speed_based * d->erpm;
+void apply_speed_tilt(BalanceApp *app){
+	BalanceState *d = &app->state;
+	float apply_speed_tilt_target = d->setpoint_speed_based * app->input.erpm;
 	advance_interpolation(&d->setpoint_speed_based_interpolated, apply_speed_tilt_target, d->setpoint_speed_based_step_size);
 	d->setpoint += d->setpoint_speed_based_interpolated;
 }
 
 // candidate for removal. Don't touch it for now
-void apply_torquetilt(data *d) {
+void apply_torquetilt(BalanceApp *app) {
+	BalanceState *d = &app->state;
+
 	// Filter current (Biquad)
 	if (d->balance_conf.torquetilt_filter > 0) {
-		d->torquetilt_filtered_current = biquad_process(&d->torquetilt_current_biquad, d->motor_current);
+		d->torquetilt_filtered_current = biquad_process(&d->torquetilt_current_biquad, app->input.motor_current);
 	} else {
-		d->torquetilt_filtered_current = d->motor_current;
+		d->torquetilt_filtered_current = app->input.motor_current;
 	}
 
 	// Wat is this line O_o
@@ -109,7 +113,9 @@ void apply_torquetilt(data *d) {
 	d->setpoint += d->torquetilt_interpolated;
 }
 
-void apply_turntilt(data *d) {
+void apply_turntilt(BalanceApp *app) {
+	BalanceState *d = &app->state;
+
 	// Calculate desired angle
 	d->turntilt_target = d->abs_roll_angle_sin * d->balance_conf.turntilt_strength;
 
@@ -122,7 +128,7 @@ void apply_turntilt(data *d) {
 	if (d->abs_erpm < d->balance_conf.turntilt_start_erpm) {
 		d->turntilt_target = 0;
 	} else {
-		d->turntilt_target *= SIGN(d->erpm);
+		d->turntilt_target *= SIGN(app->input.erpm);
 	}
 
 	// Apply speed scaling
@@ -144,4 +150,3 @@ void apply_turntilt(data *d) {
 	advance_interpolation(&d->turntilt_interpolated, d->turntilt_target, d->turntilt_step_size);
 	d->setpoint += d->turntilt_interpolated;
 }
-

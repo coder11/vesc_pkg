@@ -21,9 +21,11 @@
 #ifndef DATA_H_
 #define DATA_H_
 
-#include "vesc_c_if.h"
 #include "conf/datatypes.h"
 #include "biquad.h"
+
+#include <stdbool.h>
+#include <stdint.h>
 
 typedef enum {
 	STARTUP = 0,
@@ -34,7 +36,7 @@ typedef enum {
 	FAULT_DUTY = 5,
 	READY = 6,
 	KILLSPIN = 7
-} BalanceState;
+} BalanceMode;
 
 typedef enum {
 	TITLBACK_NONE = 0,
@@ -43,6 +45,33 @@ typedef enum {
 	TILTBACK_LV = 3,
 	TILTBACK_BACKING_OFF = 4
 } TiltbackType;
+
+typedef struct {
+	float current_time_s;
+	float pitch_angle;
+	float roll_angle;
+	float gyro[3];
+	float duty_cycle;
+	float erpm;
+	float motor_current;
+	float input_voltage;
+	float adc1;
+	float adc2;
+	bool imu_startup_done;
+
+	// Values from the VESC motor and application configuration.
+	float current_max;
+	float current_min;
+	float wheel_diameter;
+	int motor_poles;
+	int battery_cells;
+} BalanceInput;
+
+typedef enum {
+	BALANCE_OUTPUT_NONE = 0,
+	BALANCE_OUTPUT_CURRENT = 1,
+	BALANCE_OUTPUT_BRAKE = 2
+} BalanceOutput;
 
 typedef struct {
 	// Config values
@@ -68,24 +97,19 @@ typedef struct {
 // main firmware and managed from there). This is probably the main limitation of
 // loading applications in runtime, but it is not too bad to work around.
 typedef struct {
-	lib_thread thread; // Balance Thread
-
 	balance_config balance_conf;
 
 	// Config values
-	float loop_time_seconds;
+	float loop_time_s;
 	float centering_step_size;
 	float tiltback_duty_step_size, tiltback_hv_step_size, tiltback_lv_step_size, tiltback_return_step_size;
 	float torquetilt_on_step_size, torquetilt_off_step_size, turntilt_step_size;
 	float setpoint_speed_based, setpoint_speed_based_step_size;
 
-	// Runtime values read from elsewhere
-	float pitch_angle, last_pitch_angle, roll_angle, abs_roll_angle, abs_roll_angle_sin, last_gyro_y;
-	float gyro[3];
-	float duty_cycle, abs_duty_cycle;
-	float erpm, abs_erpm, last_erpm;
-	float motor_current;
-	float adc1, adc2;
+	// Derived and previous input values
+	float last_pitch_angle, abs_roll_angle, abs_roll_angle_sin, last_gyro_y;
+	float abs_duty_cycle;
+	float abs_erpm, last_erpm;
 
 	// Data for UI
 	UIData ui_data;
@@ -96,7 +120,7 @@ typedef struct {
 
 
 	// Rumtime state values
-	BalanceState state;
+	BalanceMode state;
 	float proportional, exponential, integral, derivative, proportional2, integral2, derivative2;
 	float error, last_error, abs_error, sign_error;
 	float pid_value, pid_value2;
@@ -107,19 +131,25 @@ typedef struct {
 	Biquad torquetilt_current_biquad;
 	float turntilt_target, turntilt_interpolated;
 	TiltbackType tiltback_type;
-	float current_time, last_time, diff_time, loop_overshoot; // Seconds
-	float filtered_loop_overshoot, loop_overshoot_alpha, filtered_diff_time;
-	float fault_angle_pitch_timer, fault_angle_roll_timer, fault_duty_timer; // Seconds
+	float last_time_s, diff_time_s, loop_overshoot_s;
+	float filtered_loop_overshoot_s, loop_overshoot_alpha, filtered_diff_time_s;
+	float fault_angle_pitch_timer_s, fault_angle_roll_timer_s, fault_duty_timer_s;
 	float d_pt1_lowpass_state, d_pt1_lowpass_k, d_pt1_highpass_state, d_pt1_highpass_k;
 	float d2_pt1_lowpass_state, d2_pt1_lowpass_k;
-	
-	float output_current;
-	float motor_timeout_seconds;
-	float brake_timeout; // Seconds
-} data;
 
-void reset_vars(data *d);
-void configure(data *d);
+	float output_current;
+	float motor_timeout_s;
+	float brake_timeout_s;
+} BalanceState;
+
+typedef struct {
+	BalanceInput input;
+	BalanceState state;
+	BalanceOutput output;
+	uint32_t requested_sleep_us;
+} BalanceApp;
+
+void reset_vars(BalanceApp *app);
+void configure(BalanceApp *app);
 
 #endif // DATA_H_
-

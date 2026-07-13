@@ -936,7 +936,7 @@ p, li { white-space: pre-wrap; }
             <suffix> A</suffix>
             <vTx>9</vTx>
         </brake_current>
-        <brake_timeout>
+        <brake_timeout_s>
             <longName>Brake Timeout</longName>
             <type>2</type>
             <transmittable>1</transmittable>
@@ -945,7 +945,7 @@ p, li { white-space: pre-wrap; }
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'Roboto'; ; font-weight:400; font-style:normal;"&gt;
 &lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;Turn off the brake after this many seconds. It will automatically reactivate if the motor moves. 0 = Disabled.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
-            <cDefine>APPCONF_BALANCE_BRAKE_TIMEOUT</cDefine>
+            <cDefine>APPCONF_BALANCE_BRAKE_TIMEOUT_S</cDefine>
             <editorScale>1</editorScale>
             <editAsPercentage>0</editAsPercentage>
             <maxInt>10000</maxInt>
@@ -955,7 +955,7 @@ p, li { white-space: pre-wrap; }
             <valInt>10</valInt>
             <suffix> s</suffix>
             <vTx>3</vTx>
-        </brake_timeout>
+        </brake_timeout_s>
         <tiltback_enabled>
             <longName>Tiltback enabled</longName>
             <type>5</type>
@@ -1210,7 +1210,7 @@ p, li { white-space: pre-wrap; }
             <suffix> °</suffix>
             <vTx>9</vTx>
         </fault_pitch>
-        <fault_delay_pitch>
+        <fault_delay_pitch_ms>
             <longName>Pitch Fault Delay</longName>
             <type>2</type>
             <transmittable>1</transmittable>
@@ -1219,7 +1219,7 @@ p, li { white-space: pre-wrap; }
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'Roboto'; ; font-weight:400; font-style:normal;"&gt;
 &lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;Pitch fault cutoff time delay in ms.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
-            <cDefine>APPCONF_BALANCE_FAULT_DELAY_PITCH</cDefine>
+            <cDefine>APPCONF_BALANCE_FAULT_DELAY_PITCH_MS</cDefine>
             <editorScale>1</editorScale>
             <editAsPercentage>0</editAsPercentage>
             <maxInt>10000</maxInt>
@@ -1229,7 +1229,7 @@ p, li { white-space: pre-wrap; }
             <valInt>500</valInt>
             <suffix> ms</suffix>
             <vTx>3</vTx>
-        </fault_delay_pitch>
+        </fault_delay_pitch_ms>
         <fault_roll>
             <longName>Roll Axis Fault Cutoff</longName>
             <type>1</type>
@@ -1252,7 +1252,7 @@ p, li { white-space: pre-wrap; }
             <suffix> °</suffix>
             <vTx>9</vTx>
         </fault_roll>
-        <fault_delay_roll>
+        <fault_delay_roll_ms>
             <longName>Roll Fault Delay</longName>
             <type>2</type>
             <transmittable>1</transmittable>
@@ -1261,7 +1261,7 @@ p, li { white-space: pre-wrap; }
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'Roboto'; ; font-weight:400; font-style:normal;"&gt;
 &lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;Roll fault cutoff time delay in ms.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
-            <cDefine>APPCONF_BALANCE_FAULT_DELAY_ROLL</cDefine>
+            <cDefine>APPCONF_BALANCE_FAULT_DELAY_ROLL_MS</cDefine>
             <editorScale>1</editorScale>
             <editAsPercentage>0</editAsPercentage>
             <maxInt>10000</maxInt>
@@ -1271,7 +1271,7 @@ p, li { white-space: pre-wrap; }
             <valInt>0</valInt>
             <suffix> ms</suffix>
             <vTx>3</vTx>
-        </fault_delay_roll>
+        </fault_delay_roll_ms>
         <fault_duty>
             <longName>Duty Cycle Fault Cutoff</longName>
             <type>1</type>
@@ -1294,7 +1294,7 @@ p, li { white-space: pre-wrap; }
             <suffix />
             <vTx>9</vTx>
         </fault_duty>
-        <fault_delay_duty>
+        <fault_delay_duty_ms>
             <longName>Duty Fault Delay</longName>
             <type>2</type>
             <transmittable>1</transmittable>
@@ -1303,7 +1303,7 @@ p, li { white-space: pre-wrap; }
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'Roboto'; ; font-weight:400; font-style:normal;"&gt;
 &lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;Duty cycle cutoff time delay in ms.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description>
-            <cDefine>APPCONF_BALANCE_FAULT_DELAY_DUTY</cDefine>
+            <cDefine>APPCONF_BALANCE_FAULT_DELAY_DUTY_MS</cDefine>
             <editorScale>1</editorScale>
             <editAsPercentage>0</editAsPercentage>
             <maxInt>10000</maxInt>
@@ -1313,7 +1313,7 @@ p, li { white-space: pre-wrap; }
             <valInt>1000</valInt>
             <suffix> ms</suffix>
             <vTx>3</vTx>
-        </fault_delay_duty>
+        </fault_delay_duty_ms>
     </Params>
     <SerOrder>
         <ser>balance_enabled</ser>
@@ -1358,7 +1358,7 @@ p, li { white-space: pre-wrap; }
         <ser>startup_roll_tolerance</ser>
         <ser>startup_speed</ser>
         <ser>brake_current</ser>
-        <ser>brake_timeout</ser>
+        <ser>brake_timeout_s</ser>
         <ser>tiltback_enabled</ser>
         <ser>tiltback_return_speed</ser>
         <ser>tiltback_duty</ser>
@@ -1371,11 +1371,11 @@ p, li { white-space: pre-wrap; }
         <ser>tiltback_lv_angle</ser>
         <ser>tiltback_lv_speed</ser>
         <ser>fault_pitch</ser>
-        <ser>fault_delay_pitch</ser>
+        <ser>fault_delay_pitch_ms</ser>
         <ser>fault_roll</ser>
-        <ser>fault_delay_roll</ser>
+        <ser>fault_delay_roll_ms</ser>
         <ser>fault_duty</ser>
-        <ser>fault_delay_duty</ser>
+        <ser>fault_delay_duty_ms</ser>
     </SerOrder>
     <Grouping>
         <group>
@@ -1452,7 +1452,7 @@ p, li { white-space: pre-wrap; }
                     <param>startup_speed</param>
                     <param>::sep::Holding</param>
                     <param>brake_current</param>
-                    <param>brake_timeout</param>
+                    <param>brake_timeout_s</param>
                 </subgroupParams>
             </subgroup>
             <subgroup>
@@ -1480,12 +1480,12 @@ p, li { white-space: pre-wrap; }
                 <subgroupParams>
                     <param>::sep::Angle Faults</param>
                     <param>fault_pitch</param>
-                    <param>fault_delay_pitch</param>
+                    <param>fault_delay_pitch_ms</param>
                     <param>fault_roll</param>
-                    <param>fault_delay_roll</param>
+                    <param>fault_delay_roll_ms</param>
                     <param>::sep::Speed Faults</param>
                     <param>fault_duty</param>
-                    <param>fault_delay_duty</param>
+                    <param>fault_delay_duty_ms</param>
                 </subgroupParams>
             </subgroup>
         </group>

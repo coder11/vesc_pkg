@@ -3,19 +3,23 @@
 
 #include <math.h>
 
-void engage_centering(data *d) {
-	reset_vars(d);
-	d->setpoint = d->pitch_angle;
+void engage_centering(BalanceApp *app) {
+	BalanceState *d = &app->state;
+	reset_vars(app);
+	d->setpoint = app->input.pitch_angle;
 	d->state = CENTERING;
 }
 
-void engage_ready(data *d) {
-	reset_vars(d);
+void engage_ready(BalanceApp *app) {
+	BalanceState *d = &app->state;
+	reset_vars(app);
 	// Trigger a fault so we need to meet start conditions to start
 	d->state = READY;
 }
 
-void engage_killspin(data *d) {
+void engage_killspin(BalanceApp *app) {
+	BalanceState *d = &app->state;
+
 	if(d->state == KILLSPIN) {
 		// allready engaged, do nothing
 		return;
@@ -29,44 +33,49 @@ void engage_killspin(data *d) {
 	d->state = KILLSPIN;
 }
 
-void disengage_killspin(data *d) {
+void disengage_killspin(BalanceApp *app) {
+	BalanceState *d = &app->state;
+
 	if(d->state != KILLSPIN) {
 		// allready disengaged, do nothing
 		return;
 	}
 
-	engage_ready(d);
+	engage_ready(app);
 }
 
-bool check_faults(data *d, bool ignoreTimers){
+bool check_faults(BalanceApp *app, bool ignoreTimers){
+	BalanceState *d = &app->state;
+	BalanceInput *input = &app->input;
+
 	// Check pitch angle
-	if (fabsf(d->pitch_angle) > d->balance_conf.fault_pitch) {
-		if ((1000.0 * (d->current_time - d->fault_angle_pitch_timer)) > d->balance_conf.fault_delay_pitch || ignoreTimers) {
+	if (fabsf(input->pitch_angle) > d->balance_conf.fault_pitch) {
+		if ((1000.0 * (input->current_time_s - d->fault_angle_pitch_timer_s)) > d->balance_conf.fault_delay_pitch_ms || ignoreTimers) {
 			d->state = FAULT_ANGLE_PITCH;
 			return true;
 		}
 	} else {
-		d->fault_angle_pitch_timer = d->current_time;
+		d->fault_angle_pitch_timer_s = input->current_time_s;
 	}
 
 	// Check roll angle
-	if (fabsf(d->roll_angle) > d->balance_conf.fault_roll) {
-		if ((1000.0 * (d->current_time - d->fault_angle_roll_timer)) > d->balance_conf.fault_delay_roll || ignoreTimers) {
+	if (fabsf(input->roll_angle) > d->balance_conf.fault_roll) {
+		if ((1000.0 * (input->current_time_s - d->fault_angle_roll_timer_s)) > d->balance_conf.fault_delay_roll_ms || ignoreTimers) {
 			d->state = FAULT_ANGLE_ROLL;
 			return true;
 		}
 	} else {
-		d->fault_angle_roll_timer = d->current_time;
+		d->fault_angle_roll_timer_s = input->current_time_s;
 	}
 
 	// Check for duty
 	if (d->abs_duty_cycle > d->balance_conf.fault_duty){
-		if ((1000.0 * (d->current_time - d->fault_duty_timer)) > d->balance_conf.fault_delay_duty || ignoreTimers) {
+		if ((1000.0 * (input->current_time_s - d->fault_duty_timer_s)) > d->balance_conf.fault_delay_duty_ms || ignoreTimers) {
 			d->state = FAULT_DUTY;
 			return true;
 		}
 	} else {
-		d->fault_duty_timer = d->current_time;
+		d->fault_duty_timer_s = input->current_time_s;
 	}
 
 	return false;

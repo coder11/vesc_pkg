@@ -71,7 +71,7 @@ typedef struct {
 	float startup_roll_tolerance;
 	float startup_speed;
 	float brake_current;
-	uint16_t brake_timeout;
+	uint16_t brake_timeout_s;
 	bool tiltback_enabled;
 	float tiltback_return_speed;
 	float tiltback_duty;
@@ -84,11 +84,11 @@ typedef struct {
 	float tiltback_lv_angle;
 	float tiltback_lv_speed;
 	float fault_pitch;
-	uint16_t fault_delay_pitch;
+	uint16_t fault_delay_pitch_ms;
 	float fault_roll;
-	uint16_t fault_delay_roll;
+	uint16_t fault_delay_roll_ms;
 	float fault_duty;
-	uint16_t fault_delay_duty;
+	uint16_t fault_delay_duty_ms;
 } balance_config;
 
 // DATATYPES_H_

@@ -11,6 +11,6 @@
 #include "util.h"
 #include "data.h"
 
-void balance_loop_tick(data *d);
+void balance_loop_tick(BalanceApp *app);
 
 #endif // BALANCE_H

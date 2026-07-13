@@ -27,6 +27,7 @@
 
 #include "data.h"
 #include "communication.h"
+#include "vesc_balance.h"
 
 HEADER
 
@@ -51,133 +52,137 @@ static void beep_ms(int duration_ms) {
 
 
 static void balance_thd(void *arg) {
-	data *d = (data*)arg;
+	VescBalanceApp *app = (VescBalanceApp*)arg;
 
 	beep_ms(100);
 	VESC_IF->sleep_ms(50);
 	beep_ms(100);
 
-	while (!VESC_IF->should_terminate()) {
-		balance_loop_tick(d);
-	}
+	vesc_balance_loop(app);
+}
+
+static VescBalanceApp *vesc_app_from_arg(void) {
+	return (VescBalanceApp*)ARG;
+}
+
+static BalanceApp *balance_app_from_arg(void) {
+	return &vesc_app_from_arg()->balance;
 }
 
 // Handler for incoming app commands
 static void on_command_recieved_handler(unsigned char *buffer, unsigned int len) {
-	data *d = (data*)ARG;
-
-	on_command_recieved(d, buffer, len);
+	on_command_recieved(balance_app_from_arg(), buffer, len);
 }
 
 static lbm_value ext_get_proportional(lbm_value *args, lbm_uint argn) {
 	(void)args;
 	(void)argn;
-	data *d = (data*)ARG;
+	BalanceState *d = &balance_app_from_arg()->state;
 	return VESC_IF->lbm_enc_float(d->proportional * d->balance_conf.kp);
 }
 
 static lbm_value ext_get_proportional2(lbm_value *args, lbm_uint argn) {
 	(void)args;
 	(void)argn;
-	data *d = (data*)ARG;
+	BalanceState *d = &balance_app_from_arg()->state;
 	return VESC_IF->lbm_enc_float(d->proportional2 * d->balance_conf.kp2);
 }
 
 static lbm_value ext_get_integral(lbm_value *args, lbm_uint argn) {
 	(void)args;
 	(void)argn;
-	data *d = (data*)ARG;
+	BalanceState *d = &balance_app_from_arg()->state;
 	return VESC_IF->lbm_enc_float(d->integral * d->balance_conf.ki);
 }
 
 static lbm_value ext_get_integral2(lbm_value *args, lbm_uint argn) {
 	(void)args;
 	(void)argn;
-	data *d = (data*)ARG;
+	BalanceState *d = &balance_app_from_arg()->state;
 	return VESC_IF->lbm_enc_float(d->integral2 * d->balance_conf.ki2);
 }
 
 static lbm_value ext_get_derivative(lbm_value *args, lbm_uint argn) {
 	(void)args;
 	(void)argn;
-	data *d = (data*)ARG;
+	BalanceState *d = &balance_app_from_arg()->state;
 	return VESC_IF->lbm_enc_float(d->derivative * d->balance_conf.kd);
 }
 
 static lbm_value ext_get_derivative2(lbm_value *args, lbm_uint argn) {
 	(void)args;
 	(void)argn;
-	data *d = (data*)ARG;
+	BalanceState *d = &balance_app_from_arg()->state;
 	return VESC_IF->lbm_enc_float(d->derivative2 * d->balance_conf.kd2);
 }
 
 static lbm_value ext_get_pid_value(lbm_value *args, lbm_uint argn) {
 	(void)args;
 	(void)argn;
-	data *d = (data*)ARG;
+	BalanceState *d = &balance_app_from_arg()->state;
 	return VESC_IF->lbm_enc_float(d->pid_value);
 }
 
 static lbm_value ext_get_pid_rate_value(lbm_value *args, lbm_uint argn) {
 	(void)args;
 	(void)argn;
-	data *d = (data*)ARG;
+	BalanceState *d = &balance_app_from_arg()->state;
 	return VESC_IF->lbm_enc_float(d->pid_value2);
 }
 
 static lbm_value ext_get_erpm_accel(lbm_value *args, lbm_uint argn) {
 	(void)args;
 	(void)argn;
-	data *d = (data*)ARG;
+	BalanceState *d = &balance_app_from_arg()->state;
 	return VESC_IF->lbm_enc_float(d->erpm_accel);
 }
 
 static lbm_value ext_get_motor_load(lbm_value *args, lbm_uint argn) {
 	(void)args;
 	(void)argn;
-	data *d = (data*)ARG;
+	BalanceState *d = &balance_app_from_arg()->state;
 	return VESC_IF->lbm_enc_float(d->motor_load);
 }
 
 static lbm_value ext_get_motor_accel_load(lbm_value *args, lbm_uint argn) {
 	(void)args;
 	(void)argn;
-	data *d = (data*)ARG;
+	BalanceState *d = &balance_app_from_arg()->state;
 	return VESC_IF->lbm_enc_float(d->motor_accel_load);
 }
 
 static lbm_value ext_get_voltage_filtered(lbm_value *args, lbm_uint argn) {
 	(void)args;
 	(void)argn;
-	data *d = (data*)ARG;
+	BalanceState *d = &balance_app_from_arg()->state;
 	return VESC_IF->lbm_enc_float(d->ui_data.voltage_lowpass_state);
 }
 
 static lbm_value ext_get_motor_load_filtered(lbm_value *args, lbm_uint argn) {
 	(void)args;
 	(void)argn;
-	data *d = (data*)ARG;
+	BalanceState *d = &balance_app_from_arg()->state;
 	return VESC_IF->lbm_enc_float(d->ui_data.motor_load_lowpass_state);
 }
 
 static lbm_value ext_get_motor_accel_load_filtered(lbm_value *args, lbm_uint argn) {
 	(void)args;
 	(void)argn;
-	data *d = (data*)ARG;
+	BalanceState *d = &balance_app_from_arg()->state;
 	return VESC_IF->lbm_enc_float(d->ui_data.motor_accel_load_lowpass_state);
 }
 
 static lbm_value ext_get_rpm(lbm_value *args, lbm_uint argn) {
 	(void)args;
 	(void)argn;
-	data *d = (data*)ARG;
+	BalanceState *d = &balance_app_from_arg()->state;
 	return VESC_IF->lbm_enc_float(d->ui_data.rpm);
 }
 
 // These functions are used to send the config page to VESC Tool
 // and to make persistent read and write work
 static int get_cfg(uint8_t *buffer, bool is_default) {
-	data *d = (data*)ARG;
+	BalanceState *d = &balance_app_from_arg()->state;
 	balance_config *cfg = VESC_IF->malloc(sizeof(balance_config));
 
 	*cfg = d->balance_conf;
@@ -193,7 +198,8 @@ static int get_cfg(uint8_t *buffer, bool is_default) {
 }
 
 static bool set_cfg(uint8_t *buffer) {
-	data *d = (data*)ARG;
+	BalanceApp *app = balance_app_from_arg();
+	BalanceState *d = &app->state;
 	bool res = confparser_deserialize_balance_config(buffer, &(d->balance_conf));
 
 	// Store to EEPROM
@@ -219,7 +225,7 @@ static bool set_cfg(uint8_t *buffer) {
 			VESC_IF->store_eeprom_var(&v, 0);
 		}
 
-		configure(d);
+		configure(app);
 	}
 
 	return res;
@@ -236,24 +242,25 @@ static int get_cfg_xml(uint8_t **buffer) {
 
 // Called when code is stopped
 static void stop(void *arg) {
-	data *d = (data*)arg;
+	VescBalanceApp *app = (VescBalanceApp*)arg;
 	VESC_IF->set_app_data_handler(NULL);
 	VESC_IF->conf_custom_clear_configs();
-	VESC_IF->request_terminate(d->thread);
+	VESC_IF->request_terminate(app->thread);
 	VESC_IF->printf("Balance App Terminated");
-	VESC_IF->free(d);
+	VESC_IF->free(app);
 }
 
 INIT_FUN(lib_info *info) {
 	INIT_START
 
-	data *d = VESC_IF->malloc(sizeof(data));
-	if (!d) {
+	VescBalanceApp *app = VESC_IF->malloc(sizeof(VescBalanceApp));
+	if (!app) {
 		VESC_IF->printf("Out of memory!");
 		return false;
 	}
 
-	memset(d, 0, sizeof(data));
+	memset(app, 0, sizeof(VescBalanceApp));
+	BalanceState *state = &app->balance.state;
 
 	// Read config from EEPROM if signature is correct
 	eeprom_var v;
@@ -273,21 +280,22 @@ INIT_FUN(lib_info *info) {
 	}
 
 	if (read_ok) {
-		memcpy(&(d->balance_conf), buffer, sizeof(balance_config));
+		memcpy(&state->balance_conf, buffer, sizeof(balance_config));
 	} else {
-		confparser_set_defaults_balance_config(&(d->balance_conf));
+		confparser_set_defaults_balance_config(&state->balance_conf);
 	}
 
 	VESC_IF->free(buffer);
 
 	info->stop_fun = stop;
-	info->arg = d;
+	info->arg = app;
 
 	VESC_IF->conf_custom_add_config(get_cfg, set_cfg, get_cfg_xml);
 
-	configure(d);
+	vesc_read_input(app);
+	configure(&app->balance);
 
-	d->thread = VESC_IF->spawn(balance_thd, 2048, "Balance Main", d);
+	app->thread = VESC_IF->spawn(balance_thd, 2048, "Balance Main", app);
 
 	VESC_IF->set_app_data_handler(on_command_recieved_handler);
 
